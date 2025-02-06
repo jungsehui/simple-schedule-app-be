@@ -9,6 +9,7 @@ public record ReadTutorResponse(
         String username,
         String password
 ) {
+
     public static ReadTutorResponse from(Tutor tutor) {
         return new ReadTutorResponse(
                 tutor.getName(),
