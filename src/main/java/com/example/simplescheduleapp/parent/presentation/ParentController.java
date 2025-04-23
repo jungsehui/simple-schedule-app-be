@@ -1,8 +1,8 @@
-package com.example.simplescheduleappback.parent.presentation;
+package com.example.simplescheduleapp.parent.presentation;
 
-import com.example.simplescheduleappback.parent.application.ParentService;
-import com.example.simplescheduleappback.parent.application.command.ParentSignUpCommand;
-import com.example.simplescheduleappback.parent.presentation.request.ParentSignUpRequest;
+import com.example.simplescheduleapp.parent.application.ParentService;
+import com.example.simplescheduleapp.parent.application.command.ParentSignUpCommand;
+import com.example.simplescheduleapp.parent.presentation.request.ParentSignUpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

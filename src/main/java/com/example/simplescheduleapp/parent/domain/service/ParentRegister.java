@@ -1,10 +1,10 @@
-package com.example.simplescheduleappback.parent.domain.service;
+package com.example.simplescheduleapp.parent.domain.service;
 
-import com.example.simplescheduleappback.common.exception.ApplicationException;
-import com.example.simplescheduleappback.member.domain.service.MemberRegister;
-import com.example.simplescheduleappback.member.exception.MemberExceptionCode;
-import com.example.simplescheduleappback.parent.domain.entity.Parent;
-import com.example.simplescheduleappback.parent.domain.repository.ParentRepository;
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.member.domain.service.MemberRegister;
+import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
+import com.example.simplescheduleapp.parent.domain.entity.Parent;
+import com.example.simplescheduleapp.parent.domain.repository.ParentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;

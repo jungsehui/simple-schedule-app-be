@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.parent.presentation.request;
+package com.example.simplescheduleapp.parent.presentation.request;
 
-import com.example.simplescheduleappback.parent.application.command.ParentSignUpCommand;
+import com.example.simplescheduleapp.parent.application.command.ParentSignUpCommand;
 
 public record ParentSignUpRequest(
         String username,

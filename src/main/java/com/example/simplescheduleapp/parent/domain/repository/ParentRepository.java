@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.parent.domain.repository;
+package com.example.simplescheduleapp.parent.domain.repository;
 
-import com.example.simplescheduleappback.parent.domain.entity.Parent;
+import com.example.simplescheduleapp.parent.domain.entity.Parent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
