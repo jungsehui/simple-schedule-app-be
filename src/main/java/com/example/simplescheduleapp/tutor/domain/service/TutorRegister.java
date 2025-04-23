@@ -1,14 +1,14 @@
-package com.example.simplescheduleappback.tutor.domain.service;
+package com.example.simplescheduleapp.tutor.domain.service;
 
-import com.example.simplescheduleappback.common.exception.ApplicationException;
-import com.example.simplescheduleappback.member.domain.service.MemberRegister;
-import com.example.simplescheduleappback.tutor.domain.entity.Tutor;
-import com.example.simplescheduleappback.tutor.domain.repository.TutorRepository;
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.member.domain.service.MemberRegister;
+import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
+import com.example.simplescheduleapp.tutor.domain.repository.TutorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
-import static com.example.simplescheduleappback.member.exception.MemberExceptionCode.DUPLICATED_USERNAME_PHONE;
+import static com.example.simplescheduleapp.member.exception.MemberExceptionCode.DUPLICATED_USERNAME_PHONE;
 
 @RequiredArgsConstructor
 @Component

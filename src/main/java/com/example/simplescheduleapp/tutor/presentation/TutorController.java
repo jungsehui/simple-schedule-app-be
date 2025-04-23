@@ -1,18 +1,16 @@
-package com.example.simplescheduleappback.tutor.presentation;
+package com.example.simplescheduleapp.tutor.presentation;
 
-import com.example.simplescheduleappback.common.auth.Token;
-import com.example.simplescheduleappback.common.auth.TokenService;
-import com.example.simplescheduleappback.member.presentation.response.LoginResponse;
-import com.example.simplescheduleappback.tutor.application.TutorService;
-import com.example.simplescheduleappback.tutor.application.command.TutorSignUpCommand;
-import com.example.simplescheduleappback.tutor.presentation.request.TutorSignUpRequest;
+import com.example.simplescheduleapp.common.auth.Token;
+import com.example.simplescheduleapp.common.auth.TokenService;
+import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
+import com.example.simplescheduleapp.tutor.application.TutorService;
+import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
+import com.example.simplescheduleapp.tutor.presentation.request.TutorSignUpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
 
 @RequiredArgsConstructor
 @RestController

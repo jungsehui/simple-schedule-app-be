@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.tutor.domain.repository;
+package com.example.simplescheduleapp.tutor.domain.repository;
 
-import com.example.simplescheduleappback.tutor.domain.entity.Tutor;
+import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

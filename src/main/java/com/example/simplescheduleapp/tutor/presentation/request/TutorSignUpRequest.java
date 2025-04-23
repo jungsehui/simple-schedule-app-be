@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.tutor.presentation.request;
+package com.example.simplescheduleapp.tutor.presentation.request;
 
-import com.example.simplescheduleappback.tutor.application.command.TutorSignUpCommand;
+import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
 
 public record TutorSignUpRequest(
         String username,

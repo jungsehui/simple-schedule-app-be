@@ -1,8 +1,8 @@
-package com.example.simplescheduleappback.tutor.application;
+package com.example.simplescheduleapp.tutor.application;
 
-import com.example.simplescheduleappback.tutor.application.command.TutorSignUpCommand;
-import com.example.simplescheduleappback.tutor.domain.entity.Tutor;
-import com.example.simplescheduleappback.tutor.domain.service.TutorRegister;
+import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
+import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
+import com.example.simplescheduleapp.tutor.domain.service.TutorRegister;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

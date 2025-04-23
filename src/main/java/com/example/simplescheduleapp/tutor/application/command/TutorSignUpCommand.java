@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.tutor.application.command;
+package com.example.simplescheduleapp.tutor.application.command;
 
-import com.example.simplescheduleappback.tutor.domain.entity.Tutor;
+import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
 
 public record TutorSignUpCommand(
         String username,

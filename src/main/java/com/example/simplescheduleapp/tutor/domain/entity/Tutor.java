@@ -1,8 +1,8 @@
-package com.example.simplescheduleappback.tutor.domain.entity;
+package com.example.simplescheduleapp.tutor.domain.entity;
 
-import com.example.simplescheduleappback.consultation.domain.entity.Consultation;
-import com.example.simplescheduleappback.lecture.domain.entity.Lecture;
-import com.example.simplescheduleappback.member.domain.entity.Member;
+import com.example.simplescheduleapp.consultation.domain.entity.Consultation;
+import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
+import com.example.simplescheduleapp.member.domain.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
