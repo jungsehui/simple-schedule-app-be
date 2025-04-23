@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.lecture.application;
+package com.example.simplescheduleapp.lecture.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
