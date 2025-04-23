@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.member.exception;
+package com.example.simplescheduleapp.member.exception;
 
-import com.example.simplescheduleappback.common.exception.ExceptionCode;
+import com.example.simplescheduleapp.common.exception.ExceptionCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 

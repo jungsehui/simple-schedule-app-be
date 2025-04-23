@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.member.application.command;
+package com.example.simplescheduleapp.member.application.command;
 
 public record SignUpCommand() {
 }

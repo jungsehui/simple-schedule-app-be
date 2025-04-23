@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.member.presentation.response;
+package com.example.simplescheduleapp.member.presentation.response;
 
 public record LoginResponse(
         Long memberId,

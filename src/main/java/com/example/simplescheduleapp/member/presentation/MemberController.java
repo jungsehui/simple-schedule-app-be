@@ -1,11 +1,10 @@
-package com.example.simplescheduleappback.member.presentation;
+package com.example.simplescheduleapp.member.presentation;
 
-import com.example.simplescheduleappback.common.auth.Token;
-import com.example.simplescheduleappback.common.auth.TokenService;
-import com.example.simplescheduleappback.member.application.MemberService;
-import com.example.simplescheduleappback.member.presentation.request.LoginRequest;
-import com.example.simplescheduleappback.member.presentation.response.LoginResponse;
-import jakarta.validation.Valid;
+import com.example.simplescheduleapp.common.auth.Token;
+import com.example.simplescheduleapp.common.auth.TokenService;
+import com.example.simplescheduleapp.member.application.MemberService;
+import com.example.simplescheduleapp.member.presentation.request.LoginRequest;
+import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

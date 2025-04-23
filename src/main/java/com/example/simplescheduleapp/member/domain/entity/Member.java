@@ -1,8 +1,8 @@
-package com.example.simplescheduleappback.member.domain.entity;
+package com.example.simplescheduleapp.member.domain.entity;
 
-import com.example.simplescheduleappback.common.entity.SoftDeletedEntity;
-import com.example.simplescheduleappback.common.exception.ApplicationException;
-import com.example.simplescheduleappback.member.exception.MemberExceptionCode;
+import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
