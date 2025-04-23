@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.common.auth;
+package com.example.simplescheduleapp.common.auth;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

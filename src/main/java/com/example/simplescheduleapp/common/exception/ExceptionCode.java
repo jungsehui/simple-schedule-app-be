@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.common.exception;
+package com.example.simplescheduleapp.common.exception;
 
 import org.springframework.http.HttpStatus;
 

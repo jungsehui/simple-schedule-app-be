@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.common.exception;
+package com.example.simplescheduleapp.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

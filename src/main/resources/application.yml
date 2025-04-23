@@ -1,9 +1,34 @@
 spring:
   application:
-    name: SimpleScheduleAppBack
+    name: simple-schedule-app
 
   datasource:
-    url: jdbc:mysql://localhost:3306/simple_schedule_app
+    url: jdbc:mysql://localhost:3307/ssa_db
     username: root
-    password: maketws1!
+    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          jpa: DEBUG
+      hibernate: DEBUG
+
+token:
+  secret-key: "0gaPhxmVGE3FlmiPAR2bJtAFbx2JAbuadjJ3LMa2DhOH4SnDoQiTwk3d3Frsw7LWlAIKld41sN4iNQktITtIbw=="
+  access-token-expiration-millis: 1800000

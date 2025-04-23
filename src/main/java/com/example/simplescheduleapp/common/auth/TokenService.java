@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.common.auth;
+package com.example.simplescheduleapp.common.auth;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

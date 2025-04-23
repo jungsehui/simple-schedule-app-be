@@ -1,4 +1,4 @@
-package com.example.simplescheduleappback.common.auth;
+package com.example.simplescheduleapp.common.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
