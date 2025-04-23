@@ -1,0 +1,33 @@
+package com.example.simplescheduleappback.parent.domain.entity;
+
+import com.example.simplescheduleappback.consultation.domain.entity.ConsultationAttendee;
+import com.example.simplescheduleappback.member.domain.entity.Member;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.util.List;
+
+@SQLRestriction("deleted_at is null")
+@SQLDelete(sql = "UPDATE parent SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@PrimaryKeyJoinColumn(name = "member_id")
+@Table(name = "parent")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Entity
+public class Parent extends Member {
+
+    @Column(name = "children_number", nullable = false)
+    private int childrenNumber;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ConsultationAttendee> consultationAttendees;
+
+    public Parent(String username, String password, String name, int age, String phoneNumber, int childrenNumber) {
+        super(username, password, name, age, phoneNumber);
+        this.childrenNumber = childrenNumber;
+    }
+}
