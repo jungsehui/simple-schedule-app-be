@@ -1,8 +1,7 @@
-package com.example.simplescheduleappback.consultation.domain.entity;
+package com.example.simplescheduleapp.consultation.domain.entity;
 
-import com.example.simplescheduleappback.parent.domain.entity.Parent;
+import com.example.simplescheduleapp.parent.domain.entity.Parent;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
