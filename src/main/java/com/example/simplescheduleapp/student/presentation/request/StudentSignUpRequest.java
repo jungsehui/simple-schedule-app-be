@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.student.presentation.request;
+package com.example.simplescheduleapp.student.presentation.request;
 
-import com.example.simplescheduleappback.student.application.command.StudentSignUpCommand;
+import com.example.simplescheduleapp.student.application.command.StudentSignUpCommand;
 
 public record StudentSignUpRequest(
         String username,

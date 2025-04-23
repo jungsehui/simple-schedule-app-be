@@ -1,8 +1,8 @@
-package com.example.simplescheduleappback.student.presentation;
+package com.example.simplescheduleapp.student.presentation;
 
-import com.example.simplescheduleappback.student.application.StudentService;
-import com.example.simplescheduleappback.student.application.command.StudentSignUpCommand;
-import com.example.simplescheduleappback.student.presentation.request.StudentSignUpRequest;
+import com.example.simplescheduleapp.student.application.StudentService;
+import com.example.simplescheduleapp.student.application.command.StudentSignUpCommand;
+import com.example.simplescheduleapp.student.presentation.request.StudentSignUpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,6 +1,6 @@
-package com.example.simplescheduleappback.student.application.command;
+package com.example.simplescheduleapp.student.application.command;
 
-import com.example.simplescheduleappback.student.domain.entity.Student;
+import com.example.simplescheduleapp.student.domain.entity.Student;
 
 public record StudentSignUpCommand(
         String username,
