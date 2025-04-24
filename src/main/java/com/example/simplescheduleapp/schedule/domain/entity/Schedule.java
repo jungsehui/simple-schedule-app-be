@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.schedule.domain.entity;
 
+import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
 import com.example.simplescheduleapp.consultation.domain.entity.Consultation;
 import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Entity
-public class Schedule {
+public class Schedule extends SoftDeletedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
