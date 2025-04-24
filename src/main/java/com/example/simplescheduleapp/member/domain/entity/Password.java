@@ -19,9 +19,6 @@ public class Password {
     private static final int ITERATIONS = 65536;
     private static final int KEY_LENGTH = 1024;
 
-    private String salt;
-    private String hash;
-
     @Column(name = "password", nullable = false)
     private String hashedPassword;
 
