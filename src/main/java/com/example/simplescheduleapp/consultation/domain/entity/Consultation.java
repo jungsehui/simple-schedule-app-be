@@ -6,26 +6,28 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Table(name = "consultation")
 @NoArgsConstructor
 @Getter
 @Entity
-public class Consultation {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Consultation extends Schedule {
 
     @ManyToOne
-    @JoinColumn(name = "schedule_id", nullable = false)
-    private Schedule schedule;
-
-    @ManyToOne
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "tutor_id")
     private Tutor tutor;
 
     @OneToMany(mappedBy = "consultation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConsultationAttendee> consultationAttendees;
+
+    public Consultation(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
+        super(title, startTime, endTime, memo);
+    }
+
+    public Consultation(Tutor tutor, String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
+        super(title, startTime, endTime, memo);
+        this.tutor = tutor;
+    }
 }
