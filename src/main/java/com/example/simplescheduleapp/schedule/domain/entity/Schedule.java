@@ -1,15 +1,21 @@
-package com.example.simplescheduleapp.common.entity;
+package com.example.simplescheduleapp.schedule.domain.entity;
 
+import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
 import com.example.simplescheduleapp.consultation.domain.entity.Consultation;
 import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@SQLRestriction("deleted_at is null")
+@SQLDelete(sql = "UPDATE schedule SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "schedule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -32,9 +38,10 @@ public class Schedule extends SoftDeletedEntity {
     @Column(name = "memo")
     private String memo;
 
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Lecture> lectures;
-
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Consultation> consultations;
+    public Schedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.memo = memo;
+    }
 }
