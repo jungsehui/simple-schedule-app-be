@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.parent.application.ParentService;
 import com.example.simplescheduleapp.parent.application.command.ParentSignUpCommand;
 import com.example.simplescheduleapp.parent.presentation.request.ParentSignUpRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,7 @@ public class ParentController {
 
     @PostMapping("/parents")
     public ResponseEntity<LoginResponse> signUpParent(
-            @RequestBody ParentSignUpRequest parentSignUpRequest
+            @RequestBody @Valid ParentSignUpRequest parentSignUpRequest
     ) {
         ParentSignUpCommand parentSignUpCommand = parentSignUpRequest.toCommand();
         Long id = parentService.signUpParent(parentSignUpCommand);

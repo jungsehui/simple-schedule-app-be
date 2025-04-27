@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 public class ParentService {
 
     private final ParentRegister parentRegister;
-    private final ParentRepository parentRepository;
 
     public Long signUpParent(ParentSignUpCommand parentSignUpCommand) {
         Parent parent = parentSignUpCommand.toParent();
