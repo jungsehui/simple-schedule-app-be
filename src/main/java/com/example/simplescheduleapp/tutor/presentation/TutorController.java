@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.tutor.application.TutorService;
 import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
 import com.example.simplescheduleapp.tutor.presentation.request.TutorSignUpRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,7 @@ public class TutorController {
 
     @PostMapping("/tutors")
     public ResponseEntity<LoginResponse> signUpTutor(
-            @RequestBody TutorSignUpRequest tutorSignUpRequest
+            @RequestBody @Valid TutorSignUpRequest tutorSignUpRequest
     ) {
         TutorSignUpCommand tutorSignUpCommand = tutorSignUpRequest.toCommand();
         Long id = tutorService.signUpTutor(tutorSignUpCommand);
