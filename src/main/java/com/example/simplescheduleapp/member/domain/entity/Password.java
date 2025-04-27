@@ -16,8 +16,6 @@ import java.security.NoSuchAlgorithmException;
 public class Password {
 
     private static final String ALGORITHM = "SHA-256";
-    private static final int ITERATIONS = 65536;
-    private static final int KEY_LENGTH = 1024;
 
     @Column(name = "password", nullable = false)
     private String hashedPassword;
