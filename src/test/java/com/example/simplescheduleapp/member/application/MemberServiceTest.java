@@ -1,0 +1,52 @@
+package com.example.simplescheduleapp.member.application;
+
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.member.domain.entity.Member;
+import com.example.simplescheduleapp.member.domain.repository.MemberRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(SpringExtension.class)
+class MemberServiceTest {
+
+    @Mock
+    private MemberRepository memberRepository;
+
+    @InjectMocks
+    private MemberService memberService;
+
+    private Member mockMember;
+
+    @BeforeEach
+    void setUp() {
+        mockMember = new Member("shinddonghun", "Password123!", "신동훈", 25, "01023423452");
+    }
+
+    @Test
+    void 아이디_미입력_실패() {
+        // given
+        when(memberRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(ApplicationException.class, () -> memberService.login("nonexistent", "Password123!"));
+    }
+
+    @Test
+    void 비밀번호_불일치_실패() {
+        // given
+        when(memberRepository.findByUsername("shinddonghun")).thenReturn(Optional.of(mockMember));
+
+        // when & then
+        assertThrows(ApplicationException.class, () -> memberService.login("shinddonghun", "WrongPassword"));
+    }
+}
