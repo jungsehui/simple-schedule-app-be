@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 public class StudentService {
 
     private final StudentRegister studentRegister;
-    private final StudentRepository studentRepository;
 
     public Long signUpStudent(StudentSignUpCommand studentSignUpCommand) {
         Student student = studentSignUpCommand.toStudent();

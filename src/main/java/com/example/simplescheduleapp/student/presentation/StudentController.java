@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.student.application.StudentService;
 import com.example.simplescheduleapp.student.application.command.StudentSignUpCommand;
 import com.example.simplescheduleapp.student.presentation.request.StudentSignUpRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,9 @@ public class StudentController {
     private final TokenService tokenService;
 
     @PostMapping("/students")
-    public ResponseEntity<LoginResponse> signUpStudent(@RequestBody StudentSignUpRequest studentSignUpRequest) {
+    public ResponseEntity<LoginResponse> signUpStudent(
+            @RequestBody @Valid StudentSignUpRequest studentSignUpRequest
+    ) {
         StudentSignUpCommand studentSignUpCommand = studentSignUpRequest.toCommand();
         Long id = studentService.signUpStudent(studentSignUpCommand);
         Token token = tokenService.createToken(id);
