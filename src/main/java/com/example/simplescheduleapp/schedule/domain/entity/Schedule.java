@@ -1,8 +1,6 @@
 package com.example.simplescheduleapp.schedule.domain.entity;
 
 import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
-import com.example.simplescheduleapp.consultation.domain.entity.Consultation;
-import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
