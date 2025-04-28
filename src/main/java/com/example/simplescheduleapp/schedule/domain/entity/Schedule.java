@@ -11,11 +11,11 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @SQLRestriction("deleted_at is null")
 @SQLDelete(sql = "UPDATE schedule SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "type")
 @Table(name = "schedule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -24,6 +24,7 @@ public class Schedule extends SoftDeletedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "schedule_id")
     private Long id;
 
     @Column(name = "title", nullable = false)
@@ -39,6 +40,13 @@ public class Schedule extends SoftDeletedEntity {
     private String memo;
 
     public Schedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.memo = memo;
+    }
+
+    protected void updateSchedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;

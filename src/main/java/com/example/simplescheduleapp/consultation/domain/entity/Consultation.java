@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@DiscriminatorValue("CONSULTATION")
 @Table(name = "consultation")
 @NoArgsConstructor
 @Getter
@@ -24,10 +25,5 @@ public class Consultation extends Schedule {
 
     public Consultation(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
         super(title, startTime, endTime, memo);
-    }
-
-    public Consultation(Tutor tutor, String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
-        super(title, startTime, endTime, memo);
-        this.tutor = tutor;
     }
 }
