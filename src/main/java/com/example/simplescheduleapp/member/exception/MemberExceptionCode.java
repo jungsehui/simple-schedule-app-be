@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 public enum MemberExceptionCode implements ExceptionCode {
 
     INVALID_USERNAME_PASSWORD(HttpStatus.UNAUTHORIZED, "M0", "잘못된 아이디 혹은 비밀번호입니다."),
-    DUPLICATED_USERNAME_PHONE(HttpStatus.CONFLICT, "M1", "아이디 혹은 휴대폰 번호가 중복되었습니다. 다른 아이디 혹은 휴대폰 번호를 사용해주세요.")
+    DUPLICATED_USERNAME_PHONE(HttpStatus.CONFLICT, "M1", "아이디 혹은 휴대폰 번호가 중복되었습니다. 다른 아이디 혹은 휴대폰 번호를 사용해주세요."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M2", "해당 id를 가진 회원이 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

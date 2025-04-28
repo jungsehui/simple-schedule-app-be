@@ -11,9 +11,8 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.util.List;
 
-@SQLRestriction("deleted_at is null")
-@SQLDelete(sql = "UPDATE parent SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @PrimaryKeyJoinColumn(name = "member_id")
+@DiscriminatorValue("PARENT")
 @Table(name = "parent")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
