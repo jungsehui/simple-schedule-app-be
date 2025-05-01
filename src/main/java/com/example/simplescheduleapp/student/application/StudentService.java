@@ -2,8 +2,7 @@ package com.example.simplescheduleapp.student.application;
 
 import com.example.simplescheduleapp.student.application.command.StudentSignUpCommand;
 import com.example.simplescheduleapp.student.domain.service.StudentRegister;
-import com.example.simplescheduleapp.student.domain.entity.Student;
-import com.example.simplescheduleapp.student.domain.repository.StudentRepository;
+import com.example.simplescheduleapp.student.domain.Student;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

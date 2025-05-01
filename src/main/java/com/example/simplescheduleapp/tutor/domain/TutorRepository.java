@@ -1,8 +1,7 @@
-package com.example.simplescheduleapp.tutor.domain.repository;
+package com.example.simplescheduleapp.tutor.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
-import com.example.simplescheduleapp.tutor.exception.TutorExceptionCode;
+import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +13,6 @@ public interface TutorRepository extends JpaRepository<Tutor, Long> {
     Optional<Tutor> findById(Long id);
 
     default Tutor getById(Long id) {
-        return findById(id).orElseThrow(() -> new ApplicationException(TutorExceptionCode.TUTOR_NOT_FOUND));
+        return findById(id).orElseThrow(() -> new ApplicationException(MemberExceptionCode.TUTOR_NOT_FOUND));
     }
 }

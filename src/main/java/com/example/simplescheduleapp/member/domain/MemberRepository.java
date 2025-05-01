@@ -1,6 +1,5 @@
-package com.example.simplescheduleapp.member.domain.repository;
+package com.example.simplescheduleapp.member.domain;
 
-import com.example.simplescheduleapp.member.domain.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

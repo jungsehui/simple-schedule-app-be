@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.member.domain.entity;
+package com.example.simplescheduleapp.member.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

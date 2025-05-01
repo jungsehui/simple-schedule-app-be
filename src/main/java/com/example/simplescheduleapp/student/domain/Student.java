@@ -1,6 +1,6 @@
-package com.example.simplescheduleapp.student.domain.entity;
+package com.example.simplescheduleapp.student.domain;
 
-import com.example.simplescheduleapp.member.domain.entity.Member;
+import com.example.simplescheduleapp.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

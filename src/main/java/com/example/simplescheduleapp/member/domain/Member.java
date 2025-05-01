@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.member.domain.entity;
+package com.example.simplescheduleapp.member.domain;
 
 import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
