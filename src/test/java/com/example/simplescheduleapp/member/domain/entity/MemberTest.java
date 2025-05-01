@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.member.domain.entity;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.member.domain.Member;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

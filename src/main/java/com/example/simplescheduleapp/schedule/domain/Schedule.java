@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.schedule.domain.entity;
+package com.example.simplescheduleapp.schedule.domain;
 
 import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
 import jakarta.persistence.*;

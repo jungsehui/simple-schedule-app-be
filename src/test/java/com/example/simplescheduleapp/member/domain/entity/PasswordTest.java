@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.member.domain.entity;
 
+import com.example.simplescheduleapp.member.domain.Password;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

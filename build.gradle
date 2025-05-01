@@ -13,9 +13,18 @@ java {
 	}
 }
 
+sourceSets {
+	testfixture {
+		java {
+			srcDirs = ['src/test-fixture/java']
+		}
+	}
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
+		testImplementation.extendsFrom testfixtureImplementation
 	}
 }
 
@@ -48,6 +57,16 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+	// Fixture Monkey
+	implementation group: 'com.navercorp.fixturemonkey', name: 'fixture-monkey-starter', version: '1.1.11'
+
+	// Fixture Lombok
+	testfixtureAnnotationProcessor 'org.projectlombok:lombok'
+	testfixtureImplementation 'org.projectlombok:lombok'
+
+	// test-fixture 참조 가능하게
+	testImplementation sourceSets.testfixture.output
 }
 
 tasks.named('test') {
