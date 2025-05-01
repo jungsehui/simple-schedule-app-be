@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.student.domain.Student;
@@ -54,17 +55,10 @@ public class Lecture extends Schedule {
         return new LectureEnrollment(this, student);
     }
 
-    public void updateLecture(
-            Tutor tutor,
-            String title,
-            LocalDateTime startTime,
-            LocalDateTime endTime,
-            String memo,
-            int capacity
-    ) {
+    public void updateLecture(Tutor tutor, LectureUpdateCommand command) {
         validateTutorAuthority(tutor);
-        updateSchedule(title, startTime, endTime, memo);
-        this.capacity = capacity;
+        updateSchedule(command.title(), command.startTime(), command.endTime(), command.memo());
+        this.capacity = command.capacity();
     }
 
     public void decreaseEnrolledCount() {

@@ -20,9 +20,9 @@ public class LectureEnrollmentService {
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
 
-    public LectureEnrollment enroll(LectureEnrollmentCommand lectureEnrollmentCommand) {
-        Student student = studentRepository.getById(lectureEnrollmentCommand.studentId());
-        Lecture lecture = lectureRepository.getById(lectureEnrollmentCommand.lectureId());
+    public LectureEnrollment enroll(LectureEnrollmentCommand command) {
+        Student student = studentRepository.getById(command.studentId());
+        Lecture lecture = lectureRepository.getById(command.lectureId());
         LectureEnrollment lectureEnrollment = lecture.enroll(student);
         return lectureEnrollmentRepository.save(lectureEnrollment);
     }

@@ -36,17 +36,10 @@ public class LectureService {
         return lectureRepository.findByKeyword(keyword);
     }
 
-    public Lecture updateLecture(LectureUpdateCommand lectureUpdateCommand) {
-        Tutor tutor = tutorRepository.getById(lectureUpdateCommand.tutorId());
-        Lecture lecture = lectureRepository.getById(lectureUpdateCommand.lectureId());
-        lecture.updateLecture(
-                tutor,
-                lectureUpdateCommand.title(),
-                lectureUpdateCommand.startTime(),
-                lectureUpdateCommand.endTime(),
-                lectureUpdateCommand.memo(),
-                lectureUpdateCommand.capacity()
-        );
+    public Lecture updateLecture(LectureUpdateCommand command) {
+        Tutor tutor = tutorRepository.getById(command.tutorId());
+        Lecture lecture = lectureRepository.getById(command.lectureId());
+        lecture.updateLecture(tutor, command);
         return lectureRepository.save(lecture);
     }
 }
