@@ -22,4 +22,9 @@ public class LectureEnrollment {
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
+
+    public LectureEnrollment(Lecture lecture, Student student) {
+        this.lecture = lecture;
+        this.student = student;
+    }
 }
