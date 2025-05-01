@@ -1,6 +1,5 @@
-package com.example.simplescheduleapp.consultation.domain.repository;
+package com.example.simplescheduleapp.consultation.domain;
 
-import com.example.simplescheduleapp.consultation.domain.entity.Consultation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

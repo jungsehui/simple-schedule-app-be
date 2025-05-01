@@ -1,7 +1,7 @@
-package com.example.simplescheduleapp.consultation.domain.entity;
+package com.example.simplescheduleapp.consultation.domain;
 
-import com.example.simplescheduleapp.schedule.domain.entity.Schedule;
-import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
+import com.example.simplescheduleapp.schedule.domain.Schedule;
+import com.example.simplescheduleapp.tutor.domain.Tutor;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
