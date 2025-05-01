@@ -1,6 +1,6 @@
-package com.example.simplescheduleapp.lecture.domain.entity;
+package com.example.simplescheduleapp.lecture.domain;
 
-import com.example.simplescheduleapp.student.domain.entity.Student;
+import com.example.simplescheduleapp.student.domain.Student;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

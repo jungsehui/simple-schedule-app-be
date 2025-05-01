@@ -3,11 +3,13 @@ package com.example.simplescheduleapp.lecture.presentation;
 import com.example.simplescheduleapp.lecture.application.LectureService;
 import com.example.simplescheduleapp.lecture.application.command.LectureCreateCommand;
 import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
-import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
+import com.example.simplescheduleapp.lecture.domain.Lecture;
 import com.example.simplescheduleapp.lecture.presentation.request.LectureCreateRequest;
 import com.example.simplescheduleapp.lecture.presentation.request.LectureUpdateRequest;
 import com.example.simplescheduleapp.lecture.presentation.response.LectureCreateResponse;
 import com.example.simplescheduleapp.lecture.presentation.response.LectureSearchResponse;
+import com.example.simplescheduleapp.lecture.presentation.response.LectureUpdateResponse;
+import com.example.simplescheduleapp.lecture.presentation.response.TutorLectureGetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +25,10 @@ public class LectureController {
 
     @PostMapping("/lectures")
     public ResponseEntity<LectureCreateResponse> createLecture(
-            @RequestParam Long memberId,
+            @RequestParam Long tutorId,
             @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
-        LectureCreateCommand lectureCreateCommand = lectureCreateRequest.toCommand(memberId);
+        LectureCreateCommand lectureCreateCommand = lectureCreateRequest.toCommand(tutorId);
         Lecture savedLecture = lectureService.createLecture(lectureCreateCommand);
         URI location = URI.create("/lectures/" + savedLecture.getId());
         return ResponseEntity
@@ -36,29 +38,31 @@ public class LectureController {
 
     @GetMapping("/lectures/{lectureId}")
     public ResponseEntity<LectureCreateResponse> getLecture(@PathVariable Long lectureId) {
-        Lecture lecture = lectureService.getLecture(lectureId);
+        Lecture lecture = lectureService.findLecture(lectureId);
         return ResponseEntity.ok(LectureCreateResponse.from(lecture));
     }
 
-    @GetMapping("/tutors/lectures/{tutorId}")
-    public ResponseEntity<LectureSearchResponse> getLecturesByTutorId(@PathVariable Long tutorId) {
-        List<Lecture> lectures = lectureService.findLectures(tutorId);
-        return ResponseEntity.ok(LectureSearchResponse.from(lectures));
+    @GetMapping("/tutors/{tutorId}/lectures")
+    public ResponseEntity<TutorLectureGetResponse> getTutorLectures(@PathVariable Long tutorId) {
+        List<Lecture> tutorLectures = lectureService.findAllTutorLectures(tutorId);
+        return ResponseEntity.ok(TutorLectureGetResponse.from(tutorLectures));
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<LectureSearchResponse> searchLecturesByKeyword(@RequestParam String keyword) {
-        List<Lecture> lectures = lectureService.searchLecturesByKeyword(keyword);
+    @GetMapping("/lectures/search")
+    public ResponseEntity<LectureSearchResponse> searchLectures(@RequestParam String keyword) {
+        List<Lecture> lectures = lectureService.searchLectures(keyword);
         return ResponseEntity.ok(LectureSearchResponse.from(lectures));
     }
 
     @PatchMapping("/lectures/{lectureId}")
-    public ResponseEntity<Void> updateLecture(
+    public ResponseEntity<LectureUpdateResponse> updateLecture(
+            @RequestParam Long tutorId,
             @PathVariable Long lectureId,
             @RequestBody LectureUpdateRequest lectureUpdateRequest
     ) {
-        LectureUpdateCommand lectureUpdateCommand = lectureUpdateRequest.toCommand(lectureId);
-        lectureService.updateLecture(lectureUpdateCommand);
-        return ResponseEntity.noContent().build();
+        LectureUpdateCommand lectureUpdateCommand = lectureUpdateRequest.toCommand(tutorId, lectureId);
+        Lecture updatedLecture = lectureService.updateLecture(lectureUpdateCommand);
+        return ResponseEntity
+                .ok(LectureUpdateResponse.from(updatedLecture));
     }
 }

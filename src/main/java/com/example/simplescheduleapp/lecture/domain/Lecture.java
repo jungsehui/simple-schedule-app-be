@@ -1,10 +1,10 @@
-package com.example.simplescheduleapp.lecture.domain.entity;
+package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.domain.exception.LectureExceptionCode;
-import com.example.simplescheduleapp.schedule.domain.entity.Schedule;
-import com.example.simplescheduleapp.student.domain.entity.Student;
-import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
+import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.schedule.domain.Schedule;
+import com.example.simplescheduleapp.student.domain.Student;
+import com.example.simplescheduleapp.tutor.domain.Tutor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,10 +47,6 @@ public class Lecture extends Schedule {
         this.capacity = capacity;
     }
 
-    public void enrollLectureEnrollment(LectureEnrollment lectureEnrollment) {
-        lectureEnrollments.add(lectureEnrollment);
-    }
-
     public LectureEnrollment enroll(Student student) {
         validateAlreadyEnrolled(student);
         validateCapacity();
@@ -71,7 +67,7 @@ public class Lecture extends Schedule {
         this.capacity = capacity;
     }
 
-    public void cancelEnroll() {
+    public void decreaseEnrolledCount() {
         if (enrolledCount > 0) {
             this.enrolledCount--;
         }

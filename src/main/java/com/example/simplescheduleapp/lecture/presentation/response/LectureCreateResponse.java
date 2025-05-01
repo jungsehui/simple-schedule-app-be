@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.lecture.presentation.response;
 
-import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
+import com.example.simplescheduleapp.lecture.domain.Lecture;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +9,8 @@ public record LectureCreateResponse(
         String title,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        String memo
+        String memo,
+        int capacity
 ) {
 
     public static LectureCreateResponse from(Lecture lecture) {
@@ -18,7 +19,8 @@ public record LectureCreateResponse(
                 lecture.getTitle(),
                 lecture.getStartTime(),
                 lecture.getEndTime(),
-                lecture.getMemo()
+                lecture.getMemo(),
+                lecture.getCapacity()
         );
     }
 }

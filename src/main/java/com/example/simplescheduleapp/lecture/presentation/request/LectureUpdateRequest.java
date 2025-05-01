@@ -5,20 +5,22 @@ import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCo
 import java.time.LocalDateTime;
 
 public record LectureUpdateRequest(
-        Long lectureId,
         String title,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        String memo
+        String memo,
+        int capacity
 ) {
 
-    public LectureUpdateCommand toCommand(Long lectureId) {
+    public LectureUpdateCommand toCommand(Long tutorId, Long lectureId) {
         return new LectureUpdateCommand(
+                tutorId,
                 lectureId,
                 title,
                 startTime,
                 endTime,
-                memo
+                memo,
+                capacity
         );
     }
 }

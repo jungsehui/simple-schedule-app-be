@@ -8,10 +8,11 @@ public record LectureCreateRequest(
         String title,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        String memo
+        String memo,
+        int capacity
 ) {
 
-    public LectureCreateCommand toCommand(Long memberId) {
-        return new LectureCreateCommand(memberId, title, startTime, endTime, memo);
+    public LectureCreateCommand toCommand(Long tutorId) {
+        return new LectureCreateCommand(tutorId, title, startTime, endTime, memo, capacity);
     }
 }

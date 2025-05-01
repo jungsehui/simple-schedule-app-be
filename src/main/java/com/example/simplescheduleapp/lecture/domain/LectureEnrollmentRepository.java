@@ -1,8 +1,7 @@
-package com.example.simplescheduleapp.lecture.domain.repository;
+package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.domain.entity.LectureEnrollment;
-import com.example.simplescheduleapp.lecture.domain.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +16,12 @@ public interface LectureEnrollmentRepository extends JpaRepository<LectureEnroll
                 .orElseThrow(() -> new ApplicationException(LectureEnrollmentExceptionCode.LECTURE_ENROLLMENT_NOT_FOUND));
     }
 
-    List<LectureEnrollment> findAllByLectureId(Long lectureId);
+    default List<LectureEnrollment> getAllByLectureId(Long lectureId) {
+        return findAllByLectureId(lectureId)
+                .orElseThrow(() -> new ApplicationException(LectureEnrollmentExceptionCode.LECTURE_ENROLLMENT_NOT_FOUND));
+    }
+
+    Optional<List<LectureEnrollment>> findAllByLectureId(Long lectureId);
 
     Optional<LectureEnrollment> findByLectureIdAndStudentId(Long lectureId, Long studentId);
 }

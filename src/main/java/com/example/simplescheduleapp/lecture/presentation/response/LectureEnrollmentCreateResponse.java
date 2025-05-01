@@ -4,7 +4,7 @@ import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 
 import java.time.LocalDateTime;
 
-public record LectureEnrollmentResponse(
+public record LectureEnrollmentCreateResponse(
         Long lectureEnrollmentId,
         String lectureName,
         LocalDateTime startTime,
@@ -15,8 +15,8 @@ public record LectureEnrollmentResponse(
         String studentName
 ) {
 
-    public static LectureEnrollmentResponse from(LectureEnrollment lectureEnrollment) {
-        return new LectureEnrollmentResponse(
+    public static LectureEnrollmentCreateResponse from(LectureEnrollment lectureEnrollment) {
+        return new LectureEnrollmentCreateResponse(
                 lectureEnrollment.getId(),
                 lectureEnrollment.getLecture().getTitle(),
                 lectureEnrollment.getLecture().getStartTime(),

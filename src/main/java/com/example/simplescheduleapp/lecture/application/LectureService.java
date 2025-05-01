@@ -2,10 +2,10 @@ package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.lecture.application.command.LectureCreateCommand;
 import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
-import com.example.simplescheduleapp.lecture.domain.entity.Lecture;
-import com.example.simplescheduleapp.lecture.domain.repository.LectureRepository;
-import com.example.simplescheduleapp.tutor.domain.entity.Tutor;
-import com.example.simplescheduleapp.tutor.domain.repository.TutorRepository;
+import com.example.simplescheduleapp.lecture.domain.Lecture;
+import com.example.simplescheduleapp.lecture.domain.LectureRepository;
+import com.example.simplescheduleapp.tutor.domain.Tutor;
+import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,33 +18,35 @@ public class LectureService {
     private final LectureRepository lectureRepository;
     private final TutorRepository tutorRepository;
 
-    public Lecture createLecture(LectureCreateCommand lectureCreateCommand) {
-        Tutor tutor = tutorRepository.getById(lectureCreateCommand.memberId());
-        Lecture lecture = lectureCreateCommand.toLecture();
-        lecture.validatePastTime(lecture.getStartTime(), lecture.getEndTime());
-        lecture.composeTutor(tutor);
+    public Lecture createLecture(LectureCreateCommand command) {
+        Tutor tutor = tutorRepository.getById(command.memberId());
+        Lecture lecture = new Lecture(command.title(), command.startTime(), command.endTime(), command.memo(), tutor, command.capacity());
         return lectureRepository.save(lecture);
     }
 
-    public Lecture getLecture(Long lectureId) {
+    public Lecture findLecture(Long lectureId) {
         return lectureRepository.getById(lectureId);
     }
 
-    public List<Lecture> findLectures(Long tutorId) {
+    public List<Lecture> findAllTutorLectures(Long tutorId) {
         return lectureRepository.findAllByTutorId(tutorId);
     }
 
-    public List<Lecture> searchLecturesByKeyword(String keyword) {
+    public List<Lecture> searchLectures(String keyword) {
         return lectureRepository.findByKeyword(keyword);
     }
 
-    public void updateLecture(LectureUpdateCommand lectureUpdateCommand) {
+    public Lecture updateLecture(LectureUpdateCommand lectureUpdateCommand) {
+        Tutor tutor = tutorRepository.getById(lectureUpdateCommand.tutorId());
         Lecture lecture = lectureRepository.getById(lectureUpdateCommand.lectureId());
-        lecture.update(
+        lecture.updateLecture(
+                tutor,
                 lectureUpdateCommand.title(),
                 lectureUpdateCommand.startTime(),
                 lectureUpdateCommand.endTime(),
-                lectureUpdateCommand.memo()
+                lectureUpdateCommand.memo(),
+                lectureUpdateCommand.capacity()
         );
+        return lectureRepository.save(lecture);
     }
 }
