@@ -44,10 +44,10 @@ public class Schedule extends SoftDeletedEntity {
         this.memo = memo;
     }
 
-    protected void updateSchedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
-        this.title = title;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.memo = memo;
+    protected void updateSchedule(Schedule schedule) {
+        this.title = schedule.title;
+        this.startTime = schedule.startTime;
+        this.endTime = schedule.endTime;
+        this.memo = schedule.memo;
     }
 }

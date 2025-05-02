@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.lecture.presentation;
 
 import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
-import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCommand;
+import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 import com.example.simplescheduleapp.lecture.presentation.response.LectureEnrollmentCreateResponse;
 import com.example.simplescheduleapp.lecture.presentation.response.LectureEnrollmentGetResponse;
@@ -24,8 +24,8 @@ public class LectureEnrollmentController {
             @RequestParam Long studentId,
             @PathVariable Long lectureId
     ) {
-        LectureEnrollmentCommand lectureEnrollmentCommand = LectureEnrollmentCommand.of(studentId, lectureId);
-        LectureEnrollment lectureEnrollment = lectureEnrollmentService.enroll(lectureEnrollmentCommand);
+        LectureEnrollmentCreateCommand lectureEnrollmentCreateCommand = LectureEnrollmentCreateCommand.of(studentId, lectureId);
+        LectureEnrollment lectureEnrollment = lectureEnrollmentService.enroll(lectureEnrollmentCreateCommand);
         URI location = URI.create("/lectures/" + lectureId + "/enrollments/" + lectureEnrollment.getId());
         return ResponseEntity
                 .created(location)

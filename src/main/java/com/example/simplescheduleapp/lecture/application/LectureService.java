@@ -4,6 +4,7 @@ import com.example.simplescheduleapp.lecture.application.command.LectureCreateCo
 import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
 import com.example.simplescheduleapp.lecture.domain.Lecture;
 import com.example.simplescheduleapp.lecture.domain.LectureRepository;
+import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,8 @@ public class LectureService {
     public Lecture updateLecture(LectureUpdateCommand command) {
         Tutor tutor = tutorRepository.getById(command.tutorId());
         Lecture lecture = lectureRepository.getById(command.lectureId());
-        lecture.updateLecture(tutor, command);
+        Schedule schedule = command.toSchedule();
+        lecture.update(tutor, schedule, command.capacity());
         return lectureRepository.save(lecture);
     }
 }

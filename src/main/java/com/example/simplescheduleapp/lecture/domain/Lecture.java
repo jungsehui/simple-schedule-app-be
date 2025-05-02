@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.student.domain.Student;
@@ -55,10 +54,10 @@ public class Lecture extends Schedule {
         return new LectureEnrollment(this, student);
     }
 
-    public void updateLecture(Tutor tutor, LectureUpdateCommand command) {
+    public void update(Tutor tutor, Schedule schedule, int capacity) {
         validateTutorAuthority(tutor);
-        updateSchedule(command.title(), command.startTime(), command.endTime(), command.memo());
-        this.capacity = command.capacity();
+        updateSchedule(schedule);
+        this.capacity = capacity;
     }
 
     public void decreaseEnrolledCount() {
@@ -98,8 +97,8 @@ public class Lecture extends Schedule {
     }
 
     // 강의 제목 중복 에러 처리
-    // 강의 콘텐츠를 관리한다
-    // 정원과 모집 상태에 따라 수강 신청을 받는다.
-    // 수강생과 수강 대기자, 리뷰어 관리한다
-    // 강의는 미션과 상품의 단위가 되기도 한다.
+    // 강의 콘텐츠 관리
+    // 정원과 모집 상태에 따라 수강 신청
+    // 수강생과 수강 대기자, 리뷰어 관리
+    // 강의는 미션과 상품의 단위
 }

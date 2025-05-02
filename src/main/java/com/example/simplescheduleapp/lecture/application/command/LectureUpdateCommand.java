@@ -1,5 +1,7 @@
 package com.example.simplescheduleapp.lecture.application.command;
 
+import com.example.simplescheduleapp.schedule.domain.Schedule;
+
 import java.time.LocalDateTime;
 
 public record LectureUpdateCommand(
@@ -11,4 +13,8 @@ public record LectureUpdateCommand(
         String memo,
         int capacity
 ) {
+
+    public Schedule toSchedule() {
+        return new Schedule(title, startTime, endTime, memo);
+    }
 }

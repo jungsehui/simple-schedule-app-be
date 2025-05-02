@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.lecture.application;
 
-import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCommand;
+import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.domain.Lecture;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollmentRepository;
@@ -20,7 +20,7 @@ public class LectureEnrollmentService {
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
 
-    public LectureEnrollment enroll(LectureEnrollmentCommand command) {
+    public LectureEnrollment enroll(LectureEnrollmentCreateCommand command) {
         Student student = studentRepository.getById(command.studentId());
         Lecture lecture = lectureRepository.getById(command.lectureId());
         LectureEnrollment lectureEnrollment = lecture.enroll(student);
@@ -32,7 +32,7 @@ public class LectureEnrollmentService {
     }
 
     public void cancelEnrollment(Long lectureId, Long studentId) {
-        LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(lectureId, studentId);
+        LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureId(lectureId);
         Lecture lecture = lectureEnrollment.getLecture();
         lecture.decreaseEnrolledCount();
         lectureRepository.save(lecture);
