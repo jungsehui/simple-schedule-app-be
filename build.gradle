@@ -67,6 +67,9 @@ dependencies {
 
 	// test-fixture 참조 가능하게
 	testImplementation sourceSets.testfixture.output
+
+	// FCM
+	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '7.1.1'
 }
 
 tasks.named('test') {

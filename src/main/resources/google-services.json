@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "97914506648",
+    "project_id": "ssa-fcm",
+    "storage_bucket": "ssa-fcm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97914506648:android:a45d93e8653a33abaf2fed",
+        "android_client_info": {
+          "package_name": "com.example.simplescheduleappfront"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbnclkTvtvWYIOsK40fAju-sn2An59ktE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
