@@ -18,11 +18,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 class MemberServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
-
     @InjectMocks
     private MemberService memberService;
+
+    @Mock
+    private MemberRepository memberRepository;
 
     private Member mockMember;
 
