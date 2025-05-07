@@ -1,4 +1,7 @@
 package com.example.simplescheduleapp.support;
 
-public class ApplicationTest {
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+public class ApplicationTest extends CommonExceptionTest {
 }

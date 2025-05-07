@@ -1,4 +1,4 @@
 package com.example.simplescheduleapp.support;
 
-public class UnitTest {
+public class UnitTest extends CommonExceptionTest {
 }
