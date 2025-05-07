@@ -14,18 +14,31 @@ java {
 }
 
 sourceSets {
-	testfixture {
+	main {
 		java {
-			srcDirs = ['src/test-fixture/java']
+			srcDir 'src/main/java'
 		}
 	}
+
+	test {
+		java {
+			srcDir 'src/test/java'
+		}
+	}
+
+	testfixture {
+		java {
+			srcDir 'src/test-fixture/java'
+		}
+	}
+
 }
 
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
-		testImplementation.extendsFrom testfixtureImplementation
 	}
+	testImplementation.extendsFrom testfixtureImplementation
 }
 
 repositories {
@@ -58,10 +71,18 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
-	// Fixture Monkey
-	implementation group: 'com.navercorp.fixturemonkey', name: 'fixture-monkey-starter', version: '1.1.11'
+	// test-fixture Fixture Monkey
+	testfixtureImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.1.11'
+	testfixtureImplementation 'com.navercorp.fixturemonkey:fixture-monkey-api:1.1.11'
+	testfixtureImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
 
-	// Fixture Lombok
+	// test-fixture
+	testfixtureImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testfixtureImplementation 'io.projectreactor:reactor-test'
+	testfixtureImplementation sourceSets.main.output
+	testfixtureRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// test-fixture Fixture Lombok
 	testfixtureAnnotationProcessor 'org.projectlombok:lombok'
 	testfixtureImplementation 'org.projectlombok:lombok'
 
@@ -69,7 +90,7 @@ dependencies {
 	testImplementation sourceSets.testfixture.output
 
 	// FCM
-	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '7.1.1'
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
 }
 
 tasks.named('test') {
