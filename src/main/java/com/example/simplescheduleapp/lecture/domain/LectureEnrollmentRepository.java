@@ -11,8 +11,8 @@ import java.util.Optional;
 @Repository
 public interface LectureEnrollmentRepository extends JpaRepository<LectureEnrollment, Long> {
 
-    default LectureEnrollment getByLectureId(Long lectureId) {
-        return findByLectureId(lectureId)
+    default LectureEnrollment getByLectureIdAndStudentId(Long lectureId, Long studentId) {
+        return findByLectureIdAndStudentId(lectureId, studentId)
                 .orElseThrow(() -> new ApplicationException(LectureEnrollmentExceptionCode.LECTURE_ENROLLMENT_NOT_FOUND));
     }
 
@@ -23,5 +23,5 @@ public interface LectureEnrollmentRepository extends JpaRepository<LectureEnroll
 
     Optional<List<LectureEnrollment>> findAllByLectureId(Long lectureId);
 
-    Optional<LectureEnrollment> findByLectureId(Long lectureId);
+    Optional<LectureEnrollment> findByLectureIdAndStudentId(Long lectureId, Long studentId);
 }

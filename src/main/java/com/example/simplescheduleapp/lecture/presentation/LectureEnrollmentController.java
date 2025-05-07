@@ -3,6 +3,7 @@ package com.example.simplescheduleapp.lecture.presentation;
 import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
+import com.example.simplescheduleapp.lecture.presentation.request.LectureEnrollmentCreateRequest;
 import com.example.simplescheduleapp.lecture.presentation.response.LectureEnrollmentCreateResponse;
 import com.example.simplescheduleapp.lecture.presentation.response.LectureEnrollmentGetResponse;
 import com.example.simplescheduleapp.lecture.presentation.response.StudentInfoResponse;
@@ -20,16 +21,13 @@ public class LectureEnrollmentController {
     private final LectureEnrollmentService lectureEnrollmentService;
 
     @PostMapping("/lectures/{lectureId}/enrollments")
-    public ResponseEntity<LectureEnrollmentCreateResponse> enrollStudent(
-            @RequestParam Long studentId,
-            @PathVariable Long lectureId
+    public ResponseEntity<Void> requestLectureEnrollment(
+            @PathVariable Long lectureId,
+            @RequestParam Long studentId
     ) {
-        LectureEnrollmentCreateCommand lectureEnrollmentCreateCommand = LectureEnrollmentCreateCommand.of(studentId, lectureId);
-        LectureEnrollment lectureEnrollment = lectureEnrollmentService.enroll(lectureEnrollmentCreateCommand);
-        URI location = URI.create("/lectures/" + lectureId + "/enrollments/" + lectureEnrollment.getId());
-        return ResponseEntity
-                .created(location)
-                .body(LectureEnrollmentCreateResponse.from(lectureEnrollment));
+        LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(studentId, lectureId);
+        lectureEnrollmentService.requestEnrollment(command);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/lectures/{lectureId}/enrollments")
@@ -43,10 +41,10 @@ public class LectureEnrollmentController {
 
     @DeleteMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<Void> cancelEnrollment(
-            @PathVariable Long lectureId,
-            @RequestParam Long studentId
+            @RequestParam Long studentId,
+            @PathVariable Long lectureId
     ) {
-        lectureEnrollmentService.cancelEnrollment(lectureId, studentId);
+        lectureEnrollmentService.cancelEnrollment(studentId, lectureId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @DiscriminatorValue("LECTURE")
@@ -31,7 +32,7 @@ public class Lecture extends Schedule {
     private int enrolledCount = 0;
 
     @OneToMany(mappedBy = "lecture", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LectureEnrollment> lectureEnrollments;
+    private final List<LectureEnrollment> lectureEnrollments = new ArrayList<>();
 
     public Lecture(
             String title,
@@ -51,7 +52,9 @@ public class Lecture extends Schedule {
         validateAlreadyEnrolled(student);
         validateCapacity();
         increaseEnrolledCount();
-        return new LectureEnrollment(this, student);
+        LectureEnrollment lectureEnrollment = new LectureEnrollment(this, student);
+        this.lectureEnrollments.add(lectureEnrollment);
+        return lectureEnrollment;
     }
 
     public void update(Tutor tutor, Schedule schedule, int capacity) {
@@ -60,14 +63,19 @@ public class Lecture extends Schedule {
         this.capacity = capacity;
     }
 
-    public void decreaseEnrolledCount() {
-        if (enrolledCount > 0) {
-            this.enrolledCount--;
-        }
+    public void cancel(LectureEnrollment lectureEnrollment) {
+        lectureEnrollments.removeIf(le -> le.getId().equals(lectureEnrollment.getId()));
+        decreaseEnrolledCount();
     }
 
     private void increaseEnrolledCount() {
         this.enrolledCount++;
+    }
+
+    private void decreaseEnrolledCount() {
+        if (enrolledCount > 0) {
+            this.enrolledCount--;
+        }
     }
 
     private void validateTutorAuthority(Tutor tutor) {

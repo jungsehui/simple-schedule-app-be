@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 public enum LectureEnrollmentExceptionCode implements ExceptionCode {
 
     LECTURE_ENROLLMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "LE0", "강의 등록 정보가 없습니다."),
+    PENDING_LECTURE_ENROLLMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "LE1", "대기 중인 수강신청 정보가 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

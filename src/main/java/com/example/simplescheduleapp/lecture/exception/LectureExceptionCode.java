@@ -12,6 +12,7 @@ public enum LectureExceptionCode implements ExceptionCode {
     TUTOR_UNAUTHORIZED(HttpStatus.BAD_REQUEST, "L2", "강의에 대한 권한이 없습니다."),
     ALREADY_ENROLLED(HttpStatus.BAD_REQUEST, "L3", "이미 수강 신청한 강의입니다."),
     CAPACITY_EXCEEDED(HttpStatus.BAD_REQUEST, "L4", "수강 정원이 초과되었습니다."),
+    ALREADY_REQUESTED(HttpStatus.BAD_REQUEST, "L4", "이미 수강신청 한 강의입니다."),
     ;
 
     private final HttpStatus httpStatus;
