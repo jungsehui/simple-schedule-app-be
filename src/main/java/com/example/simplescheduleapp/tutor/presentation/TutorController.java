@@ -2,6 +2,8 @@ package com.example.simplescheduleapp.tutor.presentation;
 
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
+import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.presentation.request.PendingCheckRequest;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.tutor.application.TutorService;
 import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
@@ -9,6 +11,7 @@ import com.example.simplescheduleapp.tutor.presentation.request.TutorSignUpReque
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,5 +31,21 @@ public class TutorController {
         Long id = tutorService.signUpTutor(tutorSignUpCommand);
         Token token = tokenService.createToken(id);
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
+    }
+
+    @PostMapping("/enrollments/accept")
+    public ResponseEntity<Void> acceptEnrollment(
+            @RequestBody PendingCheckRequest request
+    ) {
+        tutorService.acceptEnrollment(request.pendingId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/enrollments/reject")
+    public ResponseEntity<Void> rejectEnrollment(
+            @RequestBody PendingCheckRequest request
+    ) {
+        tutorService.rejectEnrollment(request.pendingId());
+        return ResponseEntity.ok().build();
     }
 }
