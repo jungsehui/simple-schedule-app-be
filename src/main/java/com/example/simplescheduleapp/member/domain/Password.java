@@ -20,7 +20,7 @@ public class Password {
     @Column(name = "password", nullable = false)
     private String hashedPassword;
 
-    private Password(String hashedPassword) {
+    public Password(String hashedPassword) {
         this.hashedPassword = hashedPassword;
     }
 

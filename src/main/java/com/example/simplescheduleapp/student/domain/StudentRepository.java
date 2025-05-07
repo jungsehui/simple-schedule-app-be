@@ -13,11 +13,4 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     default Student getById(Long id) {
         return findById(id).orElseThrow(() -> new ApplicationException(MemberExceptionCode.STUDENT_NOT_FOUND));
     }
-
-    default Student getByPhoneNumber(String phoneNumber) {
-        return findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new ApplicationException(MemberExceptionCode.STUDENT_NOT_FOUND));
-    }
-
-    Optional<Student> findByPhoneNumber(String phoneNumber);
 }

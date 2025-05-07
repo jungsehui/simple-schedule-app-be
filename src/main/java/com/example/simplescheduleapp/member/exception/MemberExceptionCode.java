@@ -12,6 +12,7 @@ public enum MemberExceptionCode implements ExceptionCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M2", "해당 id를 가진 회원이 없습니다."),
     TUTOR_NOT_FOUND(HttpStatus.NOT_FOUND, "T0", "해당 id를 가진 강사가 없습니다."),
     STUDENT_NOT_FOUND(HttpStatus.NOT_FOUND, "S0", "해당 id를 가진 학생이 없습니다."),
+    FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "FT0", "해당하는 FCM 토큰 정보가 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

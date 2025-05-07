@@ -35,5 +35,5 @@ token:
 
 fcm:
   key:
-    path: google-services.json
-    scope: https://www.googleapis.com/auth/cloud-platform
+    json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
+    url: https://www.googleapis.com/auth/firebase.messaging
