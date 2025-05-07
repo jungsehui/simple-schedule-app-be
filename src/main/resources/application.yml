@@ -32,3 +32,8 @@ logging:
 token:
   secret-key: "0gaPhxmVGE3FlmiPAR2bJtAFbx2JAbuadjJ3LMa2DhOH4SnDoQiTwk3d3Frsw7LWlAIKld41sN4iNQktITtIbw=="
   access-token-expiration-millis: 1800000
+
+fcm:
+  key:
+    json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
+    url: https://www.googleapis.com/auth/firebase.messaging

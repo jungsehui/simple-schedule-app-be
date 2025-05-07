@@ -1,8 +1,8 @@
 package com.example.simplescheduleapp.member.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.member.domain.entity.Member;
-import com.example.simplescheduleapp.member.domain.repository.MemberRepository;
+import com.example.simplescheduleapp.member.domain.Member;
+import com.example.simplescheduleapp.member.domain.MemberRepository;
 import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

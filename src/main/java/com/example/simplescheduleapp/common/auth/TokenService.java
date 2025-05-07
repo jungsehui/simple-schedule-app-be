@@ -1,6 +1,8 @@
 package com.example.simplescheduleapp.common.auth;
 
-import io.jsonwebtoken.Jwts;
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.common.exception.ExceptionCode;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -30,5 +32,22 @@ public class TokenService {
                 .compact();
 
         return new Token(accessToken);
+    }
+
+    public Long extractMemberId(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get(MEMBER_ID_CLAIM, Long.class);
+        } catch (ExpiredJwtException e) {
+            throw new ApplicationException(TokenExceptionCode.EXPIRED_TOKEN);
+        } catch (MalformedJwtException e) {
+            throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
+        } catch (Exception e) {
+            throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
+        }
     }
 }

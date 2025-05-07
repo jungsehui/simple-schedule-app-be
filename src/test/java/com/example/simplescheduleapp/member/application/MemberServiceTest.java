@@ -1,14 +1,13 @@
 package com.example.simplescheduleapp.member.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.member.domain.entity.Member;
-import com.example.simplescheduleapp.member.domain.repository.MemberRepository;
+import com.example.simplescheduleapp.member.domain.Member;
+import com.example.simplescheduleapp.member.domain.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
@@ -19,11 +18,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 class MemberServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
-
     @InjectMocks
     private MemberService memberService;
+
+    @Mock
+    private MemberRepository memberRepository;
 
     private Member mockMember;
 

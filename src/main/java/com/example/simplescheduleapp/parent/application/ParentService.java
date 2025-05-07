@@ -1,8 +1,7 @@
 package com.example.simplescheduleapp.parent.application;
 
 import com.example.simplescheduleapp.parent.application.command.ParentSignUpCommand;
-import com.example.simplescheduleapp.parent.domain.entity.Parent;
-import com.example.simplescheduleapp.parent.domain.repository.ParentRepository;
+import com.example.simplescheduleapp.parent.domain.Parent;
 import com.example.simplescheduleapp.parent.domain.service.ParentRegister;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

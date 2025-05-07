@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.member.presentation;
 
+import com.example.simplescheduleapp.common.auth.BearerTokenExtractor;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.member.application.MemberService;
@@ -26,6 +27,9 @@ class MemberControllerTest {
 
     @MockitoBean
     private TokenService tokenService;
+
+    @MockitoBean
+    private BearerTokenExtractor bearerTokenExtractor;
 
     @BeforeEach
     void setUp() {

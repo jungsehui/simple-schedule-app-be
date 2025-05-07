@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.parent.application.command;
 
-import com.example.simplescheduleapp.parent.domain.entity.Parent;
+import com.example.simplescheduleapp.parent.domain.Parent;
 
 public record ParentSignUpCommand(
         String username,
