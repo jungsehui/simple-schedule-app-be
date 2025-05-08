@@ -2,7 +2,6 @@ package com.example.simplescheduleapp.sse.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +12,6 @@ public class RedisClientManager {
 
     private static final String SSE_CHANNEL_PREFIX = "sse:user:";
 
-    @Lazy
     private final RedisTemplate<String, String> redisTemplate;
 
     public void subscribeClient(Long memberId) {

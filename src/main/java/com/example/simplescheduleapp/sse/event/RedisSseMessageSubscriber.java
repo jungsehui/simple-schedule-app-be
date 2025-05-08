@@ -27,8 +27,8 @@ public class RedisSseMessageSubscriber implements MessageListener {
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
     private final FcmService fcmService;
-    private final SseEmitterRepository sseEmitterRepository;
     private final FcmTokenRepository fcmTokenRepository;
+    private final SseEmitterRepository sseEmitterRepository;
     private final RedisClientManager redisClientManager;
 
     public SseEmitter connect(Long memberId) {
