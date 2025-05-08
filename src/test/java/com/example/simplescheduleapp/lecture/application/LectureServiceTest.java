@@ -46,7 +46,7 @@ class LectureServiceTest extends ApplicationTest {
         Lecture lecture = lectureService.createLecture(command);
 
         // then
-        Lecture createdLecture = lectureRepository.getById(lecture.getId());
+        Lecture createdLecture = lectureRepository.getByLectureId(lecture.getId());
 
         assertThat(createdLecture).isNotNull();
         assertThat(createdLecture.getTitle()).isEqualTo("테스트 제목");

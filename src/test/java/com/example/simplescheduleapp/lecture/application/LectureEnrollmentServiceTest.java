@@ -78,7 +78,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     void setUp() {
         given(tutorRepository.getById(tutorId)).willReturn(tutorSut);
         given(studentRepository.getById(studentId)).willReturn(studentSut);
-        given(lectureRepository.getById(lectureId)).willReturn(lectureSut);
+        given(lectureRepository.getByLectureId(lectureId)).willReturn(lectureSut);
         given(fcmTokenRepository.getByMemberId(fcmTokenId)).willReturn(fcmTokenSut);
     }
 

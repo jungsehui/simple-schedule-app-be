@@ -16,6 +16,7 @@ spring:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
+    open-in-view: false # SSE Emitter 로 인한 Connection 고갈 방지 설정
 
   sql:
     init:
@@ -37,3 +38,10 @@ fcm:
   key:
     json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
     url: https://www.googleapis.com/auth/firebase.messaging
+
+cors:
+  allowed-origins: http://localhost:3000
+
+redis:
+  host: localhost
+  port: 6379

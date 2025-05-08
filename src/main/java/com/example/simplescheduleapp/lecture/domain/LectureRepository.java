@@ -2,7 +2,6 @@ package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
-import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +11,7 @@ import java.util.List;
 @Repository
 public interface LectureRepository extends JpaRepository<Lecture, Long> {
 
-    default Lecture getById(Long id) {
+    default Lecture getByLectureId(Long id) {
         return findById(id).orElseThrow(() -> new ApplicationException(LectureExceptionCode.LECTURE_NOT_FOUND));
     }
 

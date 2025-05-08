@@ -1,7 +1,5 @@
 package com.example.simplescheduleapp.consultation.domain;
 
-import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import jakarta.persistence.*;
@@ -33,13 +31,6 @@ public class Consultation extends Schedule {
             Tutor tutor
     ) {
         super(title, startTime, endTime, memo);
-        validatePastTime(startTime, endTime);
         this.tutor = tutor;
-    }
-
-    private void validatePastTime(LocalDateTime start, LocalDateTime end) {
-        if (start.isAfter(end)) {
-            throw new ApplicationException(LectureExceptionCode.INVALID_LECTURE_TIME_PAST);
-        }
     }
 }

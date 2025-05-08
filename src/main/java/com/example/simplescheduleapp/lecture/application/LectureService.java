@@ -26,7 +26,7 @@ public class LectureService {
     }
 
     public Lecture findLecture(Long lectureId) {
-        return lectureRepository.getById(lectureId);
+        return lectureRepository.getByLectureId(lectureId);
     }
 
     public List<Lecture> findAllTutorLectures(Long tutorId) {
@@ -39,7 +39,7 @@ public class LectureService {
 
     public Lecture updateLecture(LectureUpdateCommand command) {
         Tutor tutor = tutorRepository.getById(command.tutorId());
-        Lecture lecture = lectureRepository.getById(command.lectureId());
+        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
         Schedule schedule = command.toSchedule();
         lecture.update(tutor, schedule, command.capacity());
         return lectureRepository.save(lecture);
