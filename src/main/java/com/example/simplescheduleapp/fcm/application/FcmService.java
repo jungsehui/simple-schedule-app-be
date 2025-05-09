@@ -26,8 +26,10 @@ public class FcmService {
         fcmTokenRepository.save(token);
     }
 
-    public void sendPushNotification(String token, String title, String body) {
-        sendPushNotification(List.of(token), title, body);
+    public void sendPushNotification(Long memberId, String title, String body) {
+        log.info("FCM 을 통해 memberId: {} 에게 이벤트 발행 - event: {}, message: {}", memberId, title, body);
+        FcmToken fcmToken = fcmTokenRepository.getByMemberId(memberId);
+        sendPushNotification(List.of(fcmToken.getFcmToken()), title, body);
     }
 
     public void sendPushNotification(List<String> tokens, String title, String body) {
