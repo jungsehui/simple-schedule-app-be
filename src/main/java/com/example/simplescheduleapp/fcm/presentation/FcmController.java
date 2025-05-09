@@ -14,7 +14,7 @@ public class FcmController {
     private final FcmService fcmService;
 
     @GetMapping(value = "/fcm/token")
-    public void pushAlarmSsa(
+    public void addFcmToken(
             @RequestParam Long memberId,
             @RequestHeader("FCM-TOKEN") String fcmToken
     ){
