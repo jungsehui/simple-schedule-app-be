@@ -25,4 +25,13 @@ public class RedisClientManager {
         redisTemplate.opsForSet().remove(sseChannel, "subscriber:" + memberId);
         log.info("Redis Pub/Sub 채널 구독 해지 - memberId: {}, channel: {}", memberId, sseChannel);
     }
+
+    public boolean isClientConnected(Long memberId) {
+        String sseChannel = SSE_CHANNEL_PREFIX + memberId;
+        boolean isConnected = Boolean.TRUE.equals(
+                redisTemplate.opsForSet().isMember(sseChannel, "subscriber:" + memberId)
+        );
+        log.debug("사용자 연결 상태 확인 - memberId: {}, isConnected: {}", memberId, isConnected);
+        return isConnected;
+    }
 }
