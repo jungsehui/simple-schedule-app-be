@@ -27,7 +27,6 @@ public class RedisSseMessageSubscriber implements MessageListener {
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
     private final FcmService fcmService;
-    private final FcmTokenRepository fcmTokenRepository;
     private final SseEmitterRepository sseEmitterRepository;
     private final RedisClientManager redisClientManager;
 
@@ -94,11 +93,7 @@ public class RedisSseMessageSubscriber implements MessageListener {
 
     // 혹시 모를 SSE 기능 동작 실패 시 FCM 으로 메시지 발행
     private void fcmFallback(Long memberId, String eventName, String message) {
-        FcmToken fcmToken = fcmTokenRepository.getByMemberId(memberId);
-        if (fcmToken != null) {
-            fcmService.sendPushNotification(String.valueOf(fcmToken), eventName, message);
-        } else {
-            log.error("memberId: {} 에 대한 FCM 토큰이 없습니다.", memberId);
-        }
+        log.error("FCM Fallback memberId: {}", memberId);
+        fcmService.sendPushNotification(memberId, eventName, message);
     }
 }
