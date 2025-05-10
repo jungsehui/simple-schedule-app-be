@@ -1,8 +1,6 @@
 package com.example.simplescheduleapp.sse.event;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.fcm.domain.FcmToken;
-import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.sse.domain.RedisClientManager;
 import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +16,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +25,8 @@ import java.util.Map;
 public class RedisSseMessageSubscriber implements MessageListener {
 
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    private static final long INITIAL_DELAY = 10L;
+    private static final long PERIOD = 10L;
 
     private final FcmService fcmService;
     private final SseEmitterRepository sseEmitterRepository;
@@ -34,30 +36,17 @@ public class RedisSseMessageSubscriber implements MessageListener {
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
         sseEmitterRepository.save(memberId, emitter);
         redisClientManager.subscribeClient(memberId);
-
         try {
             emitter.send(SseEmitter.event()
                     .name("connect")
                     .data("SSE connected for memberId: " + memberId));
+            sendHeartbeat(memberId, emitter);
         } catch (IOException e) {
             emitter.completeWithError(e);
         }
-
-        emitter.onCompletion(() -> {
-            sseEmitterRepository.delete(memberId);
-            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
-        });
-        emitter.onTimeout(() -> {
-            sseEmitterRepository.delete(memberId);
-            emitter.complete();
-            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
-        });
-        emitter.onError((ex) -> {
-            sseEmitterRepository.delete(memberId);
-            emitter.completeWithError(ex);
-            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
-        });
-
+        onCompletion(memberId, emitter);
+        onTimeout(memberId, emitter);
+        onError(memberId, emitter);
         return emitter;
     }
 
@@ -74,6 +63,42 @@ public class RedisSseMessageSubscriber implements MessageListener {
         } catch (JsonProcessingException e) {
             log.error("Redis 메시지 파싱 오류: {}", e.getMessage());
         }
+    }
+
+    private void onError(Long memberId, SseEmitter emitter) {
+        emitter.onError((ex) -> {
+            sseEmitterRepository.delete(memberId);
+            emitter.completeWithError(ex);
+            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
+        });
+    }
+
+    private void onTimeout(Long memberId, SseEmitter emitter) {
+        emitter.onTimeout(() -> {
+            sseEmitterRepository.delete(memberId);
+            emitter.complete();
+            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
+        });
+    }
+
+    private void onCompletion(Long memberId, SseEmitter emitter) {
+        emitter.onCompletion(() -> {
+            sseEmitterRepository.delete(memberId);
+            log.debug("SSE Emitter 알림 성공 - memberId: {}", memberId);
+        });
+    }
+
+    private void sendHeartbeat(Long memberId, SseEmitter emitter) {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event().name("heartbeat").data("연결 끊김 방지"));
+                redisClientManager.refreshConnection(memberId);
+            } catch (IOException e) {
+                emitter.complete();
+                sseEmitterRepository.delete(memberId);
+                redisClientManager.unsubscribeClient(memberId);
+            }
+        }, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
     }
 
     private void sendSseMessage(Long memberId, String eventName, String message) {

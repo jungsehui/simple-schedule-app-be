@@ -26,8 +26,4 @@ public class SseEmitterRepository {
     public void delete(Long memberId) {
         emitters.remove(memberId);
     }
-
-    public boolean isConnected(Long memberId) {
-        return emitters.containsKey(memberId);
-    }
 }
