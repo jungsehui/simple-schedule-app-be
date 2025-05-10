@@ -92,7 +92,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
 
         // then
         verify(fcmService).sendPushNotification(
-                eq("dummy-token"),
+                eq(1L),
                 eq("수강신청 요청"),
                 eq("학생이 수강신청을 요청했습니다.")
         );

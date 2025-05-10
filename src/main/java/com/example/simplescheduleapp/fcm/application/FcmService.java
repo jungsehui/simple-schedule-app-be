@@ -17,6 +17,9 @@ import java.util.List;
 @Service
 public class FcmService {
 
+    private static final int FIRST_RETRY = 1;
+    private static final int MAX_RETRY = 3;
+
     private final MemberRepository memberRepository;
     private final FcmTokenRepository fcmTokenRepository;
 
@@ -38,12 +41,35 @@ public class FcmService {
         try {
             BatchResponse response = FirebaseMessaging.getInstance().sendEach(messages);
             if (response.getFailureCount() > 0) {
-                FcmUtils.logFailedTokens(tokens, response.getResponses());
+                for (int i = 0; i < response.getResponses().size(); i++) {
+                    SendResponse res = response.getResponses().get(i);
+                    if (!res.isSuccessful()) {
+                        String failedToken = tokens.get(i);
+                        log.warn("초기 전송 실패 - 재시도 시도 중: token = {}", failedToken);
+                        retrySend(failedToken, title, body, FIRST_RETRY);
+                    }
+                }
             } else {
-                log.info("모든 메시지를 성공적으로 송신했습니다. 요청 수 : {}, 성공 수: {}", tokens.size(), response.getSuccessCount());
+                log.info("모든 메시지를 성공적으로 송신했습니다. 요청 수: {}, 성공 수: {}", tokens.size(), response.getSuccessCount());
             }
         } catch (FirebaseMessagingException e) {
             log.error("FCM 메시지 전송 중 예외 발생: {}", e.getMessage());
+        }
+    }
+
+    private void retrySend(String token, String title, String body, int attempt) {
+        if (attempt > MAX_RETRY) {
+            log.error("최대 재시도 횟수 초과: token = {}, title = {}", token, title);
+            return;
+        }
+
+        try {
+            List<Message> messages = FcmUtils.buildMessages(List.of(token), FcmUtils.createNotification(title, body));
+            FirebaseMessaging.getInstance().sendEach(messages);
+            log.info("재시도 성공 ({} 회차): token = {}", attempt, token);
+        } catch (FirebaseMessagingException e) {
+            log.warn("재시도 실패 ({} 회차): token = {}, error = {}", attempt, token, e.getMessage());
+            retrySend(token, title, body, attempt + 1);
         }
     }
 }
