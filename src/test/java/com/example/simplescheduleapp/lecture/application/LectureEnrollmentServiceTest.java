@@ -10,6 +10,7 @@ import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollmentRepository;
 import com.example.simplescheduleapp.lecture.domain.LectureRepository;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -66,6 +67,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     Lecture lectureSut = sut.giveMeBuilder(Lecture.class)
             .set("id", lectureId)
             .set("tutor", tutorSut)
+            .set("title", "수학의 정석") // 정상 문자열 지정
             .sample();
 
     FcmToken fcmTokenSut = sut.giveMeBuilder(FcmToken.class)
@@ -92,9 +94,11 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
 
         // then
         verify(fcmService).sendPushNotification(
-                eq(1L),
-                eq("수강신청 요청"),
-                eq("학생이 수강신청을 요청했습니다.")
+                eq(new NotificationMessage(
+                        1L,
+                        lectureSut.getTitle(),
+                        "학생이 '" + lectureSut.getTitle() + "' 강의 수강신청을 요청했습니다."
+                ))
         );
     }
 
