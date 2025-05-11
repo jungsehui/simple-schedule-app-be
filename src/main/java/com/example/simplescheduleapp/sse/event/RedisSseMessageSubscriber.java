@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.sse.event;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.sse.domain.RedisClientManager;
 import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,7 +60,7 @@ public class RedisSseMessageSubscriber implements MessageListener {
             Long memberId = Long.valueOf(map.get("memberId"));
             String eventName = map.get("eventName");
             String content = map.get("message");
-            sendSseMessage(memberId, eventName, content);
+            sendSseMessage(new NotificationMessage(memberId, eventName, content));
         } catch (JsonProcessingException e) {
             log.error("Redis 메시지 파싱 오류: {}", e.getMessage());
         }
@@ -101,24 +102,24 @@ public class RedisSseMessageSubscriber implements MessageListener {
         }, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
     }
 
-    private void sendSseMessage(Long memberId, String eventName, String message) {
-        SseEmitter emitter = sseEmitterRepository.get(memberId);
+    private void sendSseMessage(NotificationMessage message) {
+        SseEmitter emitter = sseEmitterRepository.get(message.memberId());
         try {
             emitter.send(SseEmitter.event()
-                    .name(eventName)
-                    .data(message));
-            log.info("SSE 이벤트 전송 성공 - memberId: {}, event: {}, message: {}", memberId, eventName, message);
+                    .name(message.eventName())
+                    .data(message.messageBody()));
+            log.info("SSE 이벤트 전송 성공 - memberId: {}, event: {}, message: {}", message.memberId(), message.eventName(), message.messageBody());
         } catch (IOException e) {
-            log.error("memberId: {} 에게 SSE 이벤트 전송 실패: {}", memberId, e.getMessage());
-            sseEmitterRepository.delete(memberId);
+            log.error("memberId: {} 에게 SSE 이벤트 전송 실패: {}", message.memberId(), e.getMessage());
+            sseEmitterRepository.delete(message.memberId());
             emitter.completeWithError(e);
-            fcmFallback(memberId, eventName, message);
+            fcmFallback(message);
         }
     }
 
     // 혹시 모를 SSE 기능 동작 실패 시 FCM 으로 메시지 발행
-    private void fcmFallback(Long memberId, String eventName, String message) {
-        log.error("FCM Fallback memberId: {}", memberId);
-        fcmService.sendPushNotification(memberId, eventName, message);
+    private void fcmFallback(NotificationMessage message) {
+        log.error("FCM Fallback memberId: {}", message.memberId());
+        fcmService.sendPushNotification(message);
     }
 }

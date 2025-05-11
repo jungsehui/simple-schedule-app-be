@@ -9,6 +9,7 @@ import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
 import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.sse.event.RedisSseMessageSubscriber;
@@ -35,7 +36,7 @@ public class LectureEnrollmentService {
         Tutor tutor = lecture.getTutor();
         Long tutorId = tutor.getId();
         String message = "학생이 '" + lecture.getTitle() + "' 강의 수강신청을 요청했습니다.";
-        notificationService.sendPushNotification(tutorId, lecture.getTitle() + " 강의 신청", message);
+        notificationService.sendPushNotification(new NotificationMessage(tutorId, lecture.getTitle(), message));
     }
 
     public List<LectureEnrollment> getLectureEnrollments(Long lectureId) {

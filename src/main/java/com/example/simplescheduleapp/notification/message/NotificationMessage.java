@@ -1,4 +1,8 @@
-package com.example.simplescheduleapp.notification.domain;
+package com.example.simplescheduleapp.notification.message;
 
-public class NotificationMessage {
+public record NotificationMessage(
+        Long memberId,
+        String eventName,
+        String messageBody
+) {
 }

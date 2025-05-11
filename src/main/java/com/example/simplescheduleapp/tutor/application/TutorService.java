@@ -2,6 +2,7 @@ package com.example.simplescheduleapp.tutor.application;
 
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
@@ -37,7 +38,7 @@ public class TutorService {
         pendingLectureEnrollmentRepository.delete(pending);
         Long studentId = student.getId();
         String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
-        notificationService.sendPushNotification(studentId, lecture.getTitle() + " 강의 신청 수락", message);
+        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
     }
 
     public void rejectEnrollment(Long pendingId) {
@@ -48,6 +49,6 @@ public class TutorService {
         pendingLectureEnrollmentRepository.delete(pending);
         Long studentId = student.getId();
         String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
-        notificationService.sendPushNotification(studentId, lecture.getTitle() + " 강의 신청 거절", message);
+        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
     }
 }

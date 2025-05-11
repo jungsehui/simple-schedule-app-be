@@ -5,6 +5,7 @@ import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.utils.FcmUtils;
 import com.example.simplescheduleapp.member.domain.Member;
 import com.example.simplescheduleapp.member.domain.MemberRepository;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +30,10 @@ public class FcmService {
         fcmTokenRepository.save(token);
     }
 
-    public void sendPushNotification(Long memberId, String title, String body) {
-        log.info("FCM 을 통해 memberId: {} 에게 이벤트 발행 - event: {}, message: {}", memberId, title, body);
-        FcmToken fcmToken = fcmTokenRepository.getByMemberId(memberId);
-        sendPushNotification(List.of(fcmToken.getFcmToken()), title, body);
+    public void sendPushNotification(NotificationMessage message) {
+        log.info("FCM 을 통해 memberId: {} 에게 이벤트 발행 - event: {}, message: {}", message.memberId(), message.eventName(), message.messageBody());
+        FcmToken fcmToken = fcmTokenRepository.getByMemberId(message.memberId());
+        sendPushNotification(List.of(fcmToken.getFcmToken()), message.eventName(), message.messageBody());
     }
 
     public void sendPushNotification(List<String> tokens, String title, String body) {
