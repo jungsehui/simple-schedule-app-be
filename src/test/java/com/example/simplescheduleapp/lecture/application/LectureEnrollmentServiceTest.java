@@ -10,6 +10,7 @@ import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollmentRepository;
 import com.example.simplescheduleapp.lecture.domain.LectureRepository;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
@@ -18,6 +19,7 @@ import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -34,7 +36,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     private LectureEnrollmentService lectureEnrollmentService;
 
     @MockitoBean
-    private FcmService fcmService;
+    private NotificationService notificationService;
 
     @MockitoBean
     private FcmTokenRepository fcmTokenRepository;
@@ -85,7 +87,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     }
 
     @Test
-    void 수강신청_요청_시_FCM_알림이_전송된다() {
+    void 수강신청_요청_시_알림이_전송된다() {
         // given
         LectureEnrollmentCreateCommand command = new LectureEnrollmentCreateCommand(studentId, lectureId);
 
@@ -93,7 +95,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
         lectureEnrollmentService.requestEnrollment(command);
 
         // then
-        verify(fcmService).sendPushNotification(
+        verify(notificationService).sendPushNotification(
                 eq(new NotificationMessage(
                         1L,
                         lectureSut.getTitle(),
