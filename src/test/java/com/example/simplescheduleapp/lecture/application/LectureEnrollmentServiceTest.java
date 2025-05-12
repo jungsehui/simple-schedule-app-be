@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
@@ -19,7 +18,6 @@ import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
