@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
@@ -10,6 +9,8 @@ import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollmentRepository;
 import com.example.simplescheduleapp.lecture.domain.LectureRepository;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -33,7 +34,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     private LectureEnrollmentService lectureEnrollmentService;
 
     @MockitoBean
-    private FcmService fcmService;
+    private NotificationService notificationService;
 
     @MockitoBean
     private FcmTokenRepository fcmTokenRepository;
@@ -66,6 +67,7 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     Lecture lectureSut = sut.giveMeBuilder(Lecture.class)
             .set("id", lectureId)
             .set("tutor", tutorSut)
+            .set("title", "수학의 정석") // 정상 문자열 지정
             .sample();
 
     FcmToken fcmTokenSut = sut.giveMeBuilder(FcmToken.class)
@@ -78,12 +80,12 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
     void setUp() {
         given(tutorRepository.getById(tutorId)).willReturn(tutorSut);
         given(studentRepository.getById(studentId)).willReturn(studentSut);
-        given(lectureRepository.getById(lectureId)).willReturn(lectureSut);
+        given(lectureRepository.getByLectureId(lectureId)).willReturn(lectureSut);
         given(fcmTokenRepository.getByMemberId(fcmTokenId)).willReturn(fcmTokenSut);
     }
 
     @Test
-    void 수강신청_요청_시_FCM_알림이_전송된다() {
+    void 수강신청_요청_시_알림이_전송된다() {
         // given
         LectureEnrollmentCreateCommand command = new LectureEnrollmentCreateCommand(studentId, lectureId);
 
@@ -91,10 +93,12 @@ class LectureEnrollmentServiceTest extends ApplicationTest {
         lectureEnrollmentService.requestEnrollment(command);
 
         // then
-        verify(fcmService).sendPushNotification(
-                eq("dummy-token"),
-                eq("수강신청 요청"),
-                eq("학생이 수강신청을 요청했습니다.")
+        verify(notificationService).sendPushNotification(
+                eq(new NotificationMessage(
+                        1L,
+                        lectureSut.getTitle(),
+                        "학생이 '" + lectureSut.getTitle() + "' 강의 수강신청을 요청했습니다."
+                ))
         );
     }
 

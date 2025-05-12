@@ -2,18 +2,28 @@ package com.example.simplescheduleapp.fcm.application;
 
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
+import com.example.simplescheduleapp.fcm.utils.FcmUtils;
 import com.example.simplescheduleapp.member.domain.Member;
 import com.example.simplescheduleapp.member.domain.MemberRepository;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.support.UnitTest;
+import com.example.simplescheduleapp.tutor.domain.Tutor;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 class FcmServiceTest extends UnitTest {
 
@@ -25,6 +35,12 @@ class FcmServiceTest extends UnitTest {
 
     @Mock
     FcmTokenRepository fcmTokenRepository;
+
+    Long tutorId = 1L;
+
+    Tutor tutorSut = sut.giveMeBuilder(Tutor.class)
+            .set("id", tutorId)
+            .sample();
 
     @Test
     void FCM_토큰_저장_성공() {
@@ -39,6 +55,34 @@ class FcmServiceTest extends UnitTest {
     }
 
     @Test
-    void sendPushNotification() {
+    void FCM_푸시_알림_성공() throws FirebaseMessagingException {
+        NotificationMessage message = new NotificationMessage(1L, "강의 제목", "알림 메시지");
+        FcmToken fcmToken = new FcmToken(tutorSut, "test-token");
+
+        given(fcmTokenRepository.getByMemberId(1L)).willReturn(fcmToken);
+
+        try (MockedStatic<FirebaseMessaging> firebaseMessagingMockedStatic = mockStatic(FirebaseMessaging.class);
+             MockedStatic<FcmUtils> fcmUtilsMockedStatic = mockStatic(FcmUtils.class)) {
+
+            Notification notification = Notification.builder().setTitle("강의 제목").setBody("알림 메시지").build();
+            Message builtMessage = Message.builder()
+                    .setNotification(notification)
+                    .setToken("test-token")
+                    .putData("time", "test-time")
+                    .build();
+            FirebaseMessaging firebaseMessaging = mock(FirebaseMessaging.class);
+
+            fcmUtilsMockedStatic.when(() -> FcmUtils.createNotification("강의 제목", "알림 메시지"))
+                    .thenReturn(notification);
+            fcmUtilsMockedStatic.when(() -> FcmUtils.buildMessage("test-token", notification))
+                    .thenReturn(builtMessage);
+            firebaseMessagingMockedStatic.when(FirebaseMessaging::getInstance)
+                    .thenReturn(firebaseMessaging);
+            given(firebaseMessaging.send(builtMessage)).willReturn("response-123");
+
+            fcmService.sendPushNotification(message);
+
+            then(firebaseMessaging).should().send(builtMessage);
+        }
     }
 }

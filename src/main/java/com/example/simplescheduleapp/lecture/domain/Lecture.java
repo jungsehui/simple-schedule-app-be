@@ -43,7 +43,6 @@ public class Lecture extends Schedule {
             int capacity
     ) {
         super(title, startTime, endTime, memo);
-        validatePastTime(startTime, endTime);
         this.tutor = tutor;
         this.capacity = capacity;
     }
@@ -95,12 +94,6 @@ public class Lecture extends Schedule {
     private void validateCapacity() {
         if (enrolledCount >= capacity) {
             throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
-        }
-    }
-
-    private void validatePastTime(LocalDateTime start, LocalDateTime end) {
-        if (start.isAfter(end)) {
-            throw new ApplicationException(LectureExceptionCode.INVALID_LECTURE_TIME_PAST);
         }
     }
 

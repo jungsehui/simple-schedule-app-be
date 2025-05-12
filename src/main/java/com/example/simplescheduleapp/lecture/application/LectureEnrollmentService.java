@@ -8,6 +8,11 @@ import com.example.simplescheduleapp.lecture.application.command.LectureEnrollme
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.sse.event.RedisSseMessageSubscriber;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,10 +23,8 @@ import java.util.List;
 @Service
 public class LectureEnrollmentService {
 
-    private final FcmService fcmService;
+    private final NotificationService notificationService;
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
-
-    private final FcmTokenRepository fcmTokenRepository;
     private final LectureRepository lectureRepository;
     private final LectureEnrollmentRepository lectureEnrollmentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
@@ -29,14 +32,11 @@ public class LectureEnrollmentService {
     public void requestEnrollment(LectureEnrollmentCreateCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentService.create(command.lectureId(), command.studentId());
         pendingLectureEnrollmentRepository.save(pending);
-        Lecture lecture = lectureRepository.getById(command.lectureId());
+        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
         Tutor tutor = lecture.getTutor();
-        FcmToken tutorFcmToken = fcmTokenRepository.getByMemberId(tutor.getId());
-        fcmService.sendPushNotification(
-                tutorFcmToken.getFcmToken(),
-                "수강신청 요청",
-                "학생이 수강신청을 요청했습니다."
-        );
+        Long tutorId = tutor.getId();
+        String message = "학생이 '" + lecture.getTitle() + "' 강의 수강신청을 요청했습니다.";
+        notificationService.sendPushNotification(new NotificationMessage(tutorId, lecture.getTitle(), message));
     }
 
     public List<LectureEnrollment> getLectureEnrollments(Long lectureId) {

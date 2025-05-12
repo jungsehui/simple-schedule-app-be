@@ -5,12 +5,16 @@ import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.utils.FcmUtils;
 import com.example.simplescheduleapp.member.domain.Member;
 import com.example.simplescheduleapp.member.domain.MemberRepository;
-import com.google.firebase.messaging.*;
+import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,22 +30,23 @@ public class FcmService {
         fcmTokenRepository.save(token);
     }
 
-    public void sendPushNotification(String token, String title, String body) {
-        sendPushNotification(List.of(token), title, body);
-    }
+    @Retryable(
+            value = FirebaseMessagingException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
+    public void sendPushNotification(NotificationMessage message) {
+        Notification notification = FcmUtils.createNotification(message.eventName(), message.messageBody());
+        FcmToken fcmToken = fcmTokenRepository.getByMemberId(message.memberId());
+        Message toSend = FcmUtils.buildMessage(fcmToken.getFcmToken(), notification);
 
-    public void sendPushNotification(List<String> tokens, String title, String body) {
-        Notification notification = FcmUtils.createNotification(title, body);
-        List<Message> messages = FcmUtils.buildMessages(tokens, notification);
         try {
-            BatchResponse response = FirebaseMessaging.getInstance().sendEach(messages);
-            if (response.getFailureCount() > 0) {
-                FcmUtils.logFailedTokens(tokens, response.getResponses());
-            } else {
-                log.info("모든 메시지를 성공적으로 송신했습니다. 요청 수 : {}, 성공 수: {}", tokens.size(), response.getSuccessCount());
-            }
+            String response = FirebaseMessaging.getInstance().send(toSend);
+            log.info("FCM 전송 성공 - response: {}, memberId: {}, event: {}, message: {}",
+                    response, message.memberId(), message.eventName(), message.messageBody());
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 메시지 전송 중 예외 발생: {}", e.getMessage());
+            log.warn("FCM 전송 실패 - memberId: {}, token: {}, 이유: {}",
+                    message.memberId(), fcmToken.getFcmToken(), e.getMessage());
         }
     }
 }

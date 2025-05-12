@@ -91,6 +91,13 @@ dependencies {
 
 	// FCM
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
+
+	// SSE
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Retry
+	implementation 'org.springframework.retry:spring-retry'
 }
 
 tasks.named('test') {

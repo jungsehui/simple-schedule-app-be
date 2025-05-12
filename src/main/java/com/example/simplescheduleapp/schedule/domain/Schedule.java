@@ -1,6 +1,8 @@
 package com.example.simplescheduleapp.schedule.domain;
 
 import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,6 +40,7 @@ public class Schedule extends SoftDeletedEntity {
     private String memo;
 
     public Schedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
+        validatePastTime(startTime, endTime);
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -49,5 +52,11 @@ public class Schedule extends SoftDeletedEntity {
         this.startTime = schedule.startTime;
         this.endTime = schedule.endTime;
         this.memo = schedule.memo;
+    }
+
+    private void validatePastTime(LocalDateTime start, LocalDateTime end) {
+        if (start.isAfter(end)) {
+            throw new ApplicationException(LectureExceptionCode.INVALID_LECTURE_TIME_PAST);
+        }
     }
 }
