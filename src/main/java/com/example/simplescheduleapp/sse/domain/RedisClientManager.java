@@ -12,7 +12,6 @@ import java.time.Duration;
 @Component
 public class RedisClientManager {
 
-
     private static final String ONLINE_KEY_PREFIX = "online:";
     private static final Duration CONNECTION_TTL = Duration.ofSeconds(30);
 
