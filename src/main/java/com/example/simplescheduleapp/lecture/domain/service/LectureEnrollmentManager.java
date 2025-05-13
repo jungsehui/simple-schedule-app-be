@@ -26,12 +26,13 @@ public class LectureEnrollmentManager {
             pendingLectureEnrollmentRepository.delete(pending);
             lecture.increaseEnrolledCount();
             Long studentId = student.getId();
+            LectureEnrollment savedEnrollment = lectureEnrollmentRepository.save(new LectureEnrollment(lecture, student));
             String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
             notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
-            return lectureEnrollmentRepository.save(new LectureEnrollment(lecture, student));
+            return savedEnrollment;
         } catch (DataIntegrityViolationException e) {
             log.error("수강생 등록 에러 메시지: {}", e.getMessage());
-            throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
+            throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED); // 원본 예외를 포함하여 로깅 및 디버깅에 유용
         }
     }
 
