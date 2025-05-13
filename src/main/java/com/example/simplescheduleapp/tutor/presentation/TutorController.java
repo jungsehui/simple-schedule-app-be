@@ -34,11 +34,11 @@ public class TutorController {
     }
 
     @PostMapping("/enrollments/accept")
-    public ResponseEntity<Void> acceptEnrollment(
+    public ResponseEntity<Long> acceptEnrollment(
             @RequestBody PendingCheckRequest request
     ) {
-        tutorService.acceptEnrollment(request.pendingId());
-        return ResponseEntity.ok().build();
+        Long lectureEnrollmentId = tutorService.acceptEnrollment(request.pendingId());
+        return ResponseEntity.ok(lectureEnrollmentId);
     }
 
     @PostMapping("/enrollments/reject")

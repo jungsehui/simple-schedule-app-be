@@ -31,9 +31,6 @@ public class Lecture extends Schedule {
     @Column(nullable = false)
     private int enrolledCount = 0;
 
-    @OneToMany(mappedBy = "lecture", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<LectureEnrollment> lectureEnrollments = new ArrayList<>();
-
     public Lecture(
             String title,
             LocalDateTime startTime,
@@ -47,31 +44,18 @@ public class Lecture extends Schedule {
         this.capacity = capacity;
     }
 
-    public LectureEnrollment enroll(Student student) {
-        validateAlreadyEnrolled(student);
-        validateCapacity();
-        increaseEnrolledCount();
-        LectureEnrollment lectureEnrollment = new LectureEnrollment(this, student);
-        this.lectureEnrollments.add(lectureEnrollment);
-        return lectureEnrollment;
-    }
-
     public void update(Tutor tutor, Schedule schedule, int capacity) {
         validateTutorAuthority(tutor);
         updateSchedule(schedule);
         this.capacity = capacity;
     }
 
-    public void cancel(LectureEnrollment lectureEnrollment) {
-        lectureEnrollments.removeIf(le -> le.getId().equals(lectureEnrollment.getId()));
-        decreaseEnrolledCount();
-    }
-
-    private void increaseEnrolledCount() {
+    public void increaseEnrolledCount() {
+        validateCapacity();
         this.enrolledCount++;
     }
 
-    private void decreaseEnrolledCount() {
+    public void decreaseEnrolledCount() {
         if (enrolledCount > 0) {
             this.enrolledCount--;
         }
@@ -83,23 +67,9 @@ public class Lecture extends Schedule {
         }
     }
 
-    private void validateAlreadyEnrolled(Student student) {
-        boolean alreadyEnrolled = lectureEnrollments.stream()
-                .anyMatch(enrollment -> enrollment.getStudent().getId().equals(student.getId()));
-        if (alreadyEnrolled) {
-            throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
-        }
-    }
-
     private void validateCapacity() {
         if (enrolledCount >= capacity) {
             throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
         }
     }
-
-    // 강의 제목 중복 에러 처리
-    // 강의 콘텐츠 관리
-    // 정원과 모집 상태에 따라 수강 신청
-    // 수강생과 수강 대기자, 리뷰어 관리
-    // 강의는 미션과 상품의 단위
 }

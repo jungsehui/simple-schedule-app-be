@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.lecture.presentation;
 
 import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCancelCommand;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
 import com.example.simplescheduleapp.lecture.presentation.request.LectureEnrollmentCreateRequest;
@@ -21,13 +22,13 @@ public class LectureEnrollmentController {
     private final LectureEnrollmentService lectureEnrollmentService;
 
     @PostMapping("/lectures/{lectureId}/enrollments")
-    public ResponseEntity<Void> requestLectureEnrollment(
+    public ResponseEntity<Long> requestLectureEnrollment(
             @PathVariable Long lectureId,
             @RequestParam Long studentId
     ) {
         LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(studentId, lectureId);
-        lectureEnrollmentService.requestEnrollment(command);
-        return ResponseEntity.ok().build();
+        Long pendingId = lectureEnrollmentService.requestEnrollment(command);
+        return ResponseEntity.ok(pendingId);
     }
 
     @GetMapping("/lectures/{lectureId}/enrollments")
@@ -44,7 +45,8 @@ public class LectureEnrollmentController {
             @RequestParam Long studentId,
             @PathVariable Long lectureId
     ) {
-        lectureEnrollmentService.cancelEnrollment(studentId, lectureId);
+        LectureEnrollmentCancelCommand command = LectureEnrollmentCancelCommand.of(studentId, lectureId);
+        lectureEnrollmentService.cancelEnrollment(command);
         return ResponseEntity.noContent().build();
     }
 }

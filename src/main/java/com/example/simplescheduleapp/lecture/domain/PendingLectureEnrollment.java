@@ -22,7 +22,6 @@ public class PendingLectureEnrollment extends SoftDeletedEntity {
 
     private Long lectureId;
     private Long studentId;
-    private boolean accepted = false;
     private boolean permitted = false;
 
     public PendingLectureEnrollment(Long lectureId, Long studentId) {
@@ -31,11 +30,6 @@ public class PendingLectureEnrollment extends SoftDeletedEntity {
     }
 
     public void accept() {
-        this.accepted = true;
         this.permitted = true;
-    }
-
-    public void reject() {
-        this.accepted = true;
     }
 }

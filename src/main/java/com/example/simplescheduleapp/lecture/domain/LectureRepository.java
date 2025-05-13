@@ -13,12 +13,13 @@ import java.util.Optional;
 @Repository
 public interface LectureRepository extends JpaRepository<Lecture, Long> {
 
-    default Lecture getByLectureId(Long id) {
-        return findWithEnrollmentsById(id).orElseThrow(() -> new ApplicationException(LectureExceptionCode.LECTURE_NOT_FOUND));
+    default Lecture getByLectureId(Long lectureId) {
+        return findById(lectureId).orElseThrow(() -> new ApplicationException(LectureExceptionCode.LECTURE_NOT_FOUND));
+//        return findWithEnrollmentsById(id).orElseThrow(() -> new ApplicationException(LectureExceptionCode.LECTURE_NOT_FOUND));
     }
 
-    @Query("SELECT l FROM Lecture l LEFT JOIN FETCH l.lectureEnrollments WHERE l.id = :id")
-    Optional<Lecture> findWithEnrollmentsById(@Param("id") Long id);
+//    @Query("SELECT l FROM Lecture l LEFT JOIN FETCH l.lectureEnrollments WHERE l.id = :id")
+//    Optional<Lecture> findWithEnrollmentsById(@Param("id") Long id);
 
     @Query("SELECT l FROM Lecture l WHERE l.title LIKE %:keyword% OR l.memo LIKE %:keyword%")
     List<Lecture> findByKeyword(String keyword);

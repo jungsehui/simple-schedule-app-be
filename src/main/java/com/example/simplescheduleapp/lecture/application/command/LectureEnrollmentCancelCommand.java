@@ -1,6 +1,11 @@
-package com.example.simplescheduleapp.lecture.presentation.request;
+package com.example.simplescheduleapp.lecture.application.command;
 
-public record LectureEnrollmentCancelRequest(
-
+public record LectureEnrollmentCancelCommand(
+        Long studentId,
+        Long lectureId
 ) {
+
+    public static LectureEnrollmentCancelCommand of(Long studentId, Long lectureId) {
+        return new LectureEnrollmentCancelCommand(studentId, lectureId);
+    }
 }

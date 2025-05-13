@@ -1,8 +1,7 @@
 package com.example.simplescheduleapp.tutor.application;
 
 import com.example.simplescheduleapp.lecture.domain.*;
-import com.example.simplescheduleapp.notification.application.NotificationService;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.lecture.domain.service.LectureEnrollmentManager;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
@@ -16,10 +15,9 @@ import org.springframework.stereotype.Service;
 public class TutorService {
 
     private final TutorRegister tutorRegister;
-    private final NotificationService notificationService;
+    private final LectureEnrollmentManager lectureEnrollmentManager;
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
-    private final LectureEnrollmentRepository lectureEnrollmentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
 
     public Long signUpTutor(TutorSignUpCommand tutorSignUpCommand) {
@@ -28,27 +26,18 @@ public class TutorService {
         return registeredTutor.getId();
     }
 
-    public void acceptEnrollment(Long pendingId) {
+    public Long acceptEnrollment(Long pendingId) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(pendingId);
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
-        LectureEnrollment lectureEnrollment = lecture.enroll(student);
-        lectureEnrollmentRepository.save(lectureEnrollment);
-        pending.accept();
-        pendingLectureEnrollmentRepository.delete(pending);
-        Long studentId = student.getId();
-        String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
-        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+        LectureEnrollment lectureEnrollment = lectureEnrollmentManager.enrollStudentToLecture(pending, lecture, student);
+        return lectureEnrollment.getId();
     }
 
     public void rejectEnrollment(Long pendingId) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(pendingId);
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
-        pending.reject();
-        pendingLectureEnrollmentRepository.delete(pending);
-        Long studentId = student.getId();
-        String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
-        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+        lectureEnrollmentManager.rejectEnrollment(pending, lecture, student);
     }
 }
