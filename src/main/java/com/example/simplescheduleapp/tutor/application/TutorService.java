@@ -35,7 +35,7 @@ public class TutorService {
         LectureEnrollment lectureEnrollment = lecture.enroll(student);
         lectureEnrollmentRepository.save(lectureEnrollment);
         pending.accept();
-        pendingLectureEnrollmentRepository.delete(pending);
+        pendingLectureEnrollmentRepository.save(pending);
         Long studentId = student.getId();
         String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
         notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
@@ -46,7 +46,7 @@ public class TutorService {
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
         pending.reject();
-        pendingLectureEnrollmentRepository.delete(pending);
+        pendingLectureEnrollmentRepository.save(pending);
         Long studentId = student.getId();
         String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
         notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
