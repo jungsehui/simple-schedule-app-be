@@ -30,7 +30,7 @@ public class TutorService {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(pendingId);
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
-        LectureEnrollment lectureEnrollment = lectureEnrollmentManager.enrollStudentToLecture(pending, lecture, student);
+        LectureEnrollment lectureEnrollment = lectureEnrollmentManager.acceptEnrollment(pending, lecture, student);
         return lectureEnrollment.getId();
     }
 

@@ -20,10 +20,10 @@ public class LectureEnrollmentManager {
     private final LectureEnrollmentRepository lectureEnrollmentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
 
-    public LectureEnrollment enrollStudentToLecture(PendingLectureEnrollment pending, Lecture lecture, Student student) {
+    public LectureEnrollment acceptEnrollment(PendingLectureEnrollment pending, Lecture lecture, Student student) {
         try {
             pending.accept();
-            pendingLectureEnrollmentRepository.delete(pending);
+            pendingLectureEnrollmentRepository.save(pending);
             lecture.increaseEnrolledCount();
             Long studentId = student.getId();
             LectureEnrollment savedEnrollment = lectureEnrollmentRepository.save(new LectureEnrollment(lecture, student));
@@ -32,7 +32,7 @@ public class LectureEnrollmentManager {
             return savedEnrollment;
         } catch (DataIntegrityViolationException e) {
             log.error("수강생 등록 에러 메시지: {}", e.getMessage());
-            throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED); // 원본 예외를 포함하여 로깅 및 디버깅에 유용
+            throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
         }
     }
 
