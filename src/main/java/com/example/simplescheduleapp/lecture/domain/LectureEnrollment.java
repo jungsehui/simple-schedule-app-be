@@ -5,7 +5,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "lecture_enrollment")
+@Table(
+        name = "lecture_enrollment",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_lecture_student", columnNames = {"lecture_id", "student_id"})
+        }
+)
 @NoArgsConstructor
 @Getter
 @Entity

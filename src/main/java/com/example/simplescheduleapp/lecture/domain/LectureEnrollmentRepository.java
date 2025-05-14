@@ -2,6 +2,8 @@ package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.student.domain.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

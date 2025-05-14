@@ -2,7 +2,6 @@ package com.example.simplescheduleapp.tutor.presentation;
 
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
-import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.presentation.request.PendingCheckRequest;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.tutor.application.TutorService;
@@ -11,7 +10,6 @@ import com.example.simplescheduleapp.tutor.presentation.request.TutorSignUpReque
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,11 +32,11 @@ public class TutorController {
     }
 
     @PostMapping("/enrollments/accept")
-    public ResponseEntity<Void> acceptEnrollment(
+    public ResponseEntity<Long> acceptEnrollment(
             @RequestBody PendingCheckRequest request
     ) {
-        tutorService.acceptEnrollment(request.pendingId());
-        return ResponseEntity.ok().build();
+        Long lectureEnrollmentId = tutorService.acceptEnrollment(request.pendingId());
+        return ResponseEntity.ok(lectureEnrollmentId);
     }
 
     @PostMapping("/enrollments/reject")
