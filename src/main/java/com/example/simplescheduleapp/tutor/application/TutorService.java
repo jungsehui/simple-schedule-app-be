@@ -1,9 +1,9 @@
 package com.example.simplescheduleapp.tutor.application;
 
 import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
-import com.example.simplescheduleapp.lecture.domain.*;
-import com.example.simplescheduleapp.student.domain.Student;
-import com.example.simplescheduleapp.student.domain.StudentRepository;
+import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
+import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollment;
+import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollmentRepository;
 import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.service.TutorRegister;
@@ -16,8 +16,6 @@ public class TutorService {
 
     private final TutorRegister tutorRegister;
     private final LectureEnrollmentService lectureEnrollmentService;
-    private final LectureRepository lectureRepository;
-    private final StudentRepository studentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
 
     public Long signUpTutor(TutorSignUpCommand tutorSignUpCommand) {
@@ -28,16 +26,12 @@ public class TutorService {
 
     public Long acceptEnrollment(Long pendingId) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(pendingId);
-        Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
-        Student student = studentRepository.getById(pending.getStudentId());
-        LectureEnrollment lectureEnrollment = lectureEnrollmentService.acceptEnrollment(pending, lecture, student);
+        LectureEnrollment lectureEnrollment = lectureEnrollmentService.acceptEnrollment(pending);
         return lectureEnrollment.getId();
     }
 
     public void rejectEnrollment(Long pendingId) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(pendingId);
-        Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
-        Student student = studentRepository.getById(pending.getStudentId());
-        lectureEnrollmentService.rejectEnrollment(pending, lecture, student);
+        lectureEnrollmentService.rejectEnrollment(pending);
     }
 }

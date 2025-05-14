@@ -10,6 +10,7 @@ import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
+import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class LectureEnrollmentService {
     private final NotificationService notificationService;
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
     private final LectureRepository lectureRepository;
+    private final StudentRepository studentRepository;
     private final LectureEnrollmentRepository lectureEnrollmentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
 
@@ -56,8 +58,10 @@ public class LectureEnrollmentService {
         pendingLectureEnrollmentRepository.delete(pending);
     }
 
-    public LectureEnrollment acceptEnrollment(PendingLectureEnrollment pending, Lecture lecture, Student student) {
+    public LectureEnrollment acceptEnrollment(PendingLectureEnrollment pending) {
         try {
+            Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+            Student student = studentRepository.getById(pending.getStudentId());
             pending.accept();
             pendingLectureEnrollmentRepository.save(pending);
             LectureEnrollment lectureEnrollment = lecture.enroll(student);
@@ -72,7 +76,9 @@ public class LectureEnrollmentService {
         }
     }
 
-    public void rejectEnrollment(PendingLectureEnrollment pending, Lecture lecture, Student student) {
+    public void rejectEnrollment(PendingLectureEnrollment pending) {
+        Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+        Student student = studentRepository.getById(pending.getStudentId());
         pendingLectureEnrollmentRepository.delete(pending);
         Long studentId = student.getId();
         String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
