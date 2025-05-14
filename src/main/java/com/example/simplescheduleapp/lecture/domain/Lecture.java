@@ -11,8 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @DiscriminatorValue("LECTURE")
 @Table(name = "lecture")
@@ -44,21 +42,26 @@ public class Lecture extends Schedule {
         this.capacity = capacity;
     }
 
+    public LectureEnrollment enroll(Student student) {
+        increaseEnrolledCount();
+        return new LectureEnrollment(this, student);
+    }
+
     public void update(Tutor tutor, Schedule schedule, int capacity) {
         validateTutorAuthority(tutor);
         updateSchedule(schedule);
         this.capacity = capacity;
     }
 
-    public void increaseEnrolledCount() {
-        validateCapacity();
-        this.enrolledCount++;
-    }
-
-    public void decreaseEnrolledCount() {
+    public void cancel() {
         if (enrolledCount > 0) {
             this.enrolledCount--;
         }
+    }
+
+    private void increaseEnrolledCount() {
+        validateCapacity();
+        this.enrolledCount++;
     }
 
     private void validateTutorAuthority(Tutor tutor) {

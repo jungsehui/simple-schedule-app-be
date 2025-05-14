@@ -1,26 +1,23 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.fcm.domain.FcmToken;
-import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCancelCommand;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.domain.*;
-import com.example.simplescheduleapp.lecture.domain.service.LectureEnrollmentManager;
 import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.message.NotificationMessage;
-import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
-import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
-import com.example.simplescheduleapp.sse.event.RedisSseMessageSubscriber;
+import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class LectureEnrollmentService {
@@ -53,9 +50,32 @@ public class LectureEnrollmentService {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         Lecture lecture = lectureEnrollment.getLecture();
-        lecture.decreaseEnrolledCount();
+        lecture.cancel();
         lectureRepository.save(lecture);
         lectureEnrollmentRepository.delete(lectureEnrollment);
         pendingLectureEnrollmentRepository.delete(pending);
+    }
+
+    public LectureEnrollment acceptEnrollment(PendingLectureEnrollment pending, Lecture lecture, Student student) {
+        try {
+            pending.accept();
+            pendingLectureEnrollmentRepository.save(pending);
+            LectureEnrollment lectureEnrollment = lecture.enroll(student);
+            lectureEnrollmentRepository.save(lectureEnrollment);
+            Long studentId = student.getId();
+            String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
+            notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+            return lectureEnrollment;
+        } catch (ApplicationException e) {
+            log.error("수강생 등록 에러 메시지: {}", e.getMessage());
+            throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
+        }
+    }
+
+    public void rejectEnrollment(PendingLectureEnrollment pending, Lecture lecture, Student student) {
+        pendingLectureEnrollmentRepository.delete(pending);
+        Long studentId = student.getId();
+        String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
+        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
     }
 }
