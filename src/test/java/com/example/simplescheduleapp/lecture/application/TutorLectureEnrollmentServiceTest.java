@@ -1,11 +1,14 @@
-package com.example.simplescheduleapp.tutor.application;
+package com.example.simplescheduleapp.lecture.application;
 
+import com.example.simplescheduleapp.lecture.application.command.PendingAcceptCommand;
+import com.example.simplescheduleapp.lecture.application.command.PendingRejectCommand;
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
+import com.example.simplescheduleapp.tutor.application.TutorService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,10 +20,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
-class TutorServiceTest extends ApplicationTest {
+class TutorLectureEnrollmentServiceTest extends ApplicationTest {
 
     @Autowired
     private TutorService tutorService;
+
+    @Autowired
+    private LectureEnrollmentService lectureEnrollmentService;
 
     @MockitoBean
     private NotificationService notificationService;
@@ -48,6 +54,8 @@ class TutorServiceTest extends ApplicationTest {
     @Test
     void 수강등록_수락_처리() {
         // given
+        PendingAcceptCommand command = new PendingAcceptCommand(99L);
+
         PendingLectureEnrollment pending = sut.giveMeBuilder(PendingLectureEnrollment.class)
                 .set("lectureId", 1L)
                 .set("studentId", 2L)
@@ -64,7 +72,7 @@ class TutorServiceTest extends ApplicationTest {
         given(lecture.getTitle()).willReturn("수학");
 
         // when
-        tutorService.acceptEnrollment(99L);
+        lectureEnrollmentService.acceptEnrollment(command);
 
         // then
         then(lectureEnrollmentRepository).should().save(enrollment);
@@ -76,6 +84,8 @@ class TutorServiceTest extends ApplicationTest {
     @Test
     void 수강등록_거부_처리() {
         // given
+        PendingRejectCommand command = new PendingRejectCommand(88L);
+
         PendingLectureEnrollment pending = sut.giveMeBuilder(PendingLectureEnrollment.class)
                 .set("lectureId", 1L)
                 .set("studentId", 2L)
@@ -90,7 +100,7 @@ class TutorServiceTest extends ApplicationTest {
         given(lecture.getTitle()).willReturn("영어");
 
         // when
-        tutorService.rejectEnrollment(88L);
+        lectureEnrollmentService.rejectEnrollment(command);
 
         // then
         then(pendingLectureEnrollmentRepository).should().delete(pending);

@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-class LectureEnrollmentServiceTest extends ApplicationTest {
+class StudentLectureEnrollmentServiceTest extends ApplicationTest {
 
     @Autowired
     private LectureEnrollmentService lectureEnrollmentService;
