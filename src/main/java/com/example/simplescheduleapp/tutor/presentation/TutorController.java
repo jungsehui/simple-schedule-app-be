@@ -5,12 +5,14 @@ import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.application.command.PendingAcceptCommand;
 import com.example.simplescheduleapp.lecture.application.command.PendingRejectCommand;
+import com.example.simplescheduleapp.student.presentation.response.LectureEnrollmentResponse;
 import com.example.simplescheduleapp.tutor.presentation.request.PendingAcceptRequest;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.tutor.application.TutorService;
 import com.example.simplescheduleapp.tutor.application.command.TutorSignUpCommand;
 import com.example.simplescheduleapp.tutor.presentation.request.PendingRejectRequest;
 import com.example.simplescheduleapp.tutor.presentation.request.TutorSignUpRequest;
+import com.example.simplescheduleapp.tutor.presentation.response.LectureEnrollmentAcceptedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +39,12 @@ public class TutorController {
     }
 
     @PostMapping("/enrollments/accept")
-    public ResponseEntity<Long> acceptEnrollment(
+    public ResponseEntity<LectureEnrollmentAcceptedResponse> acceptEnrollment(
             @RequestBody PendingAcceptRequest request
     ) {
         PendingAcceptCommand command = request.toCommand();
         Long lectureEnrollmentId = lectureEnrollmentService.acceptEnrollment(command);
-        return ResponseEntity.ok(lectureEnrollmentId);
+        return ResponseEntity.ok(new LectureEnrollmentAcceptedResponse(lectureEnrollmentId));
     }
 
     @PostMapping("/enrollments/reject")
