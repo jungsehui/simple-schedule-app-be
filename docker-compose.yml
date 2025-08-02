@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # 1. course 앱을 위한 DB (3306 포트)
+  course_db:
+    image: mysql:8.0
+    container_name: course_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: "course_db"
+    ports:
+      - "3306:3306"
+    volumes:
+      - course_mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
+  # 2. notification 앱을 위한 DB (3307 포트)
+  notification_db:
+    image: mysql:8.0
+    container_name: notification_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: "notification_db"
+    ports:
+      - "3307:3306"
+    volumes:
+      - notification_mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
+  # 3. Redis
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+  # 4. Zookeeper (Kafka 의존성)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - app_network
+
+  # 5. Kafka
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  course_mysql_data:
+  notification_mysql_data:
+  redis_data:
