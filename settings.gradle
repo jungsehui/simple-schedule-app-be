@@ -1,1 +1,5 @@
 rootProject.name = 'simple-schedule-app'
+
+include 'common'
+include 'course'
+include 'notification'

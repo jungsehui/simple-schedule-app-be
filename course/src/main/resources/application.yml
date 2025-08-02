@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: course
+
+  profiles:
+    group:
+      local:
+        common-local
+    active: local
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/course_db
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+
+  kafka:
+    consumer:
+      group-id: "ssa-course-server-group"
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          jpa: DEBUG
+      hibernate: DEBUG
+
+cors:
+  allowed-origins: http://localhost:3000
