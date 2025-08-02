@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.common.config;
+package com.example.simplescheduleapp.fcm.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;

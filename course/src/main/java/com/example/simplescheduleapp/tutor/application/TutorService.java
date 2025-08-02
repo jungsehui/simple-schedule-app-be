@@ -12,8 +12,8 @@ public class TutorService {
 
     private final TutorRegister tutorRegister;
 
-    public Long signUpTutor(TutorSignUpCommand tutorSignUpCommand) {
-        Tutor tutor = tutorSignUpCommand.toTutor();
+    public Long signUpTutor(TutorSignUpCommand command) {
+        Tutor tutor = command.toTutor();
         Tutor registeredTutor = tutorRegister.register(tutor);
         return registeredTutor.getId();
     }

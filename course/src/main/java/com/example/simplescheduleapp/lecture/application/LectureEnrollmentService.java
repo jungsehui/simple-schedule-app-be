@@ -1,21 +1,20 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCancelCommand;
-import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
-import com.example.simplescheduleapp.lecture.application.command.PendingAcceptCommand;
-import com.example.simplescheduleapp.lecture.application.command.PendingRejectCommand;
+import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
+import com.example.simplescheduleapp.lecture.application.command.*;
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
-import com.example.simplescheduleapp.notification.application.NotificationService;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+//import com.example.simplescheduleapp.notification.application.NotificationService;
+//import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.List;
 @Service
 public class LectureEnrollmentService {
 
-    private final NotificationService notificationService;
+//    private final NotificationService notificationService;
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
@@ -38,7 +37,7 @@ public class LectureEnrollmentService {
         Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
         Tutor tutor = lecture.getTutor();
         String message = "학생이 '" + lecture.getTitle() + "' 강의 수강신청을 요청했습니다.";
-        notificationService.sendPushNotification(new NotificationMessage(tutor.getId(), lecture.getTitle(), message));
+//        notificationService.sendPushNotification(new NotificationMessage(tutor.getId(), lecture.getTitle(), message));
         return pending.getId();
     }
 
@@ -50,14 +49,21 @@ public class LectureEnrollmentService {
         return lectureEnrollments;
     }
 
-    public void cancelEnrollment(LectureEnrollmentCancelCommand command) {
+    public void cancelPendingLectureEnrollment(PendingLectureEnrollmentCancelCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
+        pendingLectureEnrollmentRepository.delete(pending);
+        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
+        Tutor tutor = lecture.getTutor();
+        String message = "학생이 '" + lecture.getTitle() + "' 강의 수강신청 요청을 취소했습니다.";
+//        notificationService.sendPushNotification(new NotificationMessage(tutor.getId(), lecture.getTitle(), message));
+    }
+    
+    public void cancelLectureEnrollment(LectureEnrollmentCancelCommand command) {
         LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         Lecture lecture = lectureEnrollment.getLecture();
         lecture.cancel();
         lectureRepository.save(lecture);
         lectureEnrollmentRepository.delete(lectureEnrollment);
-        pendingLectureEnrollmentRepository.delete(pending);
     }
 
     public Long acceptEnrollment(PendingAcceptCommand command) {
@@ -66,16 +72,19 @@ public class LectureEnrollmentService {
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
             Student student = studentRepository.getById(pending.getStudentId());
             pending.accept();
-            pendingLectureEnrollmentRepository.save(pending);
+            pendingLectureEnrollmentRepository.delete(pending);
             LectureEnrollment lectureEnrollment = lecture.enroll(student);
             lectureEnrollmentRepository.save(lectureEnrollment);
             Long studentId = student.getId();
             String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
-            notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+//            notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
             return lectureEnrollment.getId();
-        } catch (ApplicationException e) {
-            log.error("수강생 등록 에러 메시지: {}", e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            log.error("이미 등록된 학생입니다. lectureId = {}", e.getMessage());
             throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
+        } catch (ApplicationException e) {
+            log.error("수강생 등록 에러 메시지 {}", e.getMessage());
+            throw new ApplicationException(InternalServerExceptionCode.UNKNOWN_EXCEPTION);
         }
     }
 
@@ -86,6 +95,6 @@ public class LectureEnrollmentService {
         pendingLectureEnrollmentRepository.delete(pending);
         Long studentId = student.getId();
         String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
-        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+//        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
     }
 }

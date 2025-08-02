@@ -6,5 +6,5 @@ spring:
       bootstrap-servers: "localhost:9092"
 
 token:
-  secretKey:
-  accessTokenExpirationMillis:
+  secretKey: "YS1zdXBlci1kdXBlci1sb25nLWFuZC11bHRyYS1zZWN1cmUtc2VjcmV0LWtleS1mb3Itand0LW11c3QtYmUtYXQtbGVhc3QtNjQtYnl0ZXM="
+  accessTokenExpirationMillis: 86400000

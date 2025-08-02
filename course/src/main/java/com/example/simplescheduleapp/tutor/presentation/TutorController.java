@@ -29,10 +29,10 @@ public class TutorController {
 
     @PostMapping("/tutors")
     public ResponseEntity<LoginResponse> signUpTutor(
-            @RequestBody @Valid TutorSignUpRequest tutorSignUpRequest
+            @RequestBody @Valid TutorSignUpRequest request
     ) {
-        TutorSignUpCommand tutorSignUpCommand = tutorSignUpRequest.toCommand();
-        Long id = tutorService.signUpTutor(tutorSignUpCommand);
+        TutorSignUpCommand command = request.toCommand();
+        Long id = tutorService.signUpTutor(command);
         Token token = tokenService.createToken(id);
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
     }

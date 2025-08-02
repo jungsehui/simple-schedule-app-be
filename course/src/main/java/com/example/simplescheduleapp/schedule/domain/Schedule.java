@@ -12,7 +12,9 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
-@SQLRestriction("deleted_at is null")
+import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_AT_IS_NULL;
+
+@SQLRestriction(DELETED_AT_IS_NULL)
 @SQLDelete(sql = "UPDATE schedule SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type")

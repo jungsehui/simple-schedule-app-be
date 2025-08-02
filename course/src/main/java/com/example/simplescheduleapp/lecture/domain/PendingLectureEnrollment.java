@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-@SQLRestriction("deleted_at is null")
+import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_AT_IS_NULL;
+
+@SQLRestriction(DELETED_AT_IS_NULL)
 @SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Table(name = "pending_lecture_enrollment")
 @Getter
@@ -22,11 +24,12 @@ public class PendingLectureEnrollment extends SoftDeletedEntity {
 
     private Long lectureId;
     private Long studentId;
-    private boolean permitted = false;
+    private boolean permitted;
 
     public PendingLectureEnrollment(Long lectureId, Long studentId) {
         this.lectureId = lectureId;
         this.studentId = studentId;
+        this.permitted = false;
     }
 
     public void accept() {

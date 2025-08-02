@@ -1,9 +1,18 @@
+server:
+  port: 8081
+
 spring:
   application:
-    name: simple-schedule-app
+    name: notification
+
+  profiles:
+    group:
+      local:
+        common-local
+    active: local
 
   datasource:
-    url: jdbc:mysql://localhost:3306/ssa_db
+    url: jdbc:mysql://localhost:3307/notification_db
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,6 +31,10 @@ spring:
     init:
       mode: always
 
+  kafka:
+    consumer:
+      group-id: "ssa-notification-server-group"
+
 logging:
   level:
     org:
@@ -29,10 +42,6 @@ logging:
         data:
           jpa: DEBUG
       hibernate: DEBUG
-
-token:
-  secret-key: "0gaPhxmVGE3FlmiPAR2bJtAFbx2JAbuadjJ3LMa2DhOH4SnDoQiTwk3d3Frsw7LWlAIKld41sN4iNQktITtIbw=="
-  access-token-expiration-millis: 1800000
 
 fcm:
   key:

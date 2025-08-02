@@ -20,9 +20,9 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest loginRequest
+            @RequestBody LoginRequest request
     ) {
-        Long id = memberService.login(loginRequest.username(), loginRequest.password());
+        Long id = memberService.login(request.username(), request.password());
         Token token = tokenService.createToken(id);
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
     }

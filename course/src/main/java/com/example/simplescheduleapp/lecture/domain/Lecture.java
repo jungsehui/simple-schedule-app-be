@@ -27,19 +27,13 @@ public class Lecture extends Schedule {
     private int capacity;
 
     @Column(nullable = false)
-    private int enrolledCount = 0;
+    private int enrolledCount;
 
-    public Lecture(
-            String title,
-            LocalDateTime startTime,
-            LocalDateTime endTime,
-            String memo,
-            Tutor tutor,
-            int capacity
-    ) {
+    public Lecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
         super(title, startTime, endTime, memo);
         this.tutor = tutor;
         this.capacity = capacity;
+        this.enrolledCount = 0;
     }
 
     public LectureEnrollment enroll(Student student) {

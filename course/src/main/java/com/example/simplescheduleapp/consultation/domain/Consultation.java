@@ -23,13 +23,7 @@ public class Consultation extends Schedule {
     @OneToMany(mappedBy = "consultation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConsultationAttendee> consultationAttendees;
 
-    public Consultation(
-            String title,
-            LocalDateTime startTime,
-            LocalDateTime endTime,
-            String memo,
-            Tutor tutor
-    ) {
+    public Consultation(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor) {
         super(title, startTime, endTime, memo);
         this.tutor = tutor;
     }

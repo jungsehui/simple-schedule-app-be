@@ -3,8 +3,6 @@ package com.example.simplescheduleapp.fcm.application;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.utils.FcmUtils;
-import com.example.simplescheduleapp.member.domain.Member;
-import com.example.simplescheduleapp.member.domain.MemberRepository;
 import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -21,12 +19,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class FcmService {
 
-    private final MemberRepository memberRepository;
     private final FcmTokenRepository fcmTokenRepository;
 
-    public void addFcmToken(Long memberId, String fcmToken){
-        Member member = memberRepository.getById(memberId);
-        FcmToken token = new FcmToken(member, fcmToken);
+    public void addFcmToken(Long memberId, String fcmToken) {
+        FcmToken token = new FcmToken(memberId, fcmToken);
         fcmTokenRepository.save(token);
     }
 
@@ -45,7 +41,7 @@ public class FcmService {
             log.info("FCM 전송 성공 - response: {}, memberId: {}, event: {}, message: {}",
                     response, message.memberId(), message.eventName(), message.messageBody());
         } catch (FirebaseMessagingException e) {
-            log.warn("FCM 전송 실패 - memberId: {}, token: {}, 이유: {}",
+            log.error("FCM 전송 실패 - memberId: {}, token: {}, exception: {}",
                     message.memberId(), fcmToken.getFcmToken(), e.getMessage());
         }
     }

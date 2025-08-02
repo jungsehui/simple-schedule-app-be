@@ -22,10 +22,10 @@ public class ParentController {
 
     @PostMapping("/parents")
     public ResponseEntity<LoginResponse> signUpParent(
-            @RequestBody @Valid ParentSignUpRequest parentSignUpRequest
+            @RequestBody @Valid ParentSignUpRequest request
     ) {
-        ParentSignUpCommand parentSignUpCommand = parentSignUpRequest.toCommand();
-        Long id = parentService.signUpParent(parentSignUpCommand);
+        ParentSignUpCommand command = request.toCommand();
+        Long id = parentService.signUpParent(command);
         Token token = tokenService.createToken(id);
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
     }

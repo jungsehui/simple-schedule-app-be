@@ -1,9 +1,18 @@
+server:
+  port: 8080
+
 spring:
   application:
-    name: simple-schedule-app
+    name: course
+
+  profiles:
+    group:
+      local:
+        common-local
+    active: local
 
   datasource:
-    url: jdbc:mysql://localhost:3306/ssa_db
+    url: jdbc:mysql://localhost:3306/course_db
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,11 +25,14 @@ spring:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
-    open-in-view: false # SSE Emitter 로 인한 Connection 고갈 방지 설정
 
   sql:
     init:
       mode: always
+
+  kafka:
+    consumer:
+      group-id: "ssa-course-server-group"
 
 logging:
   level:
@@ -30,18 +42,5 @@ logging:
           jpa: DEBUG
       hibernate: DEBUG
 
-token:
-  secret-key: "0gaPhxmVGE3FlmiPAR2bJtAFbx2JAbuadjJ3LMa2DhOH4SnDoQiTwk3d3Frsw7LWlAIKld41sN4iNQktITtIbw=="
-  access-token-expiration-millis: 1800000
-
-fcm:
-  key:
-    json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
-    url: https://www.googleapis.com/auth/firebase.messaging
-
 cors:
   allowed-origins: http://localhost:3000
-
-redis:
-  host: localhost
-  port: 6379

@@ -5,6 +5,7 @@ import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCancelCommand;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
+import com.example.simplescheduleapp.lecture.application.command.PendingLectureEnrollmentCancelCommand;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.student.application.StudentService;
 import com.example.simplescheduleapp.student.application.command.StudentSignUpCommand;
@@ -25,10 +26,10 @@ public class StudentController {
 
     @PostMapping("/students")
     public ResponseEntity<LoginResponse> signUpStudent(
-            @RequestBody @Valid StudentSignUpRequest studentSignUpRequest
+            @RequestBody @Valid StudentSignUpRequest request
     ) {
-        StudentSignUpCommand studentSignUpCommand = studentSignUpRequest.toCommand();
-        Long id = studentService.signUpStudent(studentSignUpCommand);
+        StudentSignUpCommand command = request.toCommand();
+        Long id = studentService.signUpStudent(command);
         Token token = tokenService.createToken(id);
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
     }
@@ -43,13 +44,23 @@ public class StudentController {
         return ResponseEntity.ok(new LectureEnrollmentResponse(pendingId));
     }
 
+    @DeleteMapping("/lectures/{lectureId}/pending-enrollments")
+    public ResponseEntity<Void> cancelPendingEnrollment(
+            @RequestParam Long studentId,
+            @PathVariable Long lectureId
+    ) {
+        PendingLectureEnrollmentCancelCommand command = PendingLectureEnrollmentCancelCommand.of(studentId, lectureId);
+        lectureEnrollmentService.cancelPendingLectureEnrollment(command);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<Void> cancelEnrollment(
             @RequestParam Long studentId,
             @PathVariable Long lectureId
     ) {
         LectureEnrollmentCancelCommand command = LectureEnrollmentCancelCommand.of(studentId, lectureId);
-        lectureEnrollmentService.cancelEnrollment(command);
+        lectureEnrollmentService.cancelLectureEnrollment(command);
         return ResponseEntity.noContent().build();
     }
 }

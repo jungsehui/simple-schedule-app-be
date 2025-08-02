@@ -3,11 +3,8 @@ package com.example.simplescheduleapp.fcm.application;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.utils.FcmUtils;
-import com.example.simplescheduleapp.member.domain.Member;
-import com.example.simplescheduleapp.member.domain.MemberRepository;
 import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.support.UnitTest;
-import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -29,33 +26,21 @@ class FcmServiceTest extends UnitTest {
     FcmService fcmService;
 
     @Mock
-    MemberRepository memberRepository;
-
-    @Mock
     FcmTokenRepository fcmTokenRepository;
 
     Long tutorId = 1L;
 
-    Tutor tutorSut = sut.giveMeBuilder(Tutor.class)
-            .set("id", tutorId)
-            .sample();
-
     @Test
     void FCM_토큰_저장_성공() {
-        Member member = sut.giveMeOne(Member.class);
         String token = "test-fcm-token";
-
-        given(memberRepository.getById(any())).willReturn(member);
-
         fcmService.addFcmToken(1L, token);
-
         then(fcmTokenRepository).should().save(any(FcmToken.class));
     }
 
     @Test
     void FCM_푸시_알림_성공() throws FirebaseMessagingException {
         NotificationMessage message = new NotificationMessage(1L, "강의 제목", "알림 메시지");
-        FcmToken fcmToken = new FcmToken(tutorSut, "test-token");
+        FcmToken fcmToken = new FcmToken(tutorId, "test-token");
 
         given(fcmTokenRepository.getByMemberId(1L)).willReturn(fcmToken);
 

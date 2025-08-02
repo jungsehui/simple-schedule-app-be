@@ -12,8 +12,8 @@ public class StudentService {
 
     private final StudentRegister studentRegister;
 
-    public Long signUpStudent(StudentSignUpCommand studentSignUpCommand) {
-        Student student = studentSignUpCommand.toStudent();
+    public Long signUpStudent(StudentSignUpCommand command) {
+        Student student = command.toStudent();
         Student registeredStudent = studentRegister.register(student);
         return registeredStudent.getId();
     }

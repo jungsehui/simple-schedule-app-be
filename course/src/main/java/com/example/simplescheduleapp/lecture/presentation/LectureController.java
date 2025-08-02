@@ -28,8 +28,8 @@ public class LectureController {
             @RequestParam Long tutorId,
             @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
-        LectureCreateCommand lectureCreateCommand = lectureCreateRequest.toCommand(tutorId);
-        Lecture savedLecture = lectureService.createLecture(lectureCreateCommand);
+        LectureCreateCommand command = lectureCreateRequest.toCommand(tutorId);
+        Lecture savedLecture = lectureService.createLecture(command);
         URI location = URI.create("/lectures/" + savedLecture.getId());
         return ResponseEntity
                 .created(location)
@@ -60,9 +60,8 @@ public class LectureController {
             @PathVariable Long lectureId,
             @RequestBody LectureUpdateRequest lectureUpdateRequest
     ) {
-        LectureUpdateCommand lectureUpdateCommand = lectureUpdateRequest.toCommand(tutorId, lectureId);
-        Lecture updatedLecture = lectureService.updateLecture(lectureUpdateCommand);
-        return ResponseEntity
-                .ok(LectureUpdateResponse.from(updatedLecture));
+        LectureUpdateCommand command = lectureUpdateRequest.toCommand(tutorId, lectureId);
+        Lecture updatedLecture = lectureService.updateLecture(command);
+        return ResponseEntity.ok(LectureUpdateResponse.from(updatedLecture));
     }
 }

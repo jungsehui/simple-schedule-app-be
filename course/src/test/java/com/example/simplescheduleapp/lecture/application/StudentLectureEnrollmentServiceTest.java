@@ -1,8 +1,6 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.fcm.domain.FcmToken;
-import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.lecture.application.command.LectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.domain.Lecture;
 import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
@@ -37,9 +35,6 @@ class StudentLectureEnrollmentServiceTest extends ApplicationTest {
     private NotificationService notificationService;
 
     @MockitoBean
-    private FcmTokenRepository fcmTokenRepository;
-
-    @MockitoBean
     private LectureRepository lectureRepository;
 
     @MockitoBean
@@ -70,18 +65,11 @@ class StudentLectureEnrollmentServiceTest extends ApplicationTest {
             .set("title", "수학의 정석") // 정상 문자열 지정
             .sample();
 
-    FcmToken fcmTokenSut = sut.giveMeBuilder(FcmToken.class)
-            .set("id", fcmTokenId)
-            .set("member", tutorSut)
-            .set("fcmToken", "dummy-token")
-            .sample();
-
     @BeforeEach
     void setUp() {
         given(tutorRepository.getById(tutorId)).willReturn(tutorSut);
         given(studentRepository.getById(studentId)).willReturn(studentSut);
         given(lectureRepository.getByLectureId(lectureId)).willReturn(lectureSut);
-        given(fcmTokenRepository.getByMemberId(fcmTokenId)).willReturn(fcmTokenSut);
     }
 
     @Test

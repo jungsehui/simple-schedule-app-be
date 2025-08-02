@@ -1,11 +1,11 @@
-package cupid.common.event.exception;
+package com.example.simplescheduleapp.common.event.exception;
 
-import cupid.common.exception.ExceptionCode;
+import com.example.simplescheduleapp.common.exception.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public enum DomainEventExceptionCode implements ExceptionCode {
 
-    NOT_FOUND_DOMAIN_EVENT(HttpStatus.NOT_FOUND, "DE1", "해당 이벤트를 찾을 수 없습니다."),
+    DOMAIN_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "DE1", "해당 이벤트를 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

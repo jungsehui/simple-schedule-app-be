@@ -12,8 +12,8 @@ public class ParentService {
 
     private final ParentRegister parentRegister;
 
-    public Long signUpParent(ParentSignUpCommand parentSignUpCommand) {
-        Parent parent = parentSignUpCommand.toParent();
+    public Long signUpParent(ParentSignUpCommand command) {
+        Parent parent = command.toParent();
         Parent registeredParent = parentRegister.register(parent);
         return registeredParent.getId();
     }

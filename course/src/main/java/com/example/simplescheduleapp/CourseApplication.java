@@ -6,9 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @ConfigurationPropertiesScan
 @SpringBootApplication
-public class SimpleScheduleAppApplication {
+public class CourseApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SimpleScheduleAppApplication.class, args);
+		SpringApplication.run(CourseApplication.class, args);
 	}
 }

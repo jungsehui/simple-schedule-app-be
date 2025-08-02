@@ -14,7 +14,8 @@ public class SseService {
     private final RedisSseMessagePublisher redisSseMessagePublisher;
 
     public void sendNotification(NotificationMessage message) {
-        log.info("Redis 를 통해 memberId: {} 에게 이벤트 발행 - event: {}, message: {}", message.memberId(), message.eventName(), message.messageBody());
+        log.info("Redis 를 통해 memberId: {} 에게 이벤트 발행 - event: {}, message: {}",
+                message.memberId(), message.eventName(), message.messageBody());
         redisSseMessagePublisher.publish(message.memberId(), message.eventName(), message.messageBody());
     }
 }

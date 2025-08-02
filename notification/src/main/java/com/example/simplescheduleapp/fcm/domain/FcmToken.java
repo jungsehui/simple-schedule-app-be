@@ -1,6 +1,5 @@
 package com.example.simplescheduleapp.fcm.domain;
 
-import com.example.simplescheduleapp.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,14 +16,11 @@ public class FcmToken {
     @Column(name = "fcm_id")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private Member member;
-
+    private Long memberId;
     private String fcmToken;
 
-    public FcmToken(Member member, String fcmToken) {
-        this.member = member;
+    public FcmToken(Long memberId, String fcmToken) {
+        this.memberId = memberId;
         this.fcmToken = fcmToken;
     }
 }

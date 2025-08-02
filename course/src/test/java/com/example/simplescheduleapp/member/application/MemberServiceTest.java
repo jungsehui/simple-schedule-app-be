@@ -32,9 +32,9 @@ class MemberServiceTest {
     }
 
     @Test
-    void 아이디_미입력_실패() {
+    void 아이디_입력_실패() {
         // given
-        when(memberRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        when(memberRepository.getByUsername("nonexistent"));
 
         // when & then
         assertThrows(ApplicationException.class, () -> memberService.login("nonexistent", "Password123!"));
@@ -43,7 +43,7 @@ class MemberServiceTest {
     @Test
     void 비밀번호_불일치_실패() {
         // given
-        when(memberRepository.findByUsername("shinddonghun")).thenReturn(Optional.of(mockMember));
+        when(memberRepository.getByUsername("shinddonghun"));
 
         // when & then
         assertThrows(ApplicationException.class, () -> memberService.login("shinddonghun", "WrongPassword"));

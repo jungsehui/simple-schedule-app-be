@@ -59,8 +59,8 @@ public class RedisSseMessageSubscriber implements MessageListener {
             Map<String, String> map = mapper.readValue(body, new TypeReference<>() {});
             Long memberId = Long.valueOf(map.get("memberId"));
             String eventName = map.get("eventName");
-            String content = map.get("message");
-            sendSseMessage(new NotificationMessage(memberId, eventName, content));
+            String messageBody = map.get("messageBody");
+            sendSseMessage(new NotificationMessage(memberId, eventName, messageBody));
         } catch (JsonProcessingException e) {
             log.error("Redis 메시지 파싱 오류: {}", e.getMessage());
         }
@@ -108,7 +108,8 @@ public class RedisSseMessageSubscriber implements MessageListener {
             emitter.send(SseEmitter.event()
                     .name(message.eventName())
                     .data(message.messageBody()));
-            log.info("SSE 이벤트 전송 성공 - memberId: {}, event: {}, message: {}", message.memberId(), message.eventName(), message.messageBody());
+            log.info("SSE 이벤트 전송 성공 - memberId: {}, event: {}, message: {}",
+                    message.memberId(), message.eventName(), message.messageBody());
         } catch (IOException e) {
             log.error("memberId: {} 에게 SSE 이벤트 전송 실패: {}", message.memberId(), e.getMessage());
             sseEmitterRepository.delete(message.memberId());
@@ -117,9 +118,9 @@ public class RedisSseMessageSubscriber implements MessageListener {
         }
     }
 
-    // 혹시 모를 SSE 기능 동작 실패 시 FCM 으로 메시지 발행
+    // SSE 기능 동작 실패 시 FCM 으로 메시지 발행
     private void fcmFallback(NotificationMessage message) {
-        log.error("FCM Fallback memberId: {}", message.memberId());
+        log.info("FCM Fallback memberId: {}", message.memberId());
         fcmService.sendPushNotification(message);
     }
 }
