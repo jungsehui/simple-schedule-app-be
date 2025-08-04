@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.notification.domain;
 
-import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.event.DomainEvent;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,23 +16,14 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class NotificationMessage extends SoftDeletedEntity {
+public class NotificationMessageDispatchEvent extends DomainEvent {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public NotificationMessageDispatchEvent(Long senderDomainId, Long targetDomainId) {
+        super(senderDomainId, targetDomainId);
+    }
 
-    private Long senderMemberId;
-    private Long targetMemberId;
-    private String messageBody;
-
-    public NotificationMessage(
-            Long senderMemberId,
-            Long targetMemberId,
-            String messageBody
-    ) {
-        this.senderMemberId = senderMemberId;
-        this.targetMemberId = targetMemberId;
-        this.messageBody = messageBody;
+    @Override
+    public String getTopic() {
+        return "";
     }
 }

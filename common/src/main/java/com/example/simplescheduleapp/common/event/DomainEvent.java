@@ -33,19 +33,24 @@ public abstract class DomainEvent extends SoftDeletedEntity {
     private EventState eventState;
 
     @Column(nullable = false)
+    private Long senderDomainId;
+
+    @Column(nullable = false)
     private Long targetDomainId;
 
     private String failReason;
 
-    protected DomainEvent(Long targetDomainId) {
+    protected DomainEvent(Long senderDomainId, Long targetDomainId) {
         this.uuid = UUID.randomUUID().toString();
         this.eventState = EventState.INIT;
+        this.senderDomainId = senderDomainId;
         this.targetDomainId = targetDomainId;
     }
 
-    protected DomainEvent(String uuid, EventState eventState, Long targetDomainId) {
+    protected DomainEvent(String uuid, EventState eventState, Long senderDomainId, Long targetDomainId) {
         this.uuid = uuid;
         this.eventState = eventState;
+        this.senderDomainId = senderDomainId;
         this.targetDomainId = targetDomainId;
     }
 
