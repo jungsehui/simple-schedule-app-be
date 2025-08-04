@@ -4,7 +4,7 @@ import com.example.simplescheduleapp.lecture.application.command.PendingAcceptCo
 import com.example.simplescheduleapp.lecture.application.command.PendingRejectCommand;
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.notification.application.NotificationService;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.notification.domain.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;

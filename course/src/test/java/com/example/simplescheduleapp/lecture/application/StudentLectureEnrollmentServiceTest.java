@@ -8,7 +8,7 @@ import com.example.simplescheduleapp.lecture.domain.LectureEnrollmentRepository;
 import com.example.simplescheduleapp.lecture.domain.LectureRepository;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.notification.application.NotificationService;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.notification.domain.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
