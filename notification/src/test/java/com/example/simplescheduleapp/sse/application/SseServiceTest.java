@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.sse.application;
 
-import com.example.simplescheduleapp.notification.domain.NotificationMessage;
-import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;

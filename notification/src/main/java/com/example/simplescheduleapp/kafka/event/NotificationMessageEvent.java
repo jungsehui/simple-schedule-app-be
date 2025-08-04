@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.notification.domain;
+package com.example.simplescheduleapp.kafka.event;
 
 public record NotificationMessageEvent(
         Long senderMemberId,

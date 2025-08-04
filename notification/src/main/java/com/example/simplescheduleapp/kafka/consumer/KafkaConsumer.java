@@ -6,7 +6,7 @@ import com.example.simplescheduleapp.kafka.topic.CancelLectureEnrollmentTopicMes
 import com.example.simplescheduleapp.kafka.topic.RejectLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RequestLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.notification.application.NotificationService;
-import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

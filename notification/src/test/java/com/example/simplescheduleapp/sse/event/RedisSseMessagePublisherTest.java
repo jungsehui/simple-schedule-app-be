@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.sse.event;
 
-import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

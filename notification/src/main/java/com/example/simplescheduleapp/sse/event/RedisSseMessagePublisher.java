@@ -1,15 +1,12 @@
 package com.example.simplescheduleapp.sse.event;
 
-import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor

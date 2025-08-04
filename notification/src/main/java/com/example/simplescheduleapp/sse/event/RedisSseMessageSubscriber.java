@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.event;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.sse.domain.RedisClientManager;
 import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
