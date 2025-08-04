@@ -1,9 +1,9 @@
 package com.example.simplescheduleapp.common.kafka.topic;
 
-public class KafkaTopic {
+public class KafkaTopics {
 
-    public static final String LECTURE_ENROLLMENT_REQUEST_EVENT = "LectureEnrollmentRequestEventTopic";
-    public static final String LECTURE_ENROLLMENT_ACCEPTANCE_EVENT = "LectureEnrollmentAcceptanceEventTopic";
-    public static final String LECTURE_ENROLLMENT_REJECTION_EVENT = "LectureEnrollmentRejectionEventTopic";
-    public static final String LECTURE_ENROLLMENT_CANCEL_EVENT = "LectureEnrollmentCancelEventTopic";
+    public static final String REQUEST_LECTURE_ENROLLMENT_TOPIC = "REQUEST_LECTURE_ENROLLMENT_TOPIC";
+    public static final String ACCEPT_LECTURE_ENROLLMENT_TOPIC = "ACCEPT_LECTURE_ENROLLMENT_TOPIC";
+    public static final String REJECT_LECTURE_ENROLLMENT_TOPIC = "REJECT_LECTURE_ENROLLMENT_TOPIC";
+    public static final String CANCEL_LECTURE_ENROLLMENT_TOPIC = "CANCEL_LECTURE_ENROLLMENT_TOPIC";
 }
