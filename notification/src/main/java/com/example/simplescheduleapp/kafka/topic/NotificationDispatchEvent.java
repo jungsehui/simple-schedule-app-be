@@ -1,23 +1,20 @@
 package com.example.simplescheduleapp.kafka.topic;
 
 import com.example.simplescheduleapp.notification.domain.NotificationMessage;
-import com.example.simplescheduleapp.notification.domain.NotificationMessageType;
 
-public record NotificationDispatchTopicMessage(
+public record NotificationDispatchEvent(
         Long notificationId,
-        Long senderId,
-        Long targetId,
-        String message,
-        NotificationMessageType type
+        Long senderMemberId,
+        Long targetMemberId,
+        String messageBody
 ) {
 
-    public static NotificationDispatchTopicMessage from(NotificationMessage notificationMessage) {
-        return new NotificationDispatchTopicMessage(
+    public static NotificationDispatchEvent from(NotificationMessage notificationMessage) {
+        return new NotificationDispatchEvent(
                 notificationMessage.getId(),
                 notificationMessage.getSenderMemberId(),
                 notificationMessage.getTargetMemberId(),
-                notificationMessage.getMessageBody(),
-                notificationMessage.getNotificationMessageType()
+                notificationMessage.getMessageBody()
         );
     }
 }

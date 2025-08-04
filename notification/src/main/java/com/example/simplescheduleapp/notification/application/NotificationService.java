@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.notification.application;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
 import com.example.simplescheduleapp.sse.application.SseService;
 import com.example.simplescheduleapp.sse.domain.RedisClientManager;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +17,11 @@ public class NotificationService {
     private final FcmService fcmService;
     private final RedisClientManager redisClientManager;
 
-    public void sendPushNotification(NotificationMessage message) {
-        if (redisClientManager.isClientConnected(message.memberId())) {
-            sseService.sendNotification(message);
+    public void sendPushNotification(NotificationMessageEvent message) {
+        if (redisClientManager.isClientConnected(message.targetMemberId())) {
+            sseService.sendSseNotification(message);
         } else {
-            fcmService.sendPushNotification(message);
+            fcmService.sendFcmNotification(message);
         }
     }
 }

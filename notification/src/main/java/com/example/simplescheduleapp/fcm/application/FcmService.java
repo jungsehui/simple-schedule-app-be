@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.fcm.application;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.utils.FcmUtils;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -31,18 +31,18 @@ public class FcmService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 2000, multiplier = 2)
     )
-    public void sendPushNotification(NotificationMessage message) {
-        Notification notification = FcmUtils.createNotification(message.eventName(), message.messageBody());
-        FcmToken fcmToken = fcmTokenRepository.getByMemberId(message.memberId());
+    public void sendFcmNotification(NotificationMessageEvent event) {
+        Notification notification = FcmUtils.createNotification(event.title(), event.body());
+        FcmToken fcmToken = fcmTokenRepository.getByMemberId(event.targetMemberId());
         Message toSend = FcmUtils.buildMessage(fcmToken.getFcmToken(), notification);
 
         try {
             String response = FirebaseMessaging.getInstance().send(toSend);
-            log.info("FCM 전송 성공 - response: {}, memberId: {}, event: {}, message: {}",
-                    response, message.memberId(), message.eventName(), message.messageBody());
+            log.info("FCM 전송 성공 - response: {}, target member ID: {}, title: {}, body: {}",
+                    response, event.targetMemberId(), event.title(), event.body());
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 전송 실패 - memberId: {}, token: {}, exception: {}",
-                    message.memberId(), fcmToken.getFcmToken(), e.getMessage());
+            log.error("FCM 전송 실패 - target member Id: {}, token: {}, exception: {}",
+                    event.targetMemberId(), fcmToken.getFcmToken(), e.getMessage());
         }
     }
 }

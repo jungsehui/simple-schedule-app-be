@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.sse.event;
 
+import com.example.simplescheduleapp.notification.domain.NotificationMessageEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +17,14 @@ import java.util.Map;
 public class RedisSseMessagePublisher {
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public void publish(Long memberId, String eventName, String messageBody) {
-        Map<String, String> payload = new HashMap<>();
-        payload.put("memberId", memberId.toString());
-        payload.put("eventName", eventName);
-        payload.put("messageBody", messageBody);
-
+    public void publish(NotificationMessageEvent event) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(payload);
+            String json = objectMapper.writeValueAsString(event);
             stringRedisTemplate.convertAndSend("sse-notification", json);
         } catch (JsonProcessingException e) {
-            log.error("redis SSE message 전송 실패: {}", e.getMessage());
+            log.error("redis SSE domain 전송 실패: {}", e.getMessage());
             throw new RuntimeException("JSON 으로 값을 컨버팅하여 보내는 도중 문제가 발생하였습니다 --> {}", e.getCause());
         }
     }
