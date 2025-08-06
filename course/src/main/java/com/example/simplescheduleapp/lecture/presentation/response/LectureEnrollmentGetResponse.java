@@ -11,12 +11,12 @@ public record LectureEnrollmentGetResponse(
         LocalDateTime startTime,
         LocalDateTime endTime,
         String memo,
-        List<StudentInfoResponse> students
+        List<StudentInfoResponse> studentInfos
 ) {
 
     public static LectureEnrollmentGetResponse of(
             List<LectureEnrollment> lectureEnrollments,
-            List<StudentInfoResponse> students
+            List<StudentInfoResponse> studentInfos
     ) {
         Lecture lecture = lectureEnrollments.getFirst().getLecture();
         return new LectureEnrollmentGetResponse(
@@ -24,7 +24,7 @@ public record LectureEnrollmentGetResponse(
                 lecture.getStartTime(),
                 lecture.getEndTime(),
                 lecture.getMemo(),
-                students
+                studentInfos
         );
     }
 }

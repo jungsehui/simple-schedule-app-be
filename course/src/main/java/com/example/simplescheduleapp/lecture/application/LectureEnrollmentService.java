@@ -93,4 +93,12 @@ public class LectureEnrollmentService {
         pendingLectureEnrollmentRepository.delete(pending);
         rejectLectureEnrollmentTopicProducer.produce(lecture, student);
     }
+
+    public List<Long> findStudentIdsByLectureId(Long lectureId) {
+        return lectureEnrollmentRepository.findAllByLectureId(lectureId)
+                .orElse(List.of())
+                .stream()
+                .map(enrollment -> enrollment.getStudent().getId())
+                .toList();
+    }
 }
