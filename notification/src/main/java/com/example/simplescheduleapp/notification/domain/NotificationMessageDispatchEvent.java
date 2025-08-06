@@ -12,14 +12,13 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 
 @SQLRestriction(DELETED_AT_IS_NULL)
 @SQLDelete(sql = "UPDATE notification_message SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@Table(name = "notification")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 public class NotificationMessageDispatchEvent extends DomainEvent {
 
-    public NotificationMessageDispatchEvent(Long senderDomainId, Long targetDomainId) {
-        super(senderDomainId, targetDomainId);
+    public NotificationMessageDispatchEvent(Long targetDomainId) {
+        super(targetDomainId);
     }
 
     @Override

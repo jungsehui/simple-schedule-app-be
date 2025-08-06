@@ -28,14 +28,16 @@ class RedisSseMessagePublisherTest {
         // given
         Long senderMemberId = 1L;
         Long targetMemberId = 123L;
-        String messageBody = "테스트 메시지입니다";
+        String title = "테스트 제목입니다";
+        String body = "테스트 메시지입니다";
 
         // when
         publisher.publish(
                 new NotificationMessageEvent(
                         senderMemberId,
                         targetMemberId,
-                        messageBody
+                        title,
+                        body
                 )
         );
 
@@ -43,6 +45,7 @@ class RedisSseMessagePublisherTest {
         verify(stringRedisTemplate).convertAndSend(eq("sse-notification"), argThat((String json)
                 -> json.contains("\"senderMemberId\":\"1\"")
                 && json.contains("\"targetMemberId\":\"123\"")
-                && json.contains("\"messageBody\":\"테스트 메시지입니다\"")));
+                && json.contains("\"title\":\"테스트 제목입니다.\"")
+                && json.contains("\"body\":\"테스트 메시지입니다\"")));
     }
 }
