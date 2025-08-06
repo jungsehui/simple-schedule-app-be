@@ -29,28 +29,23 @@ public abstract class DomainEvent extends SoftDeletedEntity {
     @Column(unique = true)
     private String uuid;
 
-    @Enumerated(value = EnumType.STRING)
-    private EventState eventState;
+    @Enumerated(EnumType.STRING)
+    private EventState state;
 
     @Column(nullable = false)
-    private Long senderDomainId;
-
-    @Column(nullable = false)
-    private Long targetDomainId;
+    private Long targetDomainId; // 강의 ID 등
 
     private String failReason;
 
-    protected DomainEvent(Long senderDomainId, Long targetDomainId) {
+    protected DomainEvent(Long targetDomainId) {
         this.uuid = UUID.randomUUID().toString();
-        this.eventState = EventState.INIT;
-        this.senderDomainId = senderDomainId;
+        this.state = EventState.INIT;
         this.targetDomainId = targetDomainId;
     }
 
-    protected DomainEvent(String uuid, EventState eventState, Long senderDomainId, Long targetDomainId) {
+    protected DomainEvent(String uuid, EventState state, Long targetDomainId) {
         this.uuid = uuid;
-        this.eventState = eventState;
-        this.senderDomainId = senderDomainId;
+        this.state = state;
         this.targetDomainId = targetDomainId;
     }
 
@@ -59,11 +54,11 @@ public abstract class DomainEvent extends SoftDeletedEntity {
     }
 
     public void produceSuccess() {
-        this.eventState = EventState.PRODUCE_SUCCESS;
+        this.state = EventState.PRODUCE_SUCCESS;
     }
 
     public void produceFail(Throwable e) {
-        this.eventState = EventState.PRODUCE_FAIL;
+        this.state = EventState.PRODUCE_FAIL;
         this.failReason = e.getMessage();
     }
 

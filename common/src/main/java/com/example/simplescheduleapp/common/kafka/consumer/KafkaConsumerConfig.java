@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.common.kafka.consumer;
 
+import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -17,22 +18,24 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
+    public static final String DOMAIN_EVENT_CONTAINER_FACTORY = "DOMAIN_EVENT_CONTAINER_FACTORY";
+
     private final KafkaConsumerProperty property;
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
+    @Bean(DOMAIN_EVENT_CONTAINER_FACTORY)
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaDomainEventMessage> domainEventContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, KafkaDomainEventMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(defaultDomainEventConsumerFactory());
         return factory;
     }
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public ConsumerFactory<String, KafkaDomainEventMessage> defaultDomainEventConsumerFactory() {
         Map<String, Object> config = getDefaultConfigs();
         return new DefaultKafkaConsumerFactory<>(
                 config,
                 new StringDeserializer(),
-                new JsonDeserializer<>(Object.class, false));
+                new JsonDeserializer<>(KafkaDomainEventMessage.class, false));
     }
 
     private Map<String, Object> getDefaultConfigs() {
