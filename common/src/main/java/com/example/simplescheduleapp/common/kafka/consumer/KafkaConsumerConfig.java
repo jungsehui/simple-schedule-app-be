@@ -31,9 +31,9 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, KafkaDomainEventMessage> defaultDomainEventConsumerFactory() {
-        Map<String, Object> config = getDefaultConfigs();
+        Map<String, Object> configs = getDefaultConfigs();
         return new DefaultKafkaConsumerFactory<>(
-                config,
+                configs,
                 new StringDeserializer(),
                 new JsonDeserializer<>(KafkaDomainEventMessage.class, false));
     }
