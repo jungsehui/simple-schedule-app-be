@@ -1,6 +1,5 @@
 package com.example.simplescheduleapp.common.kafka.consumer;
 
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
