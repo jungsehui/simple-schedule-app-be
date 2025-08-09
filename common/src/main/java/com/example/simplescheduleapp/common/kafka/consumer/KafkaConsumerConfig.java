@@ -14,18 +14,34 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
+
 @RequiredArgsConstructor
 @Configuration
 public class KafkaConsumerConfig {
 
     public static final String DOMAIN_EVENT_CONTAINER_FACTORY = "DOMAIN_EVENT_CONTAINER_FACTORY";
 
+    private final KafkaIdempotencyFilter kafkaIdempotencyFilter;
     private final KafkaConsumerProperty property;
 
     @Bean(DOMAIN_EVENT_CONTAINER_FACTORY)
     public ConcurrentKafkaListenerContainerFactory<String, KafkaDomainEventMessage> domainEventContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, KafkaDomainEventMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+        // 수동 커밋
+        factory.getContainerProperties().setAckMode(MANUAL_IMMEDIATE);
+
         factory.setConsumerFactory(defaultDomainEventConsumerFactory());
+
+        // 파티션 수와 동일하게 맞춰야 성능이 좋음, 파티션에는 최대 1개의 쓰레드만 할당됨
+        factory.setConcurrency(1);
+
+        // record 필터, interceptor 이전에 실행됨
+        // retry 시에도 동일하게 호출됨
+        factory.setRecordFilterStrategy(kafkaIdempotencyFilter);
+        factory.setAckDiscarded(true);
+
         return factory;
     }
 

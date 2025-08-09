@@ -22,21 +22,14 @@ public class KafkaMessageConsumeHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String topic;
-
     @Column(unique = true)
     private String uuid;
 
-    public KafkaMessageConsumeHistory(String topic, String uuid) {
-        this.topic = topic;
-        this.uuid = uuid;
-    }
+    @Column(nullable = false)
+    private String topic;
 
-    public static KafkaMessageConsumeHistory create(String topic, KafkaDomainEventMessage data) {
-        return new KafkaMessageConsumeHistory(
-                topic,
-                data.uuid()
-        );
+    public KafkaMessageConsumeHistory(String uuid, String topic) {
+        this.uuid = uuid;
+        this.topic = topic;
     }
 }
