@@ -74,6 +74,7 @@ public class KafkaConsumer {
             );
             notificationService.sendPushNotification(event);
         }
+        ack.acknowledge();
         log.info("Successfully consume lecture updated event topic. id :{}, uuid: {}, offset: {}",
                 message.targetDomainId(), message.uuid(), offset);
     }
