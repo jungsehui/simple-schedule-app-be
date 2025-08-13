@@ -33,6 +33,28 @@ public class NotificationKafkaConsumerConfig {
 
     private final KafkaConsumerProperty property;
 
+    @Bean(REQUEST_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
+    public ConcurrentKafkaListenerContainerFactory<String, RequestLectureEnrollmentTopicMessage> requestLectureEnrollmentContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, RequestLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+        // 수동 커밋
+        factory.getContainerProperties().setAckMode(MANUAL_IMMEDIATE);
+
+        factory.setConsumerFactory(requestLectureEnrollmentTopicMessageConsumerFactory());
+
+        // 파티션 수와 동일하게 맞춰야 성능이 좋음. 파티션에는 최대 1개의 스레드만 할당됨.
+        factory.setConcurrency(1);
+
+        // 예외처리 핸들리
+        // 1초 간격 2번 재시도
+        FixedBackOff fixedBackOff = new FixedBackOff(1000, 2);
+        DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler((consumerRecord, e) -> {
+            log.error("Unexpected exception while consume chat domain topic. offset: {}", consumerRecord.offset());
+        }, fixedBackOff);
+        factory.setCommonErrorHandler(defaultErrorHandler);
+        return factory;
+    }
+
     @Bean
     public ConsumerFactory<String, RequestLectureEnrollmentTopicMessage> requestLectureEnrollmentTopicMessageConsumerFactory() {
         Map<String, Object> configs = getNotificationConfig();
@@ -43,13 +65,14 @@ public class NotificationKafkaConsumerConfig {
         );
     }
 
-    @Bean(REQUEST_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
-    public ConcurrentKafkaListenerContainerFactory<String, RequestLectureEnrollmentTopicMessage> requestLectureEnrollmentContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, RequestLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    @Bean(ACCEPT_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
+    public ConcurrentKafkaListenerContainerFactory<String, AcceptLectureEnrollmentTopicMessage> acceptLectureEnrollmentContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, AcceptLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
         // 수동 커밋
         factory.getContainerProperties().setAckMode(MANUAL_IMMEDIATE);
 
-        factory.setConsumerFactory(requestLectureEnrollmentTopicMessageConsumerFactory());
+        factory.setConsumerFactory(acceptLectureEnrollmentTopicMessageConsumerFactory());
 
         // 파티션 수와 동일하게 맞춰야 성능이 좋음. 파티션에는 최대 1개의 스레드만 할당됨.
         factory.setConcurrency(1);
@@ -74,13 +97,14 @@ public class NotificationKafkaConsumerConfig {
         );
     }
 
-    @Bean(ACCEPT_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
-    public ConcurrentKafkaListenerContainerFactory<String, AcceptLectureEnrollmentTopicMessage> acceptLectureEnrollmentContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, AcceptLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    @Bean(REJECT_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
+    public ConcurrentKafkaListenerContainerFactory<String, RejectLectureEnrollmentTopicMessage> rejectLectureEnrollmentContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, RejectLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
         // 수동 커밋
         factory.getContainerProperties().setAckMode(MANUAL_IMMEDIATE);
 
-        factory.setConsumerFactory(acceptLectureEnrollmentTopicMessageConsumerFactory());
+        factory.setConsumerFactory(rejectLectureEnrollmentTopicMessageConsumerFactory());
 
         // 파티션 수와 동일하게 맞춰야 성능이 좋음. 파티션에는 최대 1개의 스레드만 할당됨.
         factory.setConcurrency(1);
@@ -105,13 +129,14 @@ public class NotificationKafkaConsumerConfig {
         );
     }
 
-    @Bean(REJECT_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
-    public ConcurrentKafkaListenerContainerFactory<String, RejectLectureEnrollmentTopicMessage> rejectLectureEnrollmentContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, RejectLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    @Bean(CANCEL_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
+    public ConcurrentKafkaListenerContainerFactory<String, CancelLectureEnrollmentTopicMessage> cancelLectureEnrollmentContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, CancelLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
         // 수동 커밋
         factory.getContainerProperties().setAckMode(MANUAL_IMMEDIATE);
 
-        factory.setConsumerFactory(rejectLectureEnrollmentTopicMessageConsumerFactory());
+        factory.setConsumerFactory(cancelLectureEnrollmentTopicMessageConsumerFactory());
 
         // 파티션 수와 동일하게 맞춰야 성능이 좋음. 파티션에는 최대 1개의 스레드만 할당됨.
         factory.setConcurrency(1);
@@ -134,27 +159,6 @@ public class NotificationKafkaConsumerConfig {
                 new StringDeserializer(),
                 new JsonDeserializer<>(CancelLectureEnrollmentTopicMessage.class, false)
         );
-    }
-
-    @Bean(CANCEL_LECTURE_ENROLLMENT_CONTAINER_FACTORY)
-    public ConcurrentKafkaListenerContainerFactory<String, CancelLectureEnrollmentTopicMessage> cancelLectureEnrollmentContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, CancelLectureEnrollmentTopicMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        // 수동 커밋
-        factory.getContainerProperties().setAckMode(MANUAL_IMMEDIATE);
-
-        factory.setConsumerFactory(cancelLectureEnrollmentTopicMessageConsumerFactory());
-
-        // 파티션 수와 동일하게 맞춰야 성능이 좋음. 파티션에는 최대 1개의 스레드만 할당됨.
-        factory.setConcurrency(1);
-
-        // 예외처리 핸들리
-        // 1초 간격 2번 재시도
-        FixedBackOff fixedBackOff = new FixedBackOff(1000, 2);
-        DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler((consumerRecord, e) -> {
-            log.error("Unexpected exception while consume chat domain topic. offset: {}", consumerRecord.offset());
-        }, fixedBackOff);
-        factory.setCommonErrorHandler(defaultErrorHandler);
-        return factory;
     }
 
     private Map<String, Object> getNotificationConfig() {
