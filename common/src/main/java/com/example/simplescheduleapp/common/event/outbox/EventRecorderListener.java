@@ -14,7 +14,7 @@ public class EventRecorderListener {
 
     private final EventRecorder eventRecorder;
 
-    @TransactionalEventListener(value = DomainEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(value = DomainEvent.class, phase = TransactionPhase.BEFORE_COMMIT)
     public void recordEvent(DomainEvent domainEvent) {
         eventRecorder.record(domainEvent);
     }
