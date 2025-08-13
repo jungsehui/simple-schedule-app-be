@@ -41,7 +41,7 @@ class SseEmitterRepositoryTest extends ApplicationTest {
     }
 
     @Test
-    void delete_후_get_호출시_예외발생() {
+    void delete_후_get_호출_시_예외발생() {
         // given
         Long memberId = 2L;
         SseEmitter emitter = new SseEmitter();

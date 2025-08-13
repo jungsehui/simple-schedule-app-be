@@ -43,7 +43,8 @@ class FcmServiceTest extends UnitTest {
         NotificationMessageEvent message = new NotificationMessageEvent(
                 tutorId,
                 studentId,
-                "강의"
+                "강의 제목",
+                "알림 메시지"
         );
         FcmToken fcmToken = new FcmToken(tutorId, "test-token");
 
