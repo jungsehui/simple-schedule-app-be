@@ -28,7 +28,7 @@ class MemberServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockMember = new Member("shinddonghun", "Password123!", "신동훈", 25, "01023423452");
+        mockMember = new Member("jungsehui", "Password123!", "정세희", 25, "01023423452");
     }
 
     @Test
@@ -43,9 +43,9 @@ class MemberServiceTest {
     @Test
     void 비밀번호_불일치_실패() {
         // given
-        when(memberRepository.getByUsername("shinddonghun"));
+        when(memberRepository.getByUsername("jungsehui"));
 
         // when & then
-        assertThrows(ApplicationException.class, () -> memberService.login("shinddonghun", "WrongPassword"));
+        assertThrows(ApplicationException.class, () -> memberService.login("jungsehui", "WrongPassword"));
     }
 }
