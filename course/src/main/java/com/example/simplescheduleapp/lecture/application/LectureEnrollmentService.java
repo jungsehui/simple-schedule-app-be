@@ -19,6 +19,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -98,7 +99,9 @@ public class LectureEnrollmentService {
         return lectureEnrollmentRepository.findAllByLectureId(lectureId)
                 .orElse(List.of())
                 .stream()
-                .map(enrollment -> enrollment.getStudent().getId())
+                .map(LectureEnrollment::getStudent) // 먼저 Student 객체를 가져오고
+                .filter(Objects::nonNull)           // null이 아닌 Student만 필터링
+                .map(Student::getId)                // 안전하게 ID를 가져옴
                 .toList();
     }
 }

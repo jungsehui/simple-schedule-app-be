@@ -22,9 +22,9 @@ public class LectureUpdate {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public Lecture update(Long tutorId, Schedule schedule, int capacity) {
+    public Lecture update(Long tutorId, Long lectureId, Schedule schedule, int capacity) {
         Tutor tutor = tutorRepository.getById(tutorId);
-        Lecture lecture = lectureRepository.getByLectureId(schedule.getId());
+        Lecture lecture = lectureRepository.getByLectureId(lectureId);
         lecture.update(tutor, schedule, capacity);
 
         log.info("Try to update Lecture. tutor ID {}, lecture ID {}", tutor.getId(), lecture.getId());

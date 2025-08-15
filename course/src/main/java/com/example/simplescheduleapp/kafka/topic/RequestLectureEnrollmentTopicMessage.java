@@ -4,7 +4,7 @@ import com.example.simplescheduleapp.lecture.domain.Lecture;
 import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollment;
 
 public record RequestLectureEnrollmentTopicMessage(
-        Long senderId,  // 행위자 ID (학생)
+        Long senderId, // 행위자 ID (학생)
         Long targetId, // 알림 대상 ID
         String lectureTitle
 ) {

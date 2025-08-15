@@ -41,8 +41,9 @@ public class LectureService {
 
     public Lecture updateLecture(LectureUpdateCommand command) {
         Long tutorId = command.tutorId();
+        Long lectureId = command.lectureId();
         Schedule schedule = command.toSchedule();
         int capacity = command.capacity();
-        return lectureUpdate.update(tutorId, schedule, capacity);
+        return lectureUpdate.update(tutorId, lectureId, schedule, capacity);
     }
 }
