@@ -1,11 +1,13 @@
 package com.example.simplescheduleapp.sse.event;
 
 import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -20,6 +22,7 @@ class RedisSseMessagePublisherTest {
     @BeforeEach
     void setUp() {
         stringRedisTemplate = mock(StringRedisTemplate.class);
+        objectMapper = new ObjectMapper();
         publisher = new RedisSseMessagePublisher(stringRedisTemplate, objectMapper);
     }
 
@@ -30,22 +33,26 @@ class RedisSseMessagePublisherTest {
         Long targetMemberId = 123L;
         String title = "테스트 제목입니다";
         String body = "테스트 메시지입니다";
+        NotificationMessageEvent event = new NotificationMessageEvent(senderMemberId, targetMemberId, title, body);
 
         // when
-        publisher.publish(
-                new NotificationMessageEvent(
-                        senderMemberId,
-                        targetMemberId,
-                        title,
-                        body
-                )
-        );
+        publisher.publish(event);
 
         // then
-        verify(stringRedisTemplate).convertAndSend(eq("sse-notification"), argThat((String json)
-                -> json.contains("\"senderMemberId\":\"1\"")
-                && json.contains("\"targetMemberId\":\"123\"")
-                && json.contains("\"title\":\"테스트 제목입니다.\"")
-                && json.contains("\"body\":\"테스트 메시지입니다\"")));
+        verify(stringRedisTemplate).convertAndSend(eq("sse-notification"), argThat((String json) -> {
+            try {
+                // JSON 문자열을 다시 NotificationMessageEvent 객체로 변환
+                NotificationMessageEvent deserializedEvent = objectMapper.readValue(json, NotificationMessageEvent.class);
+
+                // 객체의 각 필드가 기대하는 값과 일치하는지 확인
+                assertEquals(senderMemberId, deserializedEvent.senderMemberId());
+                assertEquals(targetMemberId, deserializedEvent.targetMemberId());
+                assertEquals(title, deserializedEvent.title());
+                assertEquals(body, deserializedEvent.body());
+                return true; // 모든 검증이 통과하면 true 반환
+            } catch (JsonProcessingException e) {
+                return false; // 파싱 실패 시 false 반환
+            }
+        }));
     }
 }
