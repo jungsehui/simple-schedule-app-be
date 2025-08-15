@@ -14,7 +14,6 @@ public class DeadLetterRecorder implements ConsumerRecordRecoverer {
 
     private final DeadLetterRepository deadLetterRepository;
 
-
     @Override
     public void accept(ConsumerRecord<?, ?> consumerRecord, Exception e) {
         KafkaDomainEventMessage data = (KafkaDomainEventMessage) consumerRecord.value();
@@ -23,9 +22,8 @@ public class DeadLetterRecorder implements ConsumerRecordRecoverer {
         String topic = consumerRecord.topic();
         Long offset = consumerRecord.offset();
 
-        log.info("Record deadLetter. uuid: {}, topic: {}, offset: {}. e: {}, cause: {}, cause: {}".formatted(
-                        uuid, topic, offset, e.getClass(), e.getCause(), e.getCause().getMessage()
-                ));
+        log.info("Record deadLetter. uuid: {}, topic: {}, offset: {}. e: {}, cause: {}, cause: {}",
+                        uuid, topic, offset, e.getClass(), e.getCause(), e.getCause().getMessage());
 
         DeadLetter deadLetter = new DeadLetter(
                 uuid,

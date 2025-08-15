@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.common.kafka.consumer;
 
+import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,7 +16,7 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class KafkaMessageConsumeHistory {
+public class KafkaMessageConsumeHistory extends SoftDeletedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -12,7 +12,7 @@ import java.util.Optional;
 @Service
 public class ConsumeHistoryIdempotencyService implements IdempotencyService {
 
-    KafkaMessageProcessConsumeHistoryRepository kafkaMessageProcessConsumeHistoryRepository;
+    private final KafkaMessageProcessConsumeHistoryRepository kafkaMessageProcessConsumeHistoryRepository;
 
     @Override
     public boolean isDuplicated(KafkaDomainEventMessage data) {
