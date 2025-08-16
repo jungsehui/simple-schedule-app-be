@@ -85,7 +85,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         lectureEnrollmentService.acceptEnrollment(command);
 
         // then
-        // 4. Kafka 메시지 소비 및 검증
+        // Kafka 메시지 소비 및 검증
         ConsumerRecords<String, String> records = waitingConsumeTopicSync(KafkaTopics.ACCEPT_LECTURE_ENROLLMENT_TOPIC);
         assertThat(records.count()).isEqualTo(1); // 1개의 메시지만 소비되었는지 확인
 
@@ -96,7 +96,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         assertThat(message.targetId()).isEqualTo(studentId);
         assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
 
-        // 5. 기존 DB 검증 유지
+        // 기존 DB 검증 유지
         then(lectureEnrollmentRepository).should().save(enrollment);
         then(pendingLectureEnrollmentRepository).should().delete(pending);
     }
