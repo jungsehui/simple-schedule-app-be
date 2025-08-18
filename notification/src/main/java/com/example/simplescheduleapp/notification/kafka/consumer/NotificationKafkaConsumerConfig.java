@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.kafka.consumer;
+package com.example.simplescheduleapp.notification.kafka.consumer;
 
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerProperty;
 import com.example.simplescheduleapp.kafka.topic.*;

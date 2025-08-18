@@ -4,14 +4,14 @@ import com.example.simplescheduleapp.lecture.domain.Lecture;
 
 import java.util.List;
 
-public record EnrolledStudentInfosResponse(
+public record GetEnrolledStudentInfosResponse(
         String lectureTitle,
         String lectureMemo,
         List<Long> studentIds
 ) {
 
-    public static EnrolledStudentInfosResponse of(Lecture lecture, List<Long> studentIds) {
-        return new EnrolledStudentInfosResponse(
+    public static GetEnrolledStudentInfosResponse of(Lecture lecture, List<Long> studentIds) {
+        return new GetEnrolledStudentInfosResponse(
                 lecture.getTitle(),
                 lecture.getMemo(),
                 studentIds);

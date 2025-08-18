@@ -54,3 +54,6 @@ cors:
 redis:
   host: localhost
   port: 6379
+
+client:
+  course-server-internal-url: "http://localhost:8080/internal"

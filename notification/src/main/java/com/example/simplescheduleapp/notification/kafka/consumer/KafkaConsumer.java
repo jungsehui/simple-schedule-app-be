@@ -1,26 +1,23 @@
-package com.example.simplescheduleapp.kafka.consumer;
+package com.example.simplescheduleapp.notification.kafka.consumer;
 
 import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerConfig;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.kafka.topic.AcceptLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.CancelLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RejectLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RequestLectureEnrollmentTopicMessage;
-import com.example.simplescheduleapp.lecture.presentation.response.EnrolledStudentInfosResponse;
 import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.client.CourseClient;
+import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
+import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -29,8 +26,8 @@ import java.util.List;
 @Service
 public class KafkaConsumer {
 
-    private final RestTemplate restTemplate;
     private final NotificationService notificationService;
+    private final CourseClient courseClient;
 
     @KafkaListener(
             topics = KafkaTopics.LECTURE_UPDATED_TOPIC,
@@ -44,22 +41,11 @@ public class KafkaConsumer {
         log.info("Try to consume lecture updated event topic. id: {}, uuid: {}, offset: {}",
                 message.targetDomainId(), message.uuid(), offset);
 
-        // course 모듈의 API 호출로 수강생 ID 목록을 가져 옴
-        // 실제 구현에서는 Service Discovery 또는 설정 파일 등을 통해 course 서비스의 주소를 가져 와야 함
-        String courseApiUrl = "http://localhost:8080/internal/lectures/" + message.targetDomainId() + "/student-ids";
+        GetEnrolledStudentInfosResponse studentInfos = courseClient.getEnrolledStudentInfosByLectureId(message.targetDomainId());
 
-        ParameterizedTypeReference<EnrolledStudentInfosResponse> responseType = new ParameterizedTypeReference<>() {};
-
-        ResponseEntity<EnrolledStudentInfosResponse> responseEntity = restTemplate.exchange(
-                courseApiUrl,
-                HttpMethod.GET,
-                null, // 요청 본문이 없으므로 null
-                responseType
-        );
-
-        String title = responseEntity.getBody().lectureTitle();
-        String memo = responseEntity.getBody().lectureMemo();
-        List<Long> studentIds = responseEntity.getBody().studentIds();
+        String title = studentInfos.lectureTitle();
+        String memo = studentInfos.lectureMemo();
+        List<Long> studentIds = studentInfos.studentIds();
         if (studentIds == null || studentIds.isEmpty()) {
             return;
         }
@@ -73,9 +59,10 @@ public class KafkaConsumer {
                     "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
             );
             notificationService.sendPushNotification(event);
+            log.info("send notification message. to student ID: {}", studentId);
         }
         ack.acknowledge();
-        log.info("Successfully consume lecture updated event topic. id :{}, uuid: {}, offset: {}",
+        log.info("Successfully consume lecture updated event topic. id: {}, uuid: {}, offset: {}",
                 message.targetDomainId(), message.uuid(), offset);
     }
 

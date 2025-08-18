@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.sse.application;
 
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

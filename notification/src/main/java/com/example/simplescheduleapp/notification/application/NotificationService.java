@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.notification.application;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.sse.application.SseService;
 import com.example.simplescheduleapp.sse.domain.RedisClientManager;
 import lombok.RequiredArgsConstructor;

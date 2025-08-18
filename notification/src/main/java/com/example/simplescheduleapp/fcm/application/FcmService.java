@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.fcm.application;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.utils.FcmUtils;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
