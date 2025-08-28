@@ -18,7 +18,7 @@ public class EventProducerListener {
     public void publishEvent(DomainEvent domainEvent) {
         Long eventId = domainEvent.getId();
         String topic = domainEvent.getTopic();
-        log.info("Consume domain event. id: {}, topic: {}", eventId, topic);
+        log.info("Consume cache event. id: {}, topic: {}", eventId, topic);
         eventProducer.produce(domainEvent);
     }
 }

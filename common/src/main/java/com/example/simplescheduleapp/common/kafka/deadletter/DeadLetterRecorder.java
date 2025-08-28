@@ -22,7 +22,7 @@ public class DeadLetterRecorder implements ConsumerRecordRecoverer {
         String topic = consumerRecord.topic();
         Long offset = consumerRecord.offset();
 
-        log.info("Record deadLetter. uuid: {}, topic: {}, offset: {}. e: {}, cause: {}, cause: {}",
+        log.info("Record deadLetter. uuid: {}, topic: {}, offset: {}. e: {}, cause: {}, message: {}",
                         uuid, topic, offset, e.getClass(), e.getCause(), e.getCause().getMessage());
 
         DeadLetter deadLetter = new DeadLetter(
