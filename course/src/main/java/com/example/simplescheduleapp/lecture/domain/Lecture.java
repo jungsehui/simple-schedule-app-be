@@ -48,13 +48,12 @@ public class Lecture extends Schedule {
     }
 
     public void cancel() {
-        if (enrolledCount > 0) {
-            this.enrolledCount--;
-        }
+        validateCanDecreaseEnrolledCount();
+        this.enrolledCount--;
     }
 
     private void increaseEnrolledCount() {
-        validateCapacity();
+        validateCanIncreaseEnrolledCount();
         this.enrolledCount++;
     }
 
@@ -64,9 +63,15 @@ public class Lecture extends Schedule {
         }
     }
 
-    private void validateCapacity() {
+    private void validateCanIncreaseEnrolledCount() {
         if (enrolledCount >= capacity) {
             throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
+        }
+    }
+
+    private void validateCanDecreaseEnrolledCount() {
+        if (enrolledCount < 1) {
+            throw new ApplicationException(LectureExceptionCode.CAPACITY_UNDER_ZERO);
         }
     }
 }
