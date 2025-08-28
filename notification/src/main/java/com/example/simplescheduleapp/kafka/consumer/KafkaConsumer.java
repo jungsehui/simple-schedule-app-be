@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.notification.kafka.consumer;
+package com.example.simplescheduleapp.kafka.consumer;
 
 import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerConfig;
@@ -10,7 +10,7 @@ import com.example.simplescheduleapp.kafka.topic.RequestLectureEnrollmentTopicMe
 import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
-import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -55,17 +54,26 @@ public class KafkaConsumer {
             return;
         }
 
-        // 1. 단순 반복문 각 학생에게 개별적으로 알림 처리
-        for (Long studentId : studentIds) {
-            NotificationMessageEvent event = new NotificationMessageEvent(
-                    message.targetDomainId(),
-                    studentId,
-                    title,
-                    "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
-            );
-            notificationService.sendPushNotification(event);
-            log.info("send notification message. to student ID: {}", studentId);
-        }
+        // 3. Executor CompletableFuture 사용
+        List<CompletableFuture<Void>> futures = studentIds.stream()
+                .map(studentId -> CompletableFuture.runAsync(() -> {
+                    try {
+                        NotificationMessageEvent event = new NotificationMessageEvent(
+                                message.targetDomainId(),
+                                studentId,
+                                title,
+                                "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
+                        );
+                        notificationService.sendPushNotification(event);
+                        log.info("Sent notification message. to student ID: {}", studentId);
+                    } catch (Exception e) {
+                        log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
+                    }
+                }, notificationTaskExecutor)) // 우리가 만든 스레드 풀 사용
+                .toList();
+
+        // 모든 비동기 작업이 끝날 때까지 대기
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         ack.acknowledge();
         log.info("Successfully consume lecture updated event topic. id: {}, uuid: {}, offset: {}",
@@ -157,29 +165,7 @@ public class KafkaConsumer {
     }
 }
 
-//
-//        // 3. Executor [수정됨] CompletableFuture를 사용하여 병렬 처리
-//        List<CompletableFuture<Void>> futures = studentIds.stream()
-//                .map(studentId -> CompletableFuture.runAsync(() -> {
-//                    try {
-//                        NotificationMessageEvent event = new NotificationMessageEvent(
-//                                message.targetDomainId(),
-//                                studentId,
-//                                title,
-//                                "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
-//                        );
-//                        notificationService.sendPushNotification(event);
-//                        log.info("Sent notification message. to student ID: {}", studentId);
-//                    } catch (Exception e) {
-//                        log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
-//                    }
-//                }, notificationTaskExecutor)) // 우리가 만든 스레드 풀 사용
-//                .toList();
-//
-//        // 모든 비동기 작업이 끝날 때까지 대기
-//        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-//
-//        // 2. ForkJoinPool [수정됨] for-loop를 parallelStream으로 변경
+//        // 2. ForkJoinPool parallelStream 사용
 //        studentIds.stream().parallel().forEach(studentId -> {
 //            try {
 //                NotificationMessageEvent event = new NotificationMessageEvent(
@@ -196,3 +182,14 @@ public class KafkaConsumer {
 //            }
 //        });
 
+//        // 1. 단순 반복문 각 학생에게 개별적으로 알림 처리
+//        for (Long studentId : studentIds) {
+//            NotificationMessageEvent event = new NotificationMessageEvent(
+//                    message.targetDomainId(),
+//                    studentId,
+//                    title,
+//                    "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
+//            );
+//            notificationService.sendPushNotification(event);
+//            log.info("send notification message. to student ID: {}", studentId);
+//        }
