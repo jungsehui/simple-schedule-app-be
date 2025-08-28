@@ -3,6 +3,10 @@ spring:
     group:
       test:
         common-test
+      requires-new-deadlock-occur:
+        common-test
+      requires-new-deadlock-not-occur:
+        common-test
     active: test
 
   jpa:
@@ -18,16 +22,7 @@ spring:
 
   kafka:
     consumer:
-      group-id: "ssa-notification-server-test-group"
-
-redis:
-  host: localhost
-  port: 6379
-
-fcm:
-  key:
-    json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
-    url: https://www.googleapis.com/auth/firebase.messaging
+      group-id: "ssa-playground-server-test-group"
 
 cors:
   allowedOrigins: http://localhost:3000

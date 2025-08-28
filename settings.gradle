@@ -1,5 +1,11 @@
 rootProject.name = 'simple-schedule-app'
 
-include 'common'
-include 'course'
-include 'notification'
+// INFRA (Integration)
+include("common")
+
+// BOOT (Server)
+include("course")
+include("notification")
+
+// TEST (Test)
+include("playground")
