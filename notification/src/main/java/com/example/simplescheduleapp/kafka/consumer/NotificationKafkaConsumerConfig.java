@@ -49,7 +49,7 @@ public class NotificationKafkaConsumerConfig {
         // 1초 간격 2번 재시도
         FixedBackOff fixedBackOff = new FixedBackOff(1000, 2);
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler((consumerRecord, e) -> {
-            log.error("Unexpected exception while consume chat domain topic. offset: {}", consumerRecord.offset());
+            log.error("Unexpected exception while consuming topic. offset: {}", consumerRecord.offset());
         }, fixedBackOff);
         factory.setCommonErrorHandler(defaultErrorHandler);
         return factory;
@@ -81,7 +81,7 @@ public class NotificationKafkaConsumerConfig {
         // 1초 간격 2번 재시도
         FixedBackOff fixedBackOff = new FixedBackOff(1000, 2);
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler((consumerRecord, e) -> {
-            log.error("Unexpected exception while consume chat domain topic. offset: {}", consumerRecord.offset());
+            log.error("Unexpected exception while consuming topic. offset: {}", consumerRecord.offset());
         }, fixedBackOff);
         factory.setCommonErrorHandler(defaultErrorHandler);
         return factory;
@@ -113,7 +113,7 @@ public class NotificationKafkaConsumerConfig {
         // 1초 간격 2번 재시도
         FixedBackOff fixedBackOff = new FixedBackOff(1000, 2);
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler((consumerRecord, e) -> {
-            log.error("Unexpected exception while consume chat domain topic. offset: {}", consumerRecord.offset());
+            log.error("Unexpected exception while consuming topic. offset: {}", consumerRecord.offset());
         }, fixedBackOff);
         factory.setCommonErrorHandler(defaultErrorHandler);
         return factory;
@@ -145,7 +145,7 @@ public class NotificationKafkaConsumerConfig {
         // 1초 간격 2번 재시도
         FixedBackOff fixedBackOff = new FixedBackOff(1000, 2);
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler((consumerRecord, e) -> {
-            log.error("Unexpected exception while consume chat domain topic. offset: {}", consumerRecord.offset());
+            log.error("Unexpected exception while consuming topic. offset: {}", consumerRecord.offset());
         }, fixedBackOff);
         factory.setCommonErrorHandler(defaultErrorHandler);
         return factory;

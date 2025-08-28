@@ -13,6 +13,7 @@ import com.example.simplescheduleapp.notification.client.response.GetEnrolledStu
 import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -20,6 +21,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class KafkaConsumer {
 
     private final NotificationService notificationService;
     private final CourseClient courseClient;
+    private final TaskExecutor notificationTaskExecutor;
 
     @KafkaListener(
             topics = KafkaTopics.LECTURE_UPDATED_TOPIC,
@@ -47,10 +51,11 @@ public class KafkaConsumer {
         String memo = studentInfos.lectureMemo();
         List<Long> studentIds = studentInfos.studentIds();
         if (studentIds == null || studentIds.isEmpty()) {
+            ack.acknowledge();
             return;
         }
 
-        // 각 학생에게 개별적으로 알림 처리
+        // 1. 단순 반복문 각 학생에게 개별적으로 알림 처리
         for (Long studentId : studentIds) {
             NotificationMessageEvent event = new NotificationMessageEvent(
                     message.targetDomainId(),
@@ -61,6 +66,7 @@ public class KafkaConsumer {
             notificationService.sendPushNotification(event);
             log.info("send notification message. to student ID: {}", studentId);
         }
+
         ack.acknowledge();
         log.info("Successfully consume lecture updated event topic. id: {}, uuid: {}, offset: {}",
                 message.targetDomainId(), message.uuid(), offset);
@@ -150,3 +156,43 @@ public class KafkaConsumer {
         log.info("Successfully consume cancel lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
     }
 }
+
+//
+//        // 3. Executor [수정됨] CompletableFuture를 사용하여 병렬 처리
+//        List<CompletableFuture<Void>> futures = studentIds.stream()
+//                .map(studentId -> CompletableFuture.runAsync(() -> {
+//                    try {
+//                        NotificationMessageEvent event = new NotificationMessageEvent(
+//                                message.targetDomainId(),
+//                                studentId,
+//                                title,
+//                                "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
+//                        );
+//                        notificationService.sendPushNotification(event);
+//                        log.info("Sent notification message. to student ID: {}", studentId);
+//                    } catch (Exception e) {
+//                        log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
+//                    }
+//                }, notificationTaskExecutor)) // 우리가 만든 스레드 풀 사용
+//                .toList();
+//
+//        // 모든 비동기 작업이 끝날 때까지 대기
+//        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+//
+//        // 2. ForkJoinPool [수정됨] for-loop를 parallelStream으로 변경
+//        studentIds.stream().parallel().forEach(studentId -> {
+//            try {
+//                NotificationMessageEvent event = new NotificationMessageEvent(
+//                        message.targetDomainId(),
+//                        studentId,
+//                        title,
+//                        "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
+//                );
+//                notificationService.sendPushNotification(event);
+//                log.info("Sent notification message. to student ID: {}", studentId);
+//            } catch (Exception e) {
+//                // 개별 알림 실패 시 로그 기록. 필요 시 DLQ 전송 등의 로직 추가 가능
+//                log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
+//            }
+//        });
+
