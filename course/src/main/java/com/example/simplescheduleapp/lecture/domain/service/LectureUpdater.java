@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class LectureUpdate {
+public class LectureUpdater {
 
     private final LectureRepository lectureRepository;
     private final TutorRepository tutorRepository;
