@@ -1,4 +1,6 @@
-package com.example.simplescheduleapp.notification.kafka.event;
+package com.example.simplescheduleapp.kafka.event;
+
+import com.example.simplescheduleapp.notification.domain.FailedNotification;
 
 public record NotificationMessageEvent(
         Long senderMemberId,
@@ -6,4 +8,13 @@ public record NotificationMessageEvent(
         String title,
         String body
 ) {
+
+    public static NotificationMessageEvent from(FailedNotification failedNotification) {
+        return new NotificationMessageEvent(
+                failedNotification.getSenderMemberId(),
+                failedNotification.getTargetMemberId(),
+                failedNotification.getTitle(),
+                failedNotification.getBody()
+        );
+    }
 }
