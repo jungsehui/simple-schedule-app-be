@@ -1,9 +1,11 @@
 package com.example.simplescheduleapp.sse.event;
 
+import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
-import com.example.simplescheduleapp.sse.domain.RedisClientManager;
-import com.example.simplescheduleapp.sse.domain.SseEmitterRepository;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.sse.cache.RedisClientManager;
+import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -108,14 +110,7 @@ public class RedisSseMessageSubscriber implements MessageListener {
         } catch (IOException e) {
             log.error("targetMemberId: {} 에게 SSE 이벤트 전송 실패: {}", event.targetMemberId(), e.getMessage());
             sseEmitterRepository.delete(event.targetMemberId());
-            emitter.completeWithError(e);
-            fcmFallback(event);
+            throw new ApplicationException(SseExceptionCode.SSE_SEND_FAILED);
         }
-    }
-
-    // SSE 기능 동작 실패 시 FCM 으로 메시지 발행
-    private void fcmFallback(NotificationMessageEvent event) {
-        log.info("FCM Fallback targetMemberId: {}", event.targetMemberId());
-        fcmService.sendFcmNotification(event);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.sse.domain;
+package com.example.simplescheduleapp.sse.cache;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

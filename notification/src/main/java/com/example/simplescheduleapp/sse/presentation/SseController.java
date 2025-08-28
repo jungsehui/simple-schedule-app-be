@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.sse.presentation;
 
 import com.example.simplescheduleapp.sse.event.RedisSseMessageSubscriber;
+import com.example.simplescheduleapp.sse.presentation.response.GetSseConnectedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -18,7 +19,8 @@ public class SseController {
     private final RedisSseMessageSubscriber redisSseMessageSubscriber;
 
     @GetMapping(value = "/connect/sse/{memberId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connectSse(@PathVariable Long memberId) {
-        return ResponseEntity.ok(redisSseMessageSubscriber.connect(memberId));
+    public ResponseEntity<GetSseConnectedResponse> connectSse(@PathVariable Long memberId) {
+        SseEmitter connect = redisSseMessageSubscriber.connect(memberId);
+        return ResponseEntity.ok(new GetSseConnectedResponse(connect.getTimeout()));
     }
 }

@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.sse.domain;
+package com.example.simplescheduleapp.sse.cache;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
