@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.sse.event;
 
-import com.example.simplescheduleapp.notification.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

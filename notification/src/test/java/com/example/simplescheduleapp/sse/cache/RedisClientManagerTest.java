@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.sse.domain;
+package com.example.simplescheduleapp.sse.cache;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
