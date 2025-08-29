@@ -69,7 +69,7 @@ public class KafkaConsumer {
                     } catch (Exception e) {
                         log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
                     }
-                }, notificationTaskExecutor)) // 우리가 만든 스레드 풀 사용
+                }, notificationTaskExecutor))
                 .toList();
 
         // 모든 비동기 작업이 끝날 때까지 대기
