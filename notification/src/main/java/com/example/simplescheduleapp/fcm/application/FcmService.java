@@ -2,19 +2,16 @@ package com.example.simplescheduleapp.fcm.application;
 
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
+import com.example.simplescheduleapp.fcm.domain.service.FcmApiFutureCallback;
+import com.example.simplescheduleapp.fcm.domain.service.FcmMessageSender;
 import com.example.simplescheduleapp.fcm.exception.FcmTokenExceptionCode;
-import com.example.simplescheduleapp.fcm.utils.FcmUtils;
 import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.notification.domain.NotificationType;
 import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +23,7 @@ public class FcmService {
 
     private final FcmTokenRepository fcmTokenRepository;
     private final FailedNotificationRepository failedNotificationRepository;
+    private final FcmMessageSender fcmMessageSender;
 
     public void addFcmToken(Long memberId, String fcmToken) {
         FcmToken token = new FcmToken(memberId, fcmToken);
@@ -41,32 +39,21 @@ public class FcmService {
             return;
         }
 
-        Notification notification = FcmUtils.createNotification(event.title(), event.body());
-        Message toSend = FcmUtils.buildMessage(fcmToken.getFcmToken(), notification);
+        // 1. 메시지 전송 요청
+        ApiFuture<String> future = fcmMessageSender.sendFcmNotificationAsync(
+                fcmToken,
+                event.title(),
+                event.body()
+        );
 
-        ApiFuture<String> future = FirebaseMessaging.getInstance().sendAsync(toSend);
+        // 2. 콜백 생성 및 등록
+        FcmApiFutureCallback callback = new FcmApiFutureCallback(
+                event,
+                fcmToken.getFcmToken(),
+                failedNotificationRepository
+        );
 
-        ApiFutures.addCallback(future, new ApiFutureCallback<>() {
-            // 전송 성공 시 호출될 콜백
-            @Override
-            public void onSuccess(String response) {
-                log.info("FCM 비동기 전송 성공 - response: {}, target member ID: {}",
-                        response, event.targetMemberId());
-            }
-
-            // 전송 실패 시 호출될 콜백
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("FCM 비동기 전송 실패 - target member Id: {}, token: {}, exception: {}",
-                        event.targetMemberId(), fcmToken.getFcmToken(), t.getMessage());
-                // 실패한 알림을 DB에 저장하여 재처리 대상으로 만듦
-                log.info("Failed Notification 저장 시도 - target member Id: {}, token: {}, exception: {}",
-                        event.targetMemberId(), fcmToken.getFcmToken(), t.getMessage());
-                saveFailedNotification(event, t.getMessage());
-                log.info("Failed Notification 저장 완료 - target member Id: {}, token: {}, exception: {}",
-                        event.targetMemberId(), fcmToken.getFcmToken(), t.getMessage());
-            }
-        }, MoreExecutors.directExecutor());
+        ApiFutures.addCallback(future, callback, MoreExecutors.directExecutor());
     }
 
     private void saveFailedNotification(NotificationMessageEvent event, String reason) {
