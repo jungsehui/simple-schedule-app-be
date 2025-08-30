@@ -5,6 +5,7 @@ import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class NotificationRetryScheduler {
@@ -41,5 +43,12 @@ public class NotificationRetryScheduler {
                     }
                 }, notificationTaskExecutor))
                 .toList();
+
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            log.info("알림 재처리 스케줄이 성공적으로 완료되었습니다. 총 {}건 처리.", futures.size());
+        } catch (Exception e) {
+            log.error("알림 재처리 작업 중 일부에서 예외가 발생했습니다.", e);
+        }
     }
 }
