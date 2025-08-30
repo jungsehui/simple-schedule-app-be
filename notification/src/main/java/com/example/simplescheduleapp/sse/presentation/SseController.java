@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.sse.presentation;
 
-import com.example.simplescheduleapp.sse.event.RedisSseMessageSubscriber;
+import com.example.simplescheduleapp.redis.subscriber.RedisSseMessageSubscriber;
 import com.example.simplescheduleapp.sse.presentation.response.GetSseConnectedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

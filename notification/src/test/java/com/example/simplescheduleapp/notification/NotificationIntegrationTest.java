@@ -13,7 +13,7 @@ import com.example.simplescheduleapp.notification.client.response.GetEnrolledStu
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.sse.application.SseService;
-import com.example.simplescheduleapp.sse.cache.RedisClientManager;
+import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;

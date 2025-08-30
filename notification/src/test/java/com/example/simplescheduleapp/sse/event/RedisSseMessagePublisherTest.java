@@ -1,6 +1,8 @@
 package com.example.simplescheduleapp.sse.event;
 
 import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.redis.topic.RedisTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +41,7 @@ class RedisSseMessagePublisherTest {
         publisher.publish(event);
 
         // then
-        verify(stringRedisTemplate).convertAndSend(eq("sse-notification"), argThat((String json) -> {
+        verify(stringRedisTemplate).convertAndSend(eq(RedisTopics.SSE_NOTIFICATION), argThat((String json) -> {
             try {
                 // JSON 문자열을 다시 NotificationMessageEvent 객체로 변환
                 NotificationMessageEvent deserializedEvent = objectMapper.readValue(json, NotificationMessageEvent.class);

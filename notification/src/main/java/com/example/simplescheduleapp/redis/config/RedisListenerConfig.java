@@ -1,6 +1,7 @@
-package com.example.simplescheduleapp.sse.config;
+package com.example.simplescheduleapp.redis.config;
 
-import com.example.simplescheduleapp.sse.event.RedisSseMessageSubscriber;
+import com.example.simplescheduleapp.redis.subscriber.RedisSseMessageSubscriber;
+import com.example.simplescheduleapp.redis.topic.RedisTopics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,7 @@ public class RedisListenerConfig {
     public RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(redisSseMessageSubscriber, new PatternTopic("sse-notification"));
+        container.addMessageListener(redisSseMessageSubscriber, new PatternTopic(RedisTopics.SSE_NOTIFICATION));
         return container;
     }
 }

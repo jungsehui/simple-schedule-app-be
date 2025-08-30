@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
-import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
