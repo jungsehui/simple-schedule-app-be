@@ -3,17 +3,17 @@ package com.example.simplescheduleapp.kafka.consumer;
 import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerConfig;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.kafka.topic.AcceptLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.CancelLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RejectLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RequestLectureEnrollmentTopicMessage;
+import com.example.simplescheduleapp.notification.application.NotificationFacade;
 import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -21,7 +21,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,8 +28,8 @@ import java.util.concurrent.CompletableFuture;
 public class KafkaConsumer {
 
     private final NotificationService notificationService;
+    private final NotificationFacade notificationFacade;
     private final CourseClient courseClient;
-    private final TaskExecutor notificationTaskExecutor;
 
     @KafkaListener(
             topics = KafkaTopics.LECTURE_UPDATED_TOPIC,
@@ -45,35 +44,18 @@ public class KafkaConsumer {
                 message.targetDomainId(), message.uuid(), offset);
 
         GetEnrolledStudentInfosResponse studentInfos = courseClient.getEnrolledStudentInfosByLectureId(message.targetDomainId());
-
-        String title = studentInfos.lectureTitle();
-        String memo = studentInfos.lectureMemo();
         List<Long> studentIds = studentInfos.studentIds();
         if (studentIds == null || studentIds.isEmpty()) {
             ack.acknowledge();
             return;
         }
 
-        // 3. Executor CompletableFuture 사용
-        List<CompletableFuture<Void>> futures = studentIds.stream()
-                .map(studentId -> CompletableFuture.runAsync(() -> {
-                    try {
-                        NotificationMessageEvent event = new NotificationMessageEvent(
-                                message.targetDomainId(),
-                                studentId,
-                                title,
-                                "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
-                        );
-                        notificationService.sendPushNotification(event);
-                        log.info("Sent notification message. to student ID: {}", studentId);
-                    } catch (Exception e) {
-                        log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
-                    }
-                }, notificationTaskExecutor))
-                .toList();
-
-        // 모든 비동기 작업이 끝날 때까지 대기
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        notificationFacade.sendNotificationsAsync(
+                message.targetDomainId(),
+                studentIds,
+                studentInfos.lectureTitle(),
+                "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(studentInfos.lectureMemo())
+        );
 
         ack.acknowledge();
         log.info("Successfully consume lecture updated event topic. id: {}, uuid: {}, offset: {}",
