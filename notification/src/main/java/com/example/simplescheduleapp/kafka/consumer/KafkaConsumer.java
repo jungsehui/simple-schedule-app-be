@@ -72,13 +72,12 @@ public class KafkaConsumer {
             @Header(KafkaHeaders.OFFSET) int offset
     ) {
         log.info("Try to consume request lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
-        NotificationMessageEvent event = new NotificationMessageEvent(
+        notificationFacade.sendNotification(
                 message.senderId(),
                 message.targetId(),
                 message.lectureTitle(),
-                "수강신청 알림을 전송합니다."
+                "새로운 수강 신청 요청이 도착했습니다."
         );
-        notificationService.sendPushNotification(event);
         ack.acknowledge();
         log.info("Successfully consume send chat message topic. id :{}, offset: {}", message.senderId(), offset);
     }
@@ -93,13 +92,12 @@ public class KafkaConsumer {
             @Header(KafkaHeaders.OFFSET) int offset
     ) {
         log.info("Try to consume accept lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
-        NotificationMessageEvent event = new NotificationMessageEvent(
+        notificationFacade.sendNotification(
                 message.senderId(),
                 message.targetId(),
                 message.lectureTitle(),
-                "수강신청 수락 알림을 전송합니다."
+                "수강 신청이 수락되었습니다 !"
         );
-        notificationService.sendPushNotification(event);
         ack.acknowledge();
         log.info("Successfully consume accept lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
     }
@@ -114,13 +112,12 @@ public class KafkaConsumer {
             @Header(KafkaHeaders.OFFSET) int offset
     ) {
         log.info("Try to consume reject lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
-        NotificationMessageEvent event = new NotificationMessageEvent(
+        notificationFacade.sendNotification(
                 message.senderId(),
                 message.targetId(),
                 message.lectureTitle(),
-                "수강신청 거절 알림을 전송합니다."
+                "수강 신청이 거절되었습니다 .."
         );
-        notificationService.sendPushNotification(event);
         ack.acknowledge();
         log.info("Successfully consume reject lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
     }
@@ -135,13 +132,12 @@ public class KafkaConsumer {
             @Header(KafkaHeaders.OFFSET) int offset
     ) {
         log.info("Try to consume cancel lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
-        NotificationMessageEvent event = new NotificationMessageEvent(
+        notificationFacade.sendNotification(
                 message.senderId(),
                 message.targetId(),
                 message.lectureTitle(),
-                "수강신청 취소 알림을 전송합니다."
+                "수강 신청을 취소하였습니다 .."
         );
-        notificationService.sendPushNotification(event);
         ack.acknowledge();
         log.info("Successfully consume cancel lecture enrollment topic. id: {}, offset: {}", message.senderId(), offset);
     }

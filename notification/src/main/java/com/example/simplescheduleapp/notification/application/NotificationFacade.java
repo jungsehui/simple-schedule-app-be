@@ -46,4 +46,9 @@ public class NotificationFacade {
         // 모든 비동기 작업이 끝날 때까지 대기
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
+
+    public void sendNotification(Long senderId, Long targetId, String title, String content) {
+        NotificationMessageEvent event = new NotificationMessageEvent(senderId, targetId, title, content);
+        notificationService.sendPushNotification(event);
+    }
 }
