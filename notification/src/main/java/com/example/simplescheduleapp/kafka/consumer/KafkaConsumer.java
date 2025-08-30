@@ -27,7 +27,6 @@ import java.util.List;
 @Service
 public class KafkaConsumer {
 
-    private final NotificationService notificationService;
     private final NotificationFacade notificationFacade;
     private final CourseClient courseClient;
 
