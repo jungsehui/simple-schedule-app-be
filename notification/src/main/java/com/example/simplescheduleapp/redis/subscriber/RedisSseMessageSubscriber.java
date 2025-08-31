@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.redis.subscriber;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
@@ -29,7 +28,6 @@ public class RedisSseMessageSubscriber implements MessageListener {
     private static final long INITIAL_DELAY = 10L;
     private static final long PERIOD = 10L;
 
-    private final FcmService fcmService;
     private final SseEmitterRepository sseEmitterRepository;
     private final RedisClientManager redisClientManager;
 
@@ -63,11 +61,10 @@ public class RedisSseMessageSubscriber implements MessageListener {
         }
     }
 
-    private void onError(Long memberId, SseEmitter emitter) {
-        emitter.onError((ex) -> {
+    private void onCompletion(Long memberId, SseEmitter emitter) {
+        emitter.onCompletion(() -> {
             sseEmitterRepository.delete(memberId);
-            emitter.completeWithError(ex);
-            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
+            log.debug("SSE Emitter 알림 성공 - memberId: {}", memberId);
         });
     }
 
@@ -79,10 +76,11 @@ public class RedisSseMessageSubscriber implements MessageListener {
         });
     }
 
-    private void onCompletion(Long memberId, SseEmitter emitter) {
-        emitter.onCompletion(() -> {
+    private void onError(Long memberId, SseEmitter emitter) {
+        emitter.onError((ex) -> {
             sseEmitterRepository.delete(memberId);
-            log.debug("SSE Emitter 알림 성공 - memberId: {}", memberId);
+            emitter.completeWithError(ex);
+            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
         });
     }
 
