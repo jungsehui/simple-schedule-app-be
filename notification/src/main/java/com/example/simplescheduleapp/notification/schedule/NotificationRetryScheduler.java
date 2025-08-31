@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +26,7 @@ public class NotificationRetryScheduler {
     private final TaskExecutor notificationTaskExecutor;
 
     @Scheduled(fixedDelay = 600000) // 10분마다 실행
+    @Transactional
     public void retryFailedNotifications() {
         List<FailedNotification> targets = failedNotificationRepository.findByRetryCountLessThan(MAX_RETRY_COUNT);
 
