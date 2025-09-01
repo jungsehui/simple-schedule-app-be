@@ -19,8 +19,8 @@ import static lombok.AccessLevel.PROTECTED;
 public abstract class BaseDomain {
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private LocalDateTime createdDate;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedDate;
 }

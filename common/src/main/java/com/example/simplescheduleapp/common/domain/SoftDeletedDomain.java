@@ -16,5 +16,5 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 public abstract class SoftDeletedDomain extends BaseDomain {
 
-    private LocalDateTime deletedAt;
+    private LocalDateTime deletedDate;
 }
