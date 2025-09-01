@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.common.kafka.deadletter;
 
-import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class DeadLetter extends SoftDeletedEntity {
+public class DeadLetter extends SoftDeletedDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

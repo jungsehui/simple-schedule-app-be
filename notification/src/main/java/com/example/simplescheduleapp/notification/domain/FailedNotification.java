@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.notification.domain;
 
-import com.example.simplescheduleapp.common.entity.BaseEntity;
-import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +18,7 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class FailedNotification extends SoftDeletedEntity {
+public class FailedNotification extends SoftDeletedDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

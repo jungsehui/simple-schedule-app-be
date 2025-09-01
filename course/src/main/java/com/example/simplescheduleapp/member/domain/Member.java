@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.member.domain;
 
-import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
 import jakarta.persistence.*;
@@ -20,7 +20,7 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class Member extends SoftDeletedEntity {
+public class Member extends SoftDeletedDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

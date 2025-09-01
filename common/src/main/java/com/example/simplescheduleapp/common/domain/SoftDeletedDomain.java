@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.common.entity;
+package com.example.simplescheduleapp.common.domain;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -14,7 +14,7 @@ import static lombok.AccessLevel.PROTECTED;
 @MappedSuperclass
 @NoArgsConstructor(access = PROTECTED)
 @Getter
-public abstract class SoftDeletedEntity extends BaseEntity {
+public abstract class SoftDeletedDomain extends BaseDomain {
 
     private LocalDateTime deletedAt;
 }
