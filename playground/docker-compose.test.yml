@@ -1,0 +1,93 @@
+services:
+  # 1. Course DB (3306 포트)
+  course_db:
+    image: mysql:8.0
+    container_name: course_mysql_test
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: "course_db_test"
+    ports:
+      - "3306:3306"
+    networks:
+      - test_network
+
+  # 2. Notification DB (3307 포트)
+  notification_db:
+    image: mysql:8.0
+    container_name: notification_mysql_test
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: "notification_db_test"
+    ports:
+      - "3307:3306"
+    networks:
+      - test_network
+
+  # 3. Redis
+  redis:
+    image: redis:latest
+    container_name: redis_test
+    ports:
+      - "6379:6379"
+    networks:
+      - test_network
+
+  # 4. Zookeeper (Kafka 의존성)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper_test
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - test_network
+
+  # 5. Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: kafka_test
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper_test:2181 # 서비스 이름으로 연결
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - test_network
+
+  # 6. nGrinder Controller (추가)
+  ngrinder-controller:
+    image: ngrinder/controller:latest
+    container_name: ngrinder_controller
+    ports:
+      - "8080:8080" # 웹 UI 포트
+      - "16001:16001" # 에이전트 통신 포트
+      - "12000-12009:12000-12009" # 테스트 실행 포트
+    networks:
+      - test_network
+
+  # 7. nGrinder Agent (추가)
+  ngrinder-agent:
+    image: ngrinder/agent:latest
+    container_name: ngrinder_agent
+    depends_on:
+      - ngrinder-controller
+    environment:
+      # Docker 네트워크 내에서 서비스 이름으로 컨트롤러를 찾도록 설정
+      CONTROLLER_HOST: ngrinder-controller
+      CONTROLLER_PORT: 16001
+    # deploy 키를 사용하여 에이전트 수를 쉽게 확장할 수 있습니다.
+    deploy:
+      replicas: 2 # 2개의 에이전트 컨테이너를 실행
+    networks:
+      - test_network
+
+networks:
+  test_network:
+    driver: bridge
