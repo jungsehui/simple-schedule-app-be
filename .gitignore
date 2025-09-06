@@ -7,7 +7,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-/ssa/playground/ngrinder-controller/
+!**/ssa/playground/ngrinder-controller/
 
 ### STS ###
 .apt_generated
