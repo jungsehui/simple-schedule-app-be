@@ -6,13 +6,13 @@ import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class NotificationRetryScheduler {
 
     private final FailedNotificationRepository failedNotificationRepository;
     private final FcmService fcmService;
-    private final TaskExecutor notificationTaskExecutor;
+    private final Executor notificationExecutor;
 
     @Scheduled(fixedDelay = 600000) // 10분마다 실행
     @Transactional
@@ -43,7 +43,7 @@ public class NotificationRetryScheduler {
                         failedNotification.incrementRetryCount();
                         failedNotificationRepository.save(failedNotification);
                     }
-                }, notificationTaskExecutor))
+                }, notificationExecutor))
                 .toList();
 
         try {
