@@ -1,0 +1,22 @@
+services:
+  # 1. nGrinder Controller
+  controller:
+    image: ngrinder/controller
+    container_name: ngrinder_controller
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "9000:80"
+      - "16001:16001"
+      - "12000-12009:12000-12009"
+    volumes:
+      - ./ngrinder-controller:/opt/ngrinder-controller
+
+  # 2. nGrinder Agent
+  agent:
+    image: ngrinder/agent
+    container_name: ngrinder_agent
+    platform: linux/amd64
+    restart: always
+    links:
+      - controller
