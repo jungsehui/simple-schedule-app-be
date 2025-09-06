@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class TestKafkaEventProducer {
+public class TestEventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 

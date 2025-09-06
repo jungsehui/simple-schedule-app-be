@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.common.domain;
+package com.example.playground.common.domain;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
