@@ -9,9 +9,9 @@ import java.util.concurrent.Executor;
 @Configuration
 public class ThreadPoolConfig {
 
-    public static final String NOTIFICATION_EXECUTOR = "notificationExecutor";
+    public static final String NOTIFICATION_TASK_EXECUTOR = "notificationExecutor";
 
-    @Bean(name = NOTIFICATION_EXECUTOR)
+    @Bean(name = NOTIFICATION_TASK_EXECUTOR)
     public Executor notificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(200);      // 기본 스레드 수
