@@ -10,10 +10,10 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.util.UUID;
 
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_AT_IS_NULL;
+import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
-@SQLRestriction(DELETED_AT_IS_NULL)
-@SQLDelete(sql = "UPDATE failed_notification SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction(DELETED_DATE_IS_NULL)
+@SQLDelete(sql = "UPDATE failed_notification SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
 @Table(name = "failed_notification")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

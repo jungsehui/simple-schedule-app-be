@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_AT_IS_NULL;
+import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
-@SQLRestriction(DELETED_AT_IS_NULL)
-@SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction(DELETED_DATE_IS_NULL)
+@SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
 @Table(name = "pending_lecture_enrollment")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
