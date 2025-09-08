@@ -25,10 +25,10 @@ services:
   # 3. K6
   k6:
     image: grafana/k6
-    container_name: k6_container_thread_pool_block
+    container_name: k6_container_virtual_thread_block
     volumes:
       - ./k6-scripts:/scripts
-    command: run -o experimental-prometheus-rw /scripts/thread-pool-block.js
+    command: run -o experimental-prometheus-rw /scripts/virtual-thread-block.js
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
       - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
