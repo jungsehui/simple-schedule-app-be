@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
-import com.example.simplescheduleapp.sse.event.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,9 +13,9 @@ public class SseService {
 
     private final RedisSseMessagePublisher redisSseMessagePublisher;
 
-    public void sendNotification(NotificationMessage message) {
-        log.info("Redis 를 통해 memberId: {} 에게 이벤트 발행 - event: {}, message: {}",
-                message.memberId(), message.eventName(), message.messageBody());
-        redisSseMessagePublisher.publish(message.memberId(), message.eventName(), message.messageBody());
+    public void sendSseNotification(NotificationMessageEvent message) {
+        log.info("Redis 를 통해 targetMemberId: {} 에게 이벤트 발행 - title: {}, body: {}",
+                message.targetMemberId(), message.title(), message.body());
+        redisSseMessagePublisher.publish(message);
     }
 }

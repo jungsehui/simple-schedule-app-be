@@ -4,6 +4,7 @@ import com.example.simplescheduleapp.lecture.application.command.LectureCreateCo
 import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
 import com.example.simplescheduleapp.lecture.domain.Lecture;
 import com.example.simplescheduleapp.lecture.domain.LectureRepository;
+import com.example.simplescheduleapp.lecture.domain.service.LectureUpdater;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
@@ -16,6 +17,7 @@ import java.util.List;
 @Service
 public class LectureService {
 
+    private final LectureUpdater lectureUpdater;
     private final LectureRepository lectureRepository;
     private final TutorRepository tutorRepository;
 
@@ -38,10 +40,10 @@ public class LectureService {
     }
 
     public Lecture updateLecture(LectureUpdateCommand command) {
-        Tutor tutor = tutorRepository.getById(command.tutorId());
-        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
+        Long tutorId = command.tutorId();
+        Long lectureId = command.lectureId();
         Schedule schedule = command.toSchedule();
-        lecture.update(tutor, schedule, command.capacity());
-        return lectureRepository.save(lecture);
+        int capacity = command.capacity();
+        return lectureUpdater.update(tutorId, lectureId, schedule, capacity);
     }
 }

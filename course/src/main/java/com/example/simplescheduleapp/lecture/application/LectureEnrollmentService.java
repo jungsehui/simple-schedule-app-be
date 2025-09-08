@@ -2,42 +2,46 @@ package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
+import com.example.simplescheduleapp.kafka.producer.AcceptLectureEnrollmentTopicProducer;
+import com.example.simplescheduleapp.kafka.producer.CancelLectureEnrollmentTopicProducer;
+import com.example.simplescheduleapp.kafka.producer.RejectLectureEnrollmentTopicProducer;
+import com.example.simplescheduleapp.kafka.producer.RequestLectureEnrollmentTopicProducer;
 import com.example.simplescheduleapp.lecture.application.command.*;
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
-//import com.example.simplescheduleapp.notification.application.NotificationService;
-//import com.example.simplescheduleapp.notification.message.NotificationMessage;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
-import com.example.simplescheduleapp.tutor.domain.Tutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class LectureEnrollmentService {
 
-//    private final NotificationService notificationService;
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
     private final LectureEnrollmentRepository lectureEnrollmentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
 
+    private final RequestLectureEnrollmentTopicProducer requestLectureEnrollmentTopicProducer;
+    private final CancelLectureEnrollmentTopicProducer cancelLectureEnrollmentTopicProducer;
+    private final AcceptLectureEnrollmentTopicProducer acceptLectureEnrollmentTopicProducer;
+    private final RejectLectureEnrollmentTopicProducer rejectLectureEnrollmentTopicProducer;
+
     public Long requestEnrollment(LectureEnrollmentCreateCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentService.create(command.lectureId(), command.studentId());
         pendingLectureEnrollmentRepository.save(pending);
         Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
-        Tutor tutor = lecture.getTutor();
-        String message = "학생이 '" + lecture.getTitle() + "' 강의 수강신청을 요청했습니다.";
-//        notificationService.sendPushNotification(new NotificationMessage(tutor.getId(), lecture.getTitle(), message));
+        requestLectureEnrollmentTopicProducer.produce(pending, lecture);
         return pending.getId();
     }
 
@@ -52,10 +56,6 @@ public class LectureEnrollmentService {
     public void cancelPendingLectureEnrollment(PendingLectureEnrollmentCancelCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         pendingLectureEnrollmentRepository.delete(pending);
-        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
-        Tutor tutor = lecture.getTutor();
-        String message = "학생이 '" + lecture.getTitle() + "' 강의 수강신청 요청을 취소했습니다.";
-//        notificationService.sendPushNotification(new NotificationMessage(tutor.getId(), lecture.getTitle(), message));
     }
     
     public void cancelLectureEnrollment(LectureEnrollmentCancelCommand command) {
@@ -64,6 +64,7 @@ public class LectureEnrollmentService {
         lecture.cancel();
         lectureRepository.save(lecture);
         lectureEnrollmentRepository.delete(lectureEnrollment);
+        cancelLectureEnrollmentTopicProducer.produce(command.studentId(), lecture);
     }
 
     public Long acceptEnrollment(PendingAcceptCommand command) {
@@ -75,9 +76,7 @@ public class LectureEnrollmentService {
             pendingLectureEnrollmentRepository.delete(pending);
             LectureEnrollment lectureEnrollment = lecture.enroll(student);
             lectureEnrollmentRepository.save(lectureEnrollment);
-            Long studentId = student.getId();
-            String message = "'" + lecture.getTitle() + "' 강의 수강신청이 수락되었습니다.";
-//            notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+            acceptLectureEnrollmentTopicProducer.produce(lecture, student);
             return lectureEnrollment.getId();
         } catch (DataIntegrityViolationException e) {
             log.error("이미 등록된 학생입니다. lectureId = {}", e.getMessage());
@@ -93,8 +92,16 @@ public class LectureEnrollmentService {
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
         pendingLectureEnrollmentRepository.delete(pending);
-        Long studentId = student.getId();
-        String message = "'" + lecture.getTitle() + "' 강의 수강신청이 거부되었습니다.";
-//        notificationService.sendPushNotification(new NotificationMessage(studentId, lecture.getTitle(), message));
+        rejectLectureEnrollmentTopicProducer.produce(lecture, student);
+    }
+
+    public List<Long> findStudentIdsByLectureId(Long lectureId) {
+        return lectureEnrollmentRepository.findAllByLectureId(lectureId)
+                .orElse(List.of())
+                .stream()
+                .map(LectureEnrollment::getStudent) // 먼저 Student 객체를 가져오고
+                .filter(Objects::nonNull)           // null이 아닌 Student만 필터링
+                .map(Student::getId)                // 안전하게 ID를 가져옴
+                .toList();
     }
 }

@@ -35,6 +35,10 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	// Fixture Monkey 외부 사용
+	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.11'
+	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
+
 	// Fixture Monkey
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.1.11'
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-api:1.1.11'

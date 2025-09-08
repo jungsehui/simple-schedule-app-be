@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.schedule.domain;
 
-import com.example.simplescheduleapp.common.entity.SoftDeletedEntity;
+import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import jakarta.persistence.*;
@@ -12,17 +12,17 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_AT_IS_NULL;
+import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
-@SQLRestriction(DELETED_AT_IS_NULL)
-@SQLDelete(sql = "UPDATE schedule SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction(DELETED_DATE_IS_NULL)
+@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type")
 @Table(name = "schedule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class Schedule extends SoftDeletedEntity {
+public class Schedule extends SoftDeletedDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

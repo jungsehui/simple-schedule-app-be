@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    group:
+      test:
+        common-test
+    active: test
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        highlight_sql: true
+
+    hibernate:
+      ddl-auto: create
+
+  kafka:
+    consumer:
+      group-id: "ssa-notification-server-test-group"
+
+redis:
+  host: localhost
+  port: 6379
+
+fcm:
+  key:
+    json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
+    url: https://www.googleapis.com/auth/firebase.messaging
+
+cors:
+  allowedOrigins: http://localhost:3000
+
+token:
+  secretKey: "YS1zdXBlci1kdXBlci1sb25nLWFuZC11bHRyYS1zZWN1cmUtc2VjcmV0LWtleS1mb3Itand0LW11c3QtYmUtYXQtbGVhc3QtNjQtYnl0ZXM"
+  accessTokenExpirationMillis: 86400000

@@ -1,9 +1,9 @@
 package com.example.simplescheduleapp.notification.application;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.notification.message.NotificationMessage;
+import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.sse.application.SseService;
-import com.example.simplescheduleapp.sse.domain.RedisClientManager;
+import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,11 +17,18 @@ public class NotificationService {
     private final FcmService fcmService;
     private final RedisClientManager redisClientManager;
 
-    public void sendPushNotification(NotificationMessage message) {
-        if (redisClientManager.isClientConnected(message.memberId())) {
-            sseService.sendNotification(message);
+    public void sendPushNotification(NotificationMessageEvent event) {
+        // SSE가 연결되어 있으면 SSE로 보내고, 그렇지 않으면 FCM으로 보낸다.
+        if (redisClientManager.isClientConnected(event.targetMemberId())) {
+            try {
+                sseService.sendSseNotification(event);
+            } catch (Exception e) {
+                log.warn("SSE 전송 실패. FCM으로 대체 전송합니다. targetMemberId: {}", event.targetMemberId());
+                fcmService.sendFcmNotification(event);
+            }
         } else {
-            fcmService.sendPushNotification(message);
+            // SSE가 연결되어 있지 않다면 바로 FCM 전송
+            fcmService.sendFcmNotification(event);
         }
     }
 }
