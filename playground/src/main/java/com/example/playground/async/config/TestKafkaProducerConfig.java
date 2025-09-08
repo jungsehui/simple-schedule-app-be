@@ -1,4 +1,4 @@
-package com.example.playground.async.event;
+package com.example.playground.async.config;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;

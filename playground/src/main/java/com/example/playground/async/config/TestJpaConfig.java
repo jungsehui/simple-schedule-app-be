@@ -1,4 +1,4 @@
-package com.example.playground.async.event;
+package com.example.playground.async.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
