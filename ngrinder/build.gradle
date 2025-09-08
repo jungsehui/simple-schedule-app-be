@@ -1,0 +1,40 @@
+plugins {
+    id 'groovy'
+    id 'org.springframework.boot' version '3.5.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'ngrinder'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 스프링 부트
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // Groovy 언어 라이브러리
+    implementation 'org.apache.groovy:groovy'
+
+    // nGrinder 스크립트
+    implementation 'org.ngrinder:ngrinder-core:3.5.9'
+
+    // 테스트 도구 모음
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // JUnit 테스트 실행 도구
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
