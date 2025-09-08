@@ -23,7 +23,7 @@ public class TestEventProducer {
         }
     }
 
-    public void publish(TestDomainEvent domainEvent, TestDomainEventPublishCallback callback) {
+    public void produce(TestDomainEvent domainEvent, TestDomainEventPublishCallback callback) {
         log.info("Try to publish event: {}, id: {}", domainEvent.getClass().getSimpleName(), domainEvent.getId());
         try {
             // non block
