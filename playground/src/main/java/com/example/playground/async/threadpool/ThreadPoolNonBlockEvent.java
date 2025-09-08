@@ -6,13 +6,13 @@ import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@DiscriminatorValue("SINGLE_THREAD_BLOCK_EVENT")
+@DiscriminatorValue("THREAD_POOL_NON_BLOCK_EVENT")
 @NoArgsConstructor
 @Getter
 @Entity
-public class ThreadPoolBlockEvent extends TestDomainEvent {
+public class ThreadPoolNonBlockEvent extends TestDomainEvent {
 
-    public ThreadPoolBlockEvent(Long requestId) {
+    public ThreadPoolNonBlockEvent(Long requestId) {
         super(requestId);
     }
 }
