@@ -1,6 +1,28 @@
-spring:
-  profiles:
-    active:
-
 server:
   port: 8082
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3308/test
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    producer:
+      bootstrap-servers: "localhost:9092"
+    consumer:
+      bootstrap-servers: "localhost:9092"
+      group-id: "test-ssa-group"
+
+token:
+  secretKey: "YS1zdXBlci1kdXBlci1sb25nLWFuZC11bHRyYS1zZWN1cmUtc2VjcmV0LWtleS1mb3Itand0LW11c3QtYmUtYXQtbGVhc3QtNjQtYnl0ZXM="
+  accessTokenExpirationMillis: 86400000
