@@ -9,3 +9,4 @@ include("notification")
 
 // TEST (Test)
 include("playground")
+include("ngrinder")
