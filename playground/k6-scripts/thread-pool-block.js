@@ -20,7 +20,7 @@ export const options = {
 };
 
 export default function () {
-    const res = http.get('http://host.docker.internal:8082/test/async/single-thread');
+    const res = http.get('http://host.docker.internal:8082/test/async/thread-pool/block');
 
     // 응답 상태 코드가 200인지 확인합니다.
     check(res, { 'status is 200': (r) => r.status === 200 });
