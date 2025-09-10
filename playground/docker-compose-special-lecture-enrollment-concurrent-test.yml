@@ -28,7 +28,7 @@ services:
     container_name: k6_container_virtual_thread_non_block
     volumes:
       - ./k6-scripts:/scripts
-    command: run -o experimental-prometheus-rw /scripts/virtual-thread-non-block.js
+    command: run -o experimental-prometheus-rw /scripts/special-lecture-enrollment-concurrent-test.js
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
       - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
