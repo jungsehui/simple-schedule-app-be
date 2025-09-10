@@ -1,4 +1,7 @@
 package com.example.simplescheduleapp.special.presentation.response;
 
-public record SpecialLectureEnrollmentCreateResponse() {
+public record SpecialLectureEnrollmentCreateResponse(
+        Long enrolledId,
+        Long specialLectureId
+) {
 }

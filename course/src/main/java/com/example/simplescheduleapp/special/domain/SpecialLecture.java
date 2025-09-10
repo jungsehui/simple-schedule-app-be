@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.lecture.domain;
+package com.example.simplescheduleapp.special.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@DiscriminatorValue("LECTURE")
-@Table(name = "lecture")
+@DiscriminatorValue("SPECIAL_LECTURE")
+@Table(name = "special_lecture")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class Lecture extends Schedule {
+public class SpecialLecture extends Schedule {
 
     @ManyToOne
     @JoinColumn(name = "tutor_id")
@@ -29,16 +29,16 @@ public class Lecture extends Schedule {
     @Column(nullable = false)
     private int enrolledCount;
 
-    public Lecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
+    public SpecialLecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
         super(title, startTime, endTime, memo);
         this.tutor = tutor;
         this.capacity = capacity;
         this.enrolledCount = 0;
     }
 
-    public LectureEnrollment enroll(Student student) {
+    public SpecialLectureEnrollment enroll(Student student) {
         increaseEnrolledCount();
-        return new LectureEnrollment(this, student);
+        return new SpecialLectureEnrollment(this, student);
     }
 
     public void update(Tutor tutor, Schedule schedule, int capacity) {

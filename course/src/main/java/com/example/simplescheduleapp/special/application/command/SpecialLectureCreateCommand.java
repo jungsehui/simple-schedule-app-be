@@ -1,4 +1,13 @@
-package com.example.simplescheduleapp.special.presentation.request;
+package com.example.simplescheduleapp.special.application.command;
 
-public record SpecialLectureCreateCommand() {
+import java.time.LocalDateTime;
+
+public record SpecialLectureCreateCommand(
+        Long memberId,
+        String title,
+        LocalDateTime startTime,
+        LocalDateTime endTime,
+        String memo,
+        int capacity
+) {
 }
