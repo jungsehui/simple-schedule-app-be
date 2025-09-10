@@ -36,12 +36,12 @@ public class StudentController {
 
     @PostMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<LectureEnrollmentResponse> requestLectureEnrollment(
-            @PathVariable Long lectureId,
-            @RequestParam Long studentId
+            @RequestParam Long studentId,
+            @PathVariable Long lectureId
     ) {
         LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(studentId, lectureId);
         Long pendingId = lectureEnrollmentService.requestEnrollment(command);
-        return ResponseEntity.ok(new LectureEnrollmentResponse(pendingId));
+        return ResponseEntity.ok(new LectureEnrollmentResponse(pendingId, lectureId));
     }
 
     @DeleteMapping("/lectures/{lectureId}/pending-enrollments")

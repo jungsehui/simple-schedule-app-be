@@ -35,6 +35,11 @@ spring:
     consumer:
       group-id: "ssa-notification-server-group"
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 logging:
   level:
     org:
@@ -50,10 +55,6 @@ fcm:
 
 cors:
   allowed-origins: http://localhost:3000
-
-redis:
-  host: localhost
-  port: 6379
 
 client:
   course-server-internal-url: "http://localhost:8080/internal"

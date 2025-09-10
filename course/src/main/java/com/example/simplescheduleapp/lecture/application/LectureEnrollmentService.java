@@ -79,7 +79,7 @@ public class LectureEnrollmentService {
             acceptLectureEnrollmentTopicProducer.produce(lecture, student);
             return lectureEnrollment.getId();
         } catch (DataIntegrityViolationException e) {
-            log.error("이미 등록된 학생입니다. lectureId = {}", e.getMessage());
+            log.error("이미 등록된 학생입니다. specialLectureId = {}", e.getMessage());
             throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
         } catch (ApplicationException e) {
             log.error("수강생 등록 에러 메시지 {}", e.getMessage());
