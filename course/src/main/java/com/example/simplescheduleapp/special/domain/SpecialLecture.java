@@ -37,7 +37,7 @@ public class SpecialLecture extends Schedule {
     }
 
     public SpecialLectureEnrollment enroll(Student student) {
-//        increaseEnrolledCount();
+        increaseEnrolledCount();
         return new SpecialLectureEnrollment(this, student);
     }
 

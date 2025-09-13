@@ -29,17 +29,12 @@ public class SpecialLectureEnrollmentService {
     public void enrollSpecialLectureEnrollmentAsync(Long specialLectureId, Long studentId) {
         log.info("Writing to DB (Async) -> specialLectureId: {}, studentId: {}", specialLectureId, studentId);
         try {
-            int updatedRows = specialLectureRepository.increaseSpecialLectureEnrollmentCount(specialLectureId);
-            if (updatedRows == 0) {
-                log.error("DB capacity check failed for specialLectureId: {}", specialLectureId);
-                return;
-            }
+            SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
+            Student student = studentRepository.getById(studentId);
+            SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student);
 
-            SpecialLecture specialLectureRef = specialLectureRepository.getReferenceById(specialLectureId);
-            Student studentRef = studentRepository.getReferenceById(studentId);
-            SpecialLectureEnrollment enrollment = new SpecialLectureEnrollment(specialLectureRef, studentRef);
-            specialLectureEnrollmentRepository.save(enrollment);
-
+            specialLectureEnrollmentRepository.save(specialLectureEnrollment);
+            specialLectureRepository.save(specialLecture);
         } catch (DataIntegrityViolationException e) {
             log.warn("Already enrolled student detected in DB writer: {}", studentId);
         } catch (Exception e) {
@@ -49,14 +44,13 @@ public class SpecialLectureEnrollmentService {
 
     // 퍼사드
     @Transactional
-    public SpecialLectureEnrollment enrollSpecialLectureEnrollment(Long lectureId, Long studentId) {
-        SpecialLecture specialLecture = specialLectureRepository.getById(lectureId);
+    public SpecialLectureEnrollment enrollSpecialLectureEnrollment(Long specialLectureId, Long studentId) {
+        SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
         Student student = studentRepository.getById(studentId);
-
-        SpecialLectureEnrollment enrollment = specialLecture.enroll(student);
+        SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student);
 
         specialLectureRepository.save(specialLecture);
-        return specialLectureEnrollmentRepository.save(enrollment);
+        return specialLectureEnrollmentRepository.save(specialLectureEnrollment);
     }
 
     // 레디스 호출용
@@ -64,17 +58,9 @@ public class SpecialLectureEnrollmentService {
     public void saveSpecialLectureEnrollment(Long specialLectureId, Long studentId) {
         log.info("Writing to DB -> specialLectureId: {}, studentId: {}", specialLectureId, studentId);
         try {
-            int updatedRows = specialLectureRepository.increaseSpecialLectureEnrollmentCount(specialLectureId);
-            if (updatedRows == 0) {
-                log.error("DB capacity check failed for specialLectureId: {}", specialLectureId);
-                // Redis에서 이미 성공했으므로, 이 경우는 거의 발생하지 않지만 안전장치로 남겨둠.
-                // 실제로는 보상 트랜잭션을 통해 Redis 카운트를 원복해야 함.
-                throw new RuntimeException("DB 저장 단계에서 정원 초과가 확인되었습니다.");
-            }
-
             SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
             Student student = studentRepository.getById(studentId);
-            SpecialLectureEnrollment specialLectureEnrollment = new SpecialLectureEnrollment(specialLecture, student);
+            SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student);
 
             specialLectureEnrollmentRepository.save(specialLectureEnrollment);
             specialLectureRepository.save(specialLecture);
