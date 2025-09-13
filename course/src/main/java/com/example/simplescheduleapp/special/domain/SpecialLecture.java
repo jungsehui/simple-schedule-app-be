@@ -26,18 +26,13 @@ public class SpecialLecture extends Schedule {
     @Column(nullable = false)
     private int capacity;
 
-    @Column(nullable = false)
-    private int enrolledCount;
-
     public SpecialLecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
         super(title, startTime, endTime, memo);
         this.tutor = tutor;
         this.capacity = capacity;
-        this.enrolledCount = 0;
     }
 
     public SpecialLectureEnrollment enroll(Student student) {
-        increaseEnrolledCount();
         return new SpecialLectureEnrollment(this, student);
     }
 
@@ -47,31 +42,9 @@ public class SpecialLecture extends Schedule {
         this.capacity = capacity;
     }
 
-    public void cancel() {
-        validateCanDecreaseEnrolledCount();
-        this.enrolledCount--;
-    }
-
-    private void increaseEnrolledCount() {
-        validateCanIncreaseEnrolledCount();
-        this.enrolledCount++;
-    }
-
     private void validateTutorAuthority(Tutor tutor) {
         if (!this.tutor.getId().equals(tutor.getId())) {
             throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
-        }
-    }
-
-    private void validateCanIncreaseEnrolledCount() {
-        if (enrolledCount >= capacity) {
-            throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
-        }
-    }
-
-    private void validateCanDecreaseEnrolledCount() {
-        if (enrolledCount < 1) {
-            throw new ApplicationException(LectureExceptionCode.CAPACITY_UNDER_ZERO);
         }
     }
 }

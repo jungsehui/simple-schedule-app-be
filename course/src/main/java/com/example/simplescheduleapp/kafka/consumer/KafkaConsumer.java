@@ -2,12 +2,7 @@ package com.example.simplescheduleapp.kafka.consumer;
 
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.kafka.topic.EnrollSpecialLectureEnrollmentTopicMessage;
-import com.example.simplescheduleapp.special.domain.SpecialLecture;
-import com.example.simplescheduleapp.special.domain.SpecialLectureEnrollment;
-import com.example.simplescheduleapp.special.domain.SpecialLectureEnrollmentRepository;
-import com.example.simplescheduleapp.special.domain.SpecialLectureRepository;
-import com.example.simplescheduleapp.student.domain.Student;
-import com.example.simplescheduleapp.student.domain.StudentRepository;
+import com.example.simplescheduleapp.special.application.SpecialLectureEnrollmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class KafkaConsumer {
 
-    private final SpecialLectureRepository specialLectureRepository;
-    private final StudentRepository studentRepository;
-    private final SpecialLectureEnrollmentRepository specialLectureEnrollmentRepository;
+    private final SpecialLectureEnrollmentService specialLectureEnrollmentService;
 
     @KafkaListener(
             topics = KafkaTopics.ENROLL_SPECIAL_LECTURE_ENROLLMENT_SUCCESS_TOPIC,
@@ -45,12 +38,7 @@ public class KafkaConsumer {
         log.info("Writing to DB -> specialLectureId: {}, studentId: {}", specialLectureId, studentId);
 
         try {
-            SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
-            Student student = studentRepository.getById(studentId);
-            SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student);
-
-            specialLectureEnrollmentRepository.save(specialLectureEnrollment);
-            specialLectureRepository.save(specialLecture);
+            specialLectureEnrollmentService.enrollSpecialLectureEnrollment(specialLectureId, studentId);
         } catch (DataIntegrityViolationException e) {
             log.warn("Already enrolled student detected in DB writer: {}", studentId);
         } catch (Exception e) {

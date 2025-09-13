@@ -1,10 +1,7 @@
 package com.example.simplescheduleapp.special.presentation;
 
 import com.example.simplescheduleapp.special.application.RedisSpecialLectureEnrollmentService;
-import com.example.simplescheduleapp.special.application.SpecialLectureEnrollmentFacade;
-import com.example.simplescheduleapp.special.application.SpecialLectureEnrollmentService;
 import com.example.simplescheduleapp.special.application.command.SpecialLectureEnrollmentCreateCommand;
-import com.example.simplescheduleapp.special.presentation.response.SpecialLectureEnrollmentCreateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,22 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SpecialLectureEnrollmentController {
 
-//    private final SpecialLectureEnrollmentFacade specialLectureEnrollmentFacade;
-    private final SpecialLectureEnrollmentService specialLectureEnrollmentService;
     private final RedisSpecialLectureEnrollmentService redisSpecialLectureEnrollmentService;
-
-//    @PostMapping("/special-lectures/{specialLectureId}/enrollments")
-//    public ResponseEntity<SpecialLectureEnrollmentCreateResponse> enrollSpecialLectureEnrollment(
-//            @RequestParam Long studentId,
-//            @PathVariable Long specialLectureId
-//    ) {
-//        log.info("특강 요청이 들어왔습니다. 학생 ID: {}", studentId);
-//        SpecialLectureEnrollmentCreateCommand command = SpecialLectureEnrollmentCreateCommand.of(studentId, specialLectureId);
-////        Long enrolledId = specialLectureEnrollmentFacade.enrollSpecialLectureEnrollment(command);
-////        Long enrolledId = specialLectureEnrollmentService.enrollSpecialLectureEnrollment(command);
-//        redisSpecialLectureEnrollmentService.enrollSpecialLectureEnrollment(command);
-//        return ResponseEntity.ok(new SpecialLectureEnrollmentCreateResponse(enrolledId, specialLectureId));
-//    }
 
     @PostMapping("/special-lectures/{specialLectureId}/enrollments")
     public ResponseEntity<Void> enrollSpecialLectureEnrollment(
@@ -42,9 +24,8 @@ public class SpecialLectureEnrollmentController {
     ) {
         log.info("특강 요청이 들어왔습니다. 학생 ID: {}", studentId);
         SpecialLectureEnrollmentCreateCommand command = SpecialLectureEnrollmentCreateCommand.of(studentId, specialLectureId);
-//        redisSpecialLectureEnrollmentService.enrollSpecialLectureEnrollment(command);
-        redisSpecialLectureEnrollmentService.enrollSpecialLectureEnrollmentAsync(command);
-//        redisSpecialLectureEnrollmentService.enrollSpecialLectureEnrollmentImmediately(command);
+        redisSpecialLectureEnrollmentService.enrollSpecialLectureEnrollment(command);
+//        redisSpecialLectureEnrollmentService.enrollSpecialLectureEnrollmentKafka(command);
         return ResponseEntity.ok().build();
     }
 }
