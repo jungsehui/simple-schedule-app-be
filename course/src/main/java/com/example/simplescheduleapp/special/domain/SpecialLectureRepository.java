@@ -28,19 +28,19 @@ public interface SpecialLectureRepository extends JpaRepository<SpecialLecture, 
     @Query("select sl from SpecialLecture sl where sl.id = :id")
     Optional<SpecialLecture> findByIdWithPessimisticLock(@Param("id") Long id);
 
-    // DB 내에서 update 쿼리로 쓰기 락 걸어 보자는 취지
-    // 영속성 비우기 --> 어떻게 동작하는지는 잘 모르겠음
-    @Modifying(clearAutomatically = true)
-    @Query(
-            value = "UPDATE special_lecture SET enrolled_count = enrolled_count + 1 WHERE schedule_id = :id AND enrolled_count < capacity",
-            nativeQuery = true
-    )
-    int increaseSpecialLectureEnrollmentCount(@Param("id") Long id);
-
-//    // JPQL 쓰면 여기서 HT 뭐시기로 SQL 따로 해석해서 쿼리 날림
-//    @Modifying
-//    @Query("UPDATE SpecialLecture sl SET sl.enrolledCount = sl.enrolledCount + 1 WHERE sl.id = :id AND sl.enrolledCount < sl.capacity")
+//    // DB 내에서 update 쿼리로 쓰기 락 걸어 보자는 취지
+//    // 영속성 비우기 --> 어떻게 동작하는지는 잘 모르겠음
+//    @Modifying(clearAutomatically = true)
+//    @Query(
+//            value = "UPDATE special_lecture SET enrolled_count = enrolled_count + 1 WHERE schedule_id = :id AND enrolled_count < capacity",
+//            nativeQuery = true
+//    )
 //    int increaseSpecialLectureEnrollmentCount(@Param("id") Long id);
+
+    // JPQL 쓰면 여기서 HT 뭐시기로 SQL 따로 해석해서 쿼리 날림
+    @Modifying
+    @Query("UPDATE SpecialLecture sl SET sl.enrolledCount = sl.enrolledCount + 1 WHERE sl.id = :id AND sl.enrolledCount < sl.capacity")
+    int increaseSpecialLectureEnrollmentCount(@Param("id") Long id);
 
     // 네임드 락 설정
     @Query(value = "SELECT GET_LOCK(:lockName, :timeoutSeconds)", nativeQuery = true)
