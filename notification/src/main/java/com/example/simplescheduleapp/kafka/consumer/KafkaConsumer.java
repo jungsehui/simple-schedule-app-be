@@ -3,13 +3,11 @@ package com.example.simplescheduleapp.kafka.consumer;
 import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerConfig;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.kafka.topic.AcceptLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.CancelLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RejectLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.kafka.topic.RequestLectureEnrollmentTopicMessage;
 import com.example.simplescheduleapp.notification.application.NotificationFacade;
-import com.example.simplescheduleapp.notification.application.NotificationService;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
 import lombok.RequiredArgsConstructor;
@@ -78,7 +76,7 @@ public class KafkaConsumer {
                 "새로운 수강 신청 요청이 도착했습니다."
         );
         ack.acknowledge();
-        log.info("Successfully consume send chat message topic. id :{}, offset: {}", message.senderId(), offset);
+        log.info("Successfully consume request lecture enrollment topic. id :{}, offset: {}", message.senderId(), offset);
     }
 
     @KafkaListener(
