@@ -1,12 +1,12 @@
 package com.example.simplescheduleapp.kafka.topic;
 
-public record SpecialLectureEnrollmentSuccessTopicMessage(
+public record EnrollSpecialLectureEnrollmentTopicMessage(
         Long specialLectureId,
         Long studentId
 ) {
 
-    public static SpecialLectureEnrollmentSuccessTopicMessage of(Long specialLectureId, Long studentId) {
-        return new SpecialLectureEnrollmentSuccessTopicMessage(
+    public static EnrollSpecialLectureEnrollmentTopicMessage of(Long specialLectureId, Long studentId) {
+        return new EnrollSpecialLectureEnrollmentTopicMessage(
                 specialLectureId,
                 studentId
         );
