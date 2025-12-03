@@ -28,5 +28,6 @@ public class DeadLockTestEventProducer {
         }
         log.info("wake up! event-id: {}", event.getId());
         publisher.publishEvent(event);
+        log.info("call publisher.publishEvent()! event-id: {}", event.getId());
     }
 }

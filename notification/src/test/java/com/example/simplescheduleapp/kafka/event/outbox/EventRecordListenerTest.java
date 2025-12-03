@@ -1,8 +1,8 @@
 package com.example.simplescheduleapp.kafka.event.outbox;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
+import com.example.simplescheduleapp.common.event.outbox.EventRecordListener;
 import com.example.simplescheduleapp.common.event.outbox.EventRecorder;
-import com.example.simplescheduleapp.common.event.outbox.EventRecorderListener;
 import com.example.simplescheduleapp.support.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,11 +11,11 @@ import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
 
-@DisplayName("EventRecorderListener 은(는)")
-public class EventRecorderListenerTest extends UnitTest {
+@DisplayName("EventRecordListener 은(는)")
+public class EventRecordListenerTest extends UnitTest {
 
     @InjectMocks
-    private EventRecorderListener eventRecorderListener;
+    private EventRecordListener eventRecordListener;
 
     @Mock
     private EventRecorder eventRecorder;
@@ -27,7 +27,7 @@ public class EventRecorderListenerTest extends UnitTest {
         DomainEvent domainEvent = mock(DomainEvent.class);
 
         // when
-        eventRecorderListener.recordEvent(domainEvent);
+        eventRecordListener.recordEvent(domainEvent);
 
         // then
         verify(eventRecorder, times(1)).record(any());

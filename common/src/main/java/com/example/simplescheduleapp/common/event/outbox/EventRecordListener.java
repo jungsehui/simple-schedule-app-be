@@ -10,7 +10,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class EventRecorderListener {
+public class EventRecordListener {
 
     private final EventRecorder eventRecorder;
 

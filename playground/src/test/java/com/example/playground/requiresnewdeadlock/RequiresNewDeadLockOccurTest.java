@@ -13,7 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 @Disabled // 데드락 확인 시에만 풀기
 @ActiveProfiles("requires-new-deadlock-occur")
 @SuppressWarnings("NonAsciiCharacters")

@@ -3,6 +3,7 @@ package com.example.simplescheduleapp.fcm.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,5 +40,10 @@ public class FcmConfig {
             log.error(e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    @Bean
+    public FirebaseMessaging firebaseMessaging() {
+        return FirebaseMessaging.getInstance();
     }
 }

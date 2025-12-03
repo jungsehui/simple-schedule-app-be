@@ -2,6 +2,7 @@ package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.student.domain.Student;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
                 @UniqueConstraint(name = "uk_lecture_student", columnNames = {"lecture_id", "student_id"})
         }
 )
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 public class LectureEnrollment {

@@ -58,7 +58,8 @@ public class KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(
                 configs,
                 new StringDeserializer(),
-                new JsonDeserializer<>(KafkaDomainEventMessage.class, false));
+                new JsonDeserializer<>(KafkaDomainEventMessage.class, false)
+        );
     }
 
     private Map<String, Object> getDefaultConfigs() {

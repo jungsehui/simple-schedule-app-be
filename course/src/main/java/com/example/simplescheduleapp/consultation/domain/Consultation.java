@@ -3,6 +3,7 @@ package com.example.simplescheduleapp.consultation.domain;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +12,7 @@ import java.util.List;
 
 @DiscriminatorValue("CONSULTATION")
 @Table(name = "consultation")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 public class Consultation extends Schedule {

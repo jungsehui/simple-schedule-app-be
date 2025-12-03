@@ -16,6 +16,7 @@ public class TestDomainEventPublishCallback implements BiConsumer<SendResult<Str
 
     @Override
     public void accept(SendResult<String, Object> result, Throwable throwable) {
+        log.info("Callback invoked! result: {}", result);
         String value = (String) result.getProducerRecord().value();
         if (throwable == null) {
             log.info("(callback) Successfully produced topic. eventId: {}", value);

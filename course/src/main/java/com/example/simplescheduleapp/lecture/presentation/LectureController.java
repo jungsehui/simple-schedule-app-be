@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.lecture.presentation;
 
+import com.example.simplescheduleapp.common.auth.Auth;
 import com.example.simplescheduleapp.lecture.application.LectureService;
 import com.example.simplescheduleapp.lecture.application.command.LectureCreateCommand;
 import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
@@ -25,7 +26,7 @@ public class LectureController {
 
     @PostMapping("/lectures")
     public ResponseEntity<LectureCreateResponse> createLecture(
-            @RequestParam Long tutorId,
+            @Auth Long tutorId,
             @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
         LectureCreateCommand command = lectureCreateRequest.toCommand(tutorId);
