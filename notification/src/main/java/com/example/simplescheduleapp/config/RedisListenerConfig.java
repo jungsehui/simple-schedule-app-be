@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.redis.config;
+package com.example.simplescheduleapp.config;
 
 import com.example.simplescheduleapp.redis.subscriber.RedisSseMessageSubscriber;
 import com.example.simplescheduleapp.redis.topic.RedisTopics;

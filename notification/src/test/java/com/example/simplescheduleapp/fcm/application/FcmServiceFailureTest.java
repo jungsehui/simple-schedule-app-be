@@ -4,7 +4,7 @@ import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.exception.FcmTokenExceptionCode;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -46,12 +46,12 @@ public class FcmServiceFailureTest extends ApplicationTest {
     private Long tutorId = 1L;
     private Long studentId = 2L;
     private FcmToken fcmToken;
-    private NotificationMessageEvent event;
+    private NotificationRequest event;
 
     @BeforeEach
     void setUp() {
         fcmToken = new FcmToken(studentId, "test-token");
-        event = new NotificationMessageEvent(tutorId, studentId, "제목", "내용");
+        event = new NotificationRequest(tutorId, studentId, "제목", "내용");
 
         given(fcmTokenRepository.getByMemberId(studentId)).willReturn(fcmToken);
     }
@@ -78,7 +78,7 @@ public class FcmServiceFailureTest extends ApplicationTest {
             // then
             ArgumentCaptor<FailedNotification> captor = ArgumentCaptor.forClass(FailedNotification.class);
             verify(failedNotificationRepository).save(captor.capture());
-            assertThat(captor.getValue().getTargetMemberId()).isEqualTo(studentId);
+            assertThat(captor.getValue().getTargetId()).isEqualTo(studentId);
             assertThat(captor.getValue().getFailReason()).isEqualTo("FCM 실패 성공 !");
         }
     }
@@ -96,14 +96,14 @@ public class FcmServiceFailureTest extends ApplicationTest {
 
         ArgumentCaptor<FailedNotification> captor = ArgumentCaptor.forClass(FailedNotification.class);
         verify(failedNotificationRepository).save(captor.capture());
-        assertThat(captor.getValue().getTargetMemberId()).isEqualTo(2L);
+        assertThat(captor.getValue().getTargetId()).isEqualTo(2L);
         assertThat(captor.getValue().getFailReason()).isEqualTo(FcmTokenExceptionCode.FCM_TOKEN_NOT_FOUND.getMessage());
     }
 
     @Test
     void FCM_토큰이_없으면_즉시_실패_처리하고_DB에_저장한다_호출_1회() {
         // given
-        NotificationMessageEvent event = new NotificationMessageEvent(tutorId, studentId, "제목", "내용");
+        NotificationRequest event = new NotificationRequest(tutorId, studentId, "제목", "내용");
         given(fcmTokenRepository.getByMemberId(studentId)).willReturn(null); // 토큰이 없는 상황
 
         // when
@@ -117,7 +117,7 @@ public class FcmServiceFailureTest extends ApplicationTest {
         ArgumentCaptor<FailedNotification> failedNotificationCaptor = ArgumentCaptor.forClass(FailedNotification.class);
         verify(failedNotificationRepository, times(1)).save(failedNotificationCaptor.capture());
 
-        assertThat(failedNotificationCaptor.getValue().getTargetMemberId()).isEqualTo(studentId);
+        assertThat(failedNotificationCaptor.getValue().getTargetId()).isEqualTo(studentId);
         assertThat(failedNotificationCaptor.getValue().getFailReason()).isEqualTo(FcmTokenExceptionCode.FCM_TOKEN_NOT_FOUND.getMessage());
     }
 }

@@ -1,7 +1,5 @@
 package com.example.simplescheduleapp.notification.schedule;
 
-import com.example.simplescheduleapp.fcm.application.FcmService;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,36 +17,33 @@ import java.util.concurrent.Executor;
 @Component
 public class NotificationRetryScheduler {
 
-    private static final int MAX_RETRY_COUNT = 1;
+    private static final int MAX_RETRY_COUNT = 4; // MAX_RETRY_COUNT 미만만큼 수행하므로 지금은 3번만 수행
 
     private final FailedNotificationRepository failedNotificationRepository;
-    private final FcmService fcmService;
+    private final NotificationRetryService notificationRetryService;
     private final Executor notificationExecutor;
 
     @Scheduled(fixedDelay = 600000) // 10분마다 실행
-    @Transactional
     public void retryFailedNotifications() {
         List<FailedNotification> targets = failedNotificationRepository.findByRetryCountLessThan(MAX_RETRY_COUNT);
 
+        if (targets.isEmpty()) {
+            log.info("알림 재처리 대상이 없습니다.");
+            return;
+        }
+
+        log.info("알림 재처리 스케줄을 수행합니다. 대상 총 {}건.", targets.size());
+
         List<CompletableFuture<Void>> futures = targets.stream()
                 .map(failedNotification -> CompletableFuture.runAsync(() -> {
-                    try {
-                        NotificationMessageEvent event = NotificationMessageEvent.from(failedNotification);
-                        fcmService.sendFcmNotification(event);
-
-                        // 성공 시 재시도 목록에서 삭제
-                        failedNotificationRepository.delete(failedNotification);
-                    } catch (Exception e) {
-                        // 재시도 또 실패 시, 카운트 증가
-                        failedNotification.incrementRetryCount();
-                        failedNotificationRepository.save(failedNotification);
-                    }
+                    // ID만 넘기거나, 엔티티를 넘겨서 별도 서비스에서 트랜잭션 처리
+                    notificationRetryService.processSingleRetry(failedNotification.getId());
                 }, notificationExecutor))
                 .toList();
 
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            log.info("알림 재처리 스케줄이 성공적으로 완료되었습니다. 총 {}건 처리.", futures.size());
+            log.info("알림 재처리 스케줄이 성공적으로 요청되었습니다. 총 {}건 처리.", futures.size());
         } catch (Exception e) {
             log.error("알림 재처리 작업 중 일부에서 예외가 발생했습니다.", e);
         }

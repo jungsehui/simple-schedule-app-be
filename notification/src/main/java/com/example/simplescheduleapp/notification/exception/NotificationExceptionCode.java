@@ -5,7 +5,7 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public enum NotificationTypeExceptionCode implements ExceptionCode {
+public enum NotificationExceptionCode implements ExceptionCode {
 
     NOTIFICATION_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "NT0", "지원하지 않는 수강 이벤트입니다."),
     ;
@@ -14,7 +14,7 @@ public enum NotificationTypeExceptionCode implements ExceptionCode {
     private final String code;
     private final String message;
 
-    NotificationTypeExceptionCode(HttpStatus httpStatus, String code, String message) {
+    NotificationExceptionCode(HttpStatus httpStatus, String code, String message) {
         this.httpStatus = httpStatus;
         this.code = code;
         this.message = message;

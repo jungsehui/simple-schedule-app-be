@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.redis.subscriber;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
 import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
@@ -54,7 +54,7 @@ public class RedisSseMessageSubscriber implements MessageListener {
         String body = new String(message.getBody(), StandardCharsets.UTF_8);
         try {
             ObjectMapper mapper = new ObjectMapper();
-            NotificationMessageEvent event = mapper.readValue(body, NotificationMessageEvent.class);
+            NotificationRequest event = mapper.readValue(body, NotificationRequest.class);
             sendSseNotification(event);
         } catch (JsonProcessingException e) {
             log.error("Redis 메시지 파싱 오류: {}", e.getMessage());
@@ -97,17 +97,17 @@ public class RedisSseMessageSubscriber implements MessageListener {
         }, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
     }
 
-    private void sendSseNotification(NotificationMessageEvent event) {
-        SseEmitter emitter = sseEmitterRepository.get(event.targetMemberId());
+    private void sendSseNotification(NotificationRequest event) {
+        SseEmitter emitter = sseEmitterRepository.get(event.targetId());
         try {
             emitter.send(SseEmitter.event()
                     .name(event.title())
                     .data(event.body()));
-            log.info("SSE 이벤트 전송 성공 - targetMemberId: {}, title: {}, body: {}",
-                    event.targetMemberId(), event.title(), event.body());
+            log.info("SSE 이벤트 전송 성공 - targetId: {}, title: {}, body: {}",
+                    event.targetId(), event.title(), event.body());
         } catch (IOException e) {
-            log.error("targetMemberId: {} 에게 SSE 이벤트 전송 실패: {}", event.targetMemberId(), e.getMessage());
-            sseEmitterRepository.delete(event.targetMemberId());
+            log.error("targetId: {} 에게 SSE 이벤트 전송 실패: {}", event.targetId(), e.getMessage());
+            sseEmitterRepository.delete(event.targetId());
             throw new ApplicationException(SseExceptionCode.SSE_SEND_FAILED);
         }
     }

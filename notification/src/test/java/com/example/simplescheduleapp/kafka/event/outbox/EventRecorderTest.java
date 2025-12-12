@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.kafka.event.outbox;
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.event.DomainEventRepository;
-import com.example.simplescheduleapp.common.event.EventState;
+import com.example.simplescheduleapp.common.event.EventStatus;
 import com.example.simplescheduleapp.common.event.outbox.EventRecorder;
 import com.example.simplescheduleapp.kafka.event.mock.TestDomainEvent;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -40,7 +40,7 @@ class EventRecorderTest extends ApplicationTest {
         // then
         Optional<DomainEvent> byId = domainEventRepository.findById(testDomainEvent.getId());
         assertThat(byId).isPresent();
-        assertThat(byId.get().getState()).isEqualTo(EventState.INIT);
+        assertThat(byId.get().getStatus()).isEqualTo(EventStatus.INIT);
     }
 
     @DisplayName("UUID 중복으로 DataIntegrityViolationException 발생 시, UUID를 재생성하여 저장을 재시도한다.")
@@ -51,7 +51,7 @@ class EventRecorderTest extends ApplicationTest {
         String duplicatedUuid = testDomainEvent.getUuid();
         domainEventRepository.save(testDomainEvent);
 
-        TestDomainEvent duplicatedTestDomainEvent = new TestDomainEvent(duplicatedUuid, EventState.INIT, 1L, "TEST_TOPIC");
+        TestDomainEvent duplicatedTestDomainEvent = new TestDomainEvent(duplicatedUuid, EventStatus.INIT, 1L, "TEST_TOPIC");
 
         // when
         DomainEvent duplicated = eventRecorder.record(duplicatedTestDomainEvent);

@@ -1,8 +1,8 @@
-package com.example.simplescheduleapp.kafka.strategy.lecture;
+package com.example.simplescheduleapp.notification.strategy.lecture;
 
-import com.example.simplescheduleapp.common.kafka.topic.CourseEventMessage;
-import com.example.simplescheduleapp.common.kafka.topic.CourseEventType;
-import com.example.simplescheduleapp.kafka.strategy.NotificationStrategy;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
+import com.example.simplescheduleapp.notification.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.NotificationFacade;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
@@ -17,19 +17,22 @@ public class LectureUpdatedStrategy implements NotificationStrategy {
     private final CourseClient courseClient;
 
     @Override
-    public boolean supports(CourseEventType type) {
-        return type == CourseEventType.LECTURE_UPDATED;
+    public LectureEventType getSupportType() {
+        return LectureEventType.LECTURE_UPDATED;
     }
 
     @Override
-    public void handle(CourseEventMessage message) {
-        GetEnrolledStudentInfosResponse studentInfos = courseClient.getEnrolledStudentInfosByLectureId(message.targetId()); // targetId = lectureId
+    public void handle(KafkaLectureEventMessage message) {
+        // 수강생 목록 조회 (lectureId 사용)
+        GetEnrolledStudentInfosResponse studentInfos =
+                courseClient.getEnrolledStudentInfosByLectureId(message.lectureId());
 
-        notificationFacade.sendNotificationsAsync(
-                message.targetId(),
+        // 다건 발송
+        notificationFacade.sendNotification(
+                message.tutorId(),
                 studentInfos.studentIds(),
-                message.title(),
-                message.content()
+                message.lectureTitle(),
+                "강의 내용이 수정되었습니다: %s".formatted(message.details())
         );
     }
 }

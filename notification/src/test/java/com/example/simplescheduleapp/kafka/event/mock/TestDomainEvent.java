@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.kafka.event.mock;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
-import com.example.simplescheduleapp.common.event.EventState;
+import com.example.simplescheduleapp.common.event.EventStatus;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -11,7 +11,7 @@ public class TestDomainEvent extends DomainEvent {
 
     private String topic;
 
-    public TestDomainEvent(String uuid, EventState state, Long testTargetDomainId, String topic) {
+    public TestDomainEvent(String uuid, EventStatus state, Long testTargetDomainId, String topic) {
         super(uuid, state, testTargetDomainId);
         this.topic = topic;
     }

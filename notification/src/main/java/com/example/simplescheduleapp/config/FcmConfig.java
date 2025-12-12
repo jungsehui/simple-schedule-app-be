@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.fcm.config;
+package com.example.simplescheduleapp.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;

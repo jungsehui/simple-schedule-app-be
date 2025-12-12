@@ -2,10 +2,10 @@ package com.example.simplescheduleapp.kafka.event.producer;
 
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.common.event.DomainEventRepository;
-import com.example.simplescheduleapp.common.event.EventState;
+import com.example.simplescheduleapp.common.event.EventStatus;
 import com.example.simplescheduleapp.common.event.producer.KafkaEventProducer;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.producer.KafkaProducer;
 import com.example.simplescheduleapp.kafka.event.mock.TestDomainEvent;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -31,7 +31,7 @@ class KafkaEventProducerTest extends ApplicationTest {
     private DomainEventRepository domainEventRepository;
 
     @MockitoBean
-    private KafkaProducer<KafkaDomainEventMessage> kafkaProducer;
+    private KafkaProducer<KafkaLectureEventMessage> kafkaProducer;
 
     @DisplayName("이벤트 발행 성공 시 이벤트의 상태를 성공으로 저장")
     @Test
@@ -43,8 +43,8 @@ class KafkaEventProducerTest extends ApplicationTest {
         kafkaEventProducer.produce(topic);
 
         // then
-        EventState state = domainEventRepository.getByUuid(topic.getUuid()).getState();
-        assertThat(state).isEqualTo(EventState.PRODUCE_SUCCESS);
+        EventStatus state = domainEventRepository.getByUuid(topic.getUuid()).getStatus();
+        assertThat(state).isEqualTo(EventStatus.PRODUCE_SUCCESS);
     }
 
     @DisplayName("이벤트 발행 실패 시 이벤트의 상태를 실패로 저장")
@@ -62,7 +62,7 @@ class KafkaEventProducerTest extends ApplicationTest {
         }).isInstanceOf(ApplicationException.class);
 
         // then
-        EventState state = domainEventRepository.getByUuid(topic.getUuid()).getState();
-        assertThat(state).isEqualTo(EventState.PRODUCE_FAIL);
+        EventStatus state = domainEventRepository.getByUuid(topic.getUuid()).getStatus();
+        assertThat(state).isEqualTo(EventStatus.PRODUCE_FAIL);
     }
 }

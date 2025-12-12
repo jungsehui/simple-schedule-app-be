@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.notification.domain.exception;
+package com.example.simplescheduleapp.notification.exception;
 
 import com.example.simplescheduleapp.common.exception.ExceptionCode;
 import lombok.Getter;

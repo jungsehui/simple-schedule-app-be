@@ -25,8 +25,8 @@ public class FailedNotification extends SoftDeletedDomain {
     private Long id;
 
     private String uuid;
-    private Long senderMemberId;
-    private Long targetMemberId;
+    private Long senderId;
+    private Long targetId;
     private String title;
     private String body;
 
@@ -37,16 +37,16 @@ public class FailedNotification extends SoftDeletedDomain {
     private int retryCount;
 
     public FailedNotification(
-            Long senderMemberId,
-            Long targetMemberId,
+            Long senderId,
+            Long targetId,
             String title,
             String body,
             NotificationType type,
             String failReason
     ) {
         this.uuid = UUID.randomUUID().toString();
-        this.senderMemberId = senderMemberId;
-        this.targetMemberId = targetMemberId;
+        this.senderId = senderId;
+        this.targetId = targetId;
         this.title = title;
         this.body = body;
         this.type = type;

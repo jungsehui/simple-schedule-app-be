@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.NotificationApplication;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class SseServiceTest extends ApplicationTest {
     @Test
     void SSE_Service_의_sendSseNotification_호출_시_발행되는지_테스트() {
         // given
-        NotificationMessageEvent message = new NotificationMessageEvent(
+        NotificationRequest message = new NotificationRequest(
                 123L, 1234L, "test-topic", "test-body"
         );
 
@@ -32,9 +32,9 @@ class SseServiceTest extends ApplicationTest {
 
         // then
         verify(redisSseMessagePublisher).publish(
-                new NotificationMessageEvent(
-                        message.senderMemberId(),
-                        message.targetMemberId(),
+                new NotificationRequest(
+                        message.senderMId(),
+                        message.targetId(),
                         message.title(),
                         message.body()
                 )

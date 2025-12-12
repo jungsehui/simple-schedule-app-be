@@ -6,18 +6,18 @@ import com.example.simplescheduleapp.sse.application.SseService;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @RequiredArgsConstructor
-@Service
-public class NotificationService {
+@Component
+public class NotificationDispatcher {
 
     private final SseService sseService;
     private final FcmService fcmService;
     private final RedisClientManager redisClientManager;
 
-    public void sendPushNotification(NotificationRequest event) {
+    public void dispatchPushNotification(NotificationRequest event) {
         // SSE가 연결되어 있으면 SSE로 보내고, 그렇지 않으면 FCM으로 보낸다.
         if (redisClientManager.isClientConnected(event.targetId())) {
             try {

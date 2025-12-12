@@ -1,11 +1,13 @@
-package com.example.simplescheduleapp.kafka.strategy.lecture;
+package com.example.simplescheduleapp.notification.strategy.lecture;
 
-import com.example.simplescheduleapp.common.kafka.topic.CourseEventMessage;
-import com.example.simplescheduleapp.common.kafka.topic.CourseEventType;
-import com.example.simplescheduleapp.kafka.strategy.NotificationStrategy;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
+import com.example.simplescheduleapp.notification.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.NotificationFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -14,14 +16,18 @@ public class AcceptEnrollmentStrategy implements NotificationStrategy {
     private final NotificationFacade notificationFacade;
 
     @Override
-    public boolean supports(CourseEventType type) {
-        return type == CourseEventType.ACCEPT_ENROLLMENT;
+    public LectureEventType getSupportType() {
+        return LectureEventType.ENROLLMENT_ACCEPTED;
     }
 
     @Override
-    public void handle(CourseEventMessage message) {
+    public void handle(KafkaLectureEventMessage message) {
+        // 누구에게 ? 학생(studentId)에게 !
         notificationFacade.sendNotification(
-                message.senderId(), message.targetId(), message.title(), message.content()
+                message.tutorId(),            // sender
+                List.of(message.studentId()), // target
+                message.lectureTitle(),
+                message.details()
         );
     }
 }

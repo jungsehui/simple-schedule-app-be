@@ -6,8 +6,8 @@ import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
-import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
+import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("NonAsciiCharacters")
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @EmbeddedKafka(
-        topics = {KafkaTopics.LECTURE_UPDATED_TOPIC},
+        topics = {KafkaTopics.LECTURE_EVENT_TOPIC},
         brokerProperties = {
                 "listeners=PLAINTEXT://localhost:" + PORT
         },
@@ -56,7 +56,7 @@ class NotificationIntegrationTest {
 
     // 실제 로직을 호출하면서도 특정 메서드를 Mocking하기 위해 @SpyBean 사용
     @SpyBean
-    private NotificationService notificationService;
+    private NotificationDispatcher notificationDispatcher;
 
     @SpyBean
     private SseService sseService;
@@ -103,11 +103,11 @@ class NotificationIntegrationTest {
             given(courseClient.getEnrolledStudentInfosByLectureId(LECTURE_ID)).willReturn(response);
 
             // when
-            kafkaTemplate.send(KafkaTopics.LECTURE_UPDATED_TOPIC, message);
+            kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
 
             // then
             await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-                verify(sseService, times(1)).sendSseNotification(any(NotificationMessageEvent.class));
+                verify(sseService, times(1)).sendSseNotification(any(NotificationRequest.class));
                 verify(fcmService, never()).sendFcmNotification(any());
             });
         }
@@ -122,12 +122,12 @@ class NotificationIntegrationTest {
             GetEnrolledStudentInfosResponse response = new GetEnrolledStudentInfosResponse("테스트 강의", "메모", studentIds);
             given(courseClient.getEnrolledStudentInfosByLectureId(LECTURE_ID)).willReturn(response);
 
-            doCallRealMethod().when(notificationService).sendPushNotification(any());
+            doCallRealMethod().when(notificationDispatcher).dispatchPushNotification(any());
             doThrow(new RuntimeException("SSE Send Error")).when(sseService).sendSseNotification(any());
             doNothing().when(fcmService).sendFcmNotification(any());
 
             // when
-            kafkaTemplate.send(KafkaTopics.LECTURE_UPDATED_TOPIC, message);
+            kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
 
             // then
             await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
@@ -168,7 +168,7 @@ class NotificationIntegrationTest {
                         });
 
                 // when
-                kafkaTemplate.send(KafkaTopics.LECTURE_UPDATED_TOPIC, message);
+                kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
 
                 // then
                 await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {

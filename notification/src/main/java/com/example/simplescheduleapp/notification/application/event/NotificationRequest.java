@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.kafka.event;
+package com.example.simplescheduleapp.notification.application.event;
 
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 

@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.kafka.consumer;
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.notification.application.NotificationService;
+import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ import static org.mockito.BDDMockito.doAnswer;
 import static org.mockito.BDDMockito.given;
 
 @EmbeddedKafka(
-        topics = {KafkaTopics.LECTURE_UPDATED_TOPIC}, // 사용할 토픽 이름을 여기에 명시
+        topics = {KafkaTopics.LECTURE_EVENT_TOPIC}, // 사용할 토픽 이름을 여기에 명시
         brokerProperties = {
                 "listeners=PLAINTEXT://localhost:" + PORT
         },
@@ -43,7 +43,7 @@ public abstract class AbstractNotificationPerformanceTest {
     protected KafkaTemplate<String, Object> kafkaTemplate;
 
     @MockitoBean
-    protected NotificationService notificationService;
+    protected NotificationDispatcher notificationDispatcher;
 
     @MockitoBean
     protected CourseClient courseClient;
@@ -67,12 +67,12 @@ public abstract class AbstractNotificationPerformanceTest {
             TimeUnit.MILLISECONDS.sleep(DELAY_PER_NOTIFICATION_MS);
             latch.countDown();
             return null;
-        }).when(notificationService).sendPushNotification(any());
+        }).when(notificationDispatcher).dispatchPushNotification(any());
     }
 
     protected void produceMessage() {
         TestDomainEvent testEvent = new TestDomainEvent(1L);
         KafkaDomainEventMessage message = KafkaDomainEventMessage.from(testEvent);
-        kafkaTemplate.send(KafkaTopics.LECTURE_UPDATED_TOPIC, message);
+        kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
     }
 }

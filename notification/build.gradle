@@ -15,33 +15,58 @@ java {
 }
 
 dependencies {
+	// =====
+	// Common 모듈 의존
 	implementation project(':common')
+
+	// Common의 테스트 픽스처(Fixture Monkey 등) 사용
 	testImplementation(testFixtures(project(':common')))
 
-	implementation project(':course')
+//	// Course 모듈 의존 (필요)
+//	implementation project(':course')
 
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Redis, Firebase, Retry, AOP
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-	implementation 'org.springframework.kafka:spring-kafka'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
-
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
-
 	implementation 'org.springframework.retry:spring-retry'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
-	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.h2database:h2'
 
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	// =====
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+
+//	implementation project(':common')
+//	testImplementation(testFixtures(project(':common')))
+//
+//	implementation project(':course')
+//
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	implementation 'org.springframework.boot:spring-boot-starter-validation'
+//
+//	compileOnly 'org.projectlombok:lombok'
+//	annotationProcessor 'org.projectlombok:lombok'
+//
+//	implementation 'org.springframework.kafka:spring-kafka'
+//	testImplementation 'org.springframework.kafka:spring-kafka-test'
+//
+//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//
+//	implementation 'com.google.firebase:firebase-admin:9.2.0'
+//
+//	implementation 'org.springframework.retry:spring-retry'
+//	implementation 'org.springframework.boot:spring-boot-starter-aop'
+//
+//	runtimeOnly 'com.h2database:h2'
+//	runtimeOnly 'com.mysql:mysql-connector-j'
+//
+//	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+//
+//	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//	testImplementation 'io.projectreactor:reactor-test'
+//	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

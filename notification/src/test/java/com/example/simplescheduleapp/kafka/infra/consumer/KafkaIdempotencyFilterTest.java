@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.kafka.infra.consumer;
 
 import com.example.simplescheduleapp.NotificationApplication;
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaIdempotencyFilter;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaMessageConsumeHistory;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaMessageProcessConsumeHistoryRepository;
@@ -42,7 +42,7 @@ class KafkaIdempotencyFilterTest extends ApplicationTest {
     @Test
     void 최초_메시지는_처리한다() {
         // given
-        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaDomainEventMessage(1L, "test-uuid", 1L));
+        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaLectureEventMessage(1L, "test-uuid", 1L));
 
         // when
         boolean skip = kafkaIdempotencyFilter.filter(record);
@@ -55,7 +55,7 @@ class KafkaIdempotencyFilterTest extends ApplicationTest {
     void 중복_메시지_는_처리하지_않는다() {
         // given
         kafkaMessageProcessConsumeHistoryRepository.save(new KafkaMessageConsumeHistory("test-uuid", "TEST_TOPIC"));
-        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaDomainEventMessage(1L, "test-uuid", 1L));
+        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaLectureEventMessage(1L, "test-uuid", 1L));
 
         // when
         boolean skip = kafkaIdempotencyFilter.filter(record);
@@ -69,7 +69,7 @@ class KafkaIdempotencyFilterTest extends ApplicationTest {
         // given
         deadLetterRepository.save(new DeadLetter("test-uuid", "fail", false));
         kafkaMessageProcessConsumeHistoryRepository.save(new KafkaMessageConsumeHistory("test-uuid", "TEST_TOPIC"));
-        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaDomainEventMessage(1L, "test-uuid", 1L));
+        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaLectureEventMessage(1L, "test-uuid", 1L));
 
         // when
         boolean skip = kafkaIdempotencyFilter.filter(record);

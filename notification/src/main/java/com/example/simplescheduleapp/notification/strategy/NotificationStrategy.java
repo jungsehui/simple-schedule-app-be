@@ -1,11 +1,15 @@
-package com.example.simplescheduleapp.kafka.strategy;
+package com.example.simplescheduleapp.notification.strategy;
 
-import com.example.simplescheduleapp.common.kafka.topic.CourseEventMessage;
-import com.example.simplescheduleapp.common.kafka.topic.CourseEventType;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 
 public interface NotificationStrategy {
 
-    boolean supports(CourseEventType type);
+    default boolean supports(LectureEventType type) {
+        return getSupportType() == type;
+    }
 
-    void handle(CourseEventMessage message);
+    LectureEventType getSupportType();
+
+    void handle(KafkaLectureEventMessage message);
 }

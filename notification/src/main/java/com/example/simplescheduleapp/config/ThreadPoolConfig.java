@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.notification.config;
+package com.example.simplescheduleapp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

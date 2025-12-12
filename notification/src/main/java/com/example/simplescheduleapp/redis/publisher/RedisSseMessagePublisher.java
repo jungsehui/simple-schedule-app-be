@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.redis.publisher;
 
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.redis.topic.RedisTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +17,7 @@ public class RedisSseMessagePublisher {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
-    public void publish(NotificationMessageEvent event) {
+    public void publish(NotificationRequest event) {
         try {
             String json = objectMapper.writeValueAsString(event);
             stringRedisTemplate.convertAndSend(RedisTopics.SSE_NOTIFICATION, json);

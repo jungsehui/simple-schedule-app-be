@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.sse.event;
 
-import com.example.simplescheduleapp.kafka.event.NotificationMessageEvent;
+import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.redis.topic.RedisTopics;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,7 +35,7 @@ class RedisSseMessagePublisherTest {
         Long targetMemberId = 123L;
         String title = "테스트 제목입니다";
         String body = "테스트 메시지입니다";
-        NotificationMessageEvent event = new NotificationMessageEvent(senderMemberId, targetMemberId, title, body);
+        NotificationRequest event = new NotificationRequest(senderMemberId, targetMemberId, title, body);
 
         // when
         publisher.publish(event);
@@ -43,12 +43,12 @@ class RedisSseMessagePublisherTest {
         // then
         verify(stringRedisTemplate).convertAndSend(eq(RedisTopics.SSE_NOTIFICATION), argThat((String json) -> {
             try {
-                // JSON 문자열을 다시 NotificationMessageEvent 객체로 변환
-                NotificationMessageEvent deserializedEvent = objectMapper.readValue(json, NotificationMessageEvent.class);
+                // JSON 문자열을 다시 NotificationRequest 객체로 변환
+                NotificationRequest deserializedEvent = objectMapper.readValue(json, NotificationRequest.class);
 
                 // 객체의 각 필드가 기대하는 값과 일치하는지 확인
-                assertEquals(senderMemberId, deserializedEvent.senderMemberId());
-                assertEquals(targetMemberId, deserializedEvent.targetMemberId());
+                assertEquals(senderMemberId, deserializedEvent.senderMId());
+                assertEquals(targetMemberId, deserializedEvent.targetId());
                 assertEquals(title, deserializedEvent.title());
                 assertEquals(body, deserializedEvent.body());
                 return true; // 모든 검증이 통과하면 true 반환
