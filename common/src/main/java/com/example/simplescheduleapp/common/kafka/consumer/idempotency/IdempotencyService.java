@@ -1,10 +1,8 @@
 package com.example.simplescheduleapp.common.kafka.consumer.idempotency;
 
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
-
 public interface IdempotencyService {
 
-    boolean isDuplicated(KafkaDomainEventMessage data);
+    boolean isDuplicated(String uuid);
 
-    void saveProcessed(KafkaDomainEventMessage data, String topic);
+    void saveProcessed(String uuid, String topic);
 }

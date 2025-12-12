@@ -28,6 +28,10 @@ public class FcmConfig {
     @Bean
     public FirebaseApp firebaseApp() {
         try {
+            if (!FirebaseApp.getApps().isEmpty()) {
+                return FirebaseApp.getInstance();
+            }
+
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(
                             GoogleCredentials
@@ -43,7 +47,7 @@ public class FcmConfig {
     }
 
     @Bean
-    public FirebaseMessaging firebaseMessaging() {
-        return FirebaseMessaging.getInstance();
+    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        return FirebaseMessaging.getInstance(firebaseApp);
     }
 }

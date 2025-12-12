@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.common.event;
 
-public enum EventState {
+public enum EventStatus {
 
     INIT,            // 초기 생성
     PRODUCE_SUCCESS, // 발행 성공

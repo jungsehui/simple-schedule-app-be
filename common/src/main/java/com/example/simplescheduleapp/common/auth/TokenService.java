@@ -46,7 +46,7 @@ public class TokenService {
         } catch (MalformedJwtException e) {
             throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
         } catch (Exception e) {
-            throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
+            throw new ApplicationException(TokenExceptionCode.UNKNOWN_TOKEN);
         }
     }
 }

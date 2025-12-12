@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.common.kafka.deadletter;
 
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -16,7 +16,7 @@ public class DeadLetterRecorder implements ConsumerRecordRecoverer {
 
     @Override
     public void accept(ConsumerRecord<?, ?> consumerRecord, Exception e) {
-        KafkaDomainEventMessage data = (KafkaDomainEventMessage) consumerRecord.value();
+        KafkaLectureEventMessage data = (KafkaLectureEventMessage) consumerRecord.value();
 
         String uuid = data.uuid();
         String topic = consumerRecord.topic();

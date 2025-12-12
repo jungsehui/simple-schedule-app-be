@@ -1,9 +1,7 @@
 plugins {
-	id 'java'
-	id 'java-library'
+	// java-library, boot 등은 루트에서 적용했으므로 생략 가능
+	// test-fixtures는 common만의 기능이므로 명시
 	id 'java-test-fixtures'
-	id 'org.springframework.boot' version "3.4.3"
-	id 'io.spring.dependency-management' version "1.1.7"
 }
 
 group = "com.example"
@@ -16,48 +14,80 @@ java {
 }
 
 dependencies {
-	// 공통
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// =====
+	// 하위 모듈로 전파되어야 하는 라이브러리는 'api' 사용
+	api 'org.springframework.boot:spring-boot-starter-web'
+	api 'org.springframework.boot:spring-boot-starter-data-jpa'
+	api 'org.springframework.boot:spring-boot-starter-validation'
+	api 'org.springframework.kafka:spring-kafka'
 
-	// JWT
+	// JWT (내부 구현 상세는 implementation 권장, 단 DTO 등에서 쓴다면 api)
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
-	// Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
-	// 테스트
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-	// Fixture Monkey 외부 사용
+	// Fixture Monkey (테스트용 API 노출)
 	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.11'
 	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
 
-	// Fixture Monkey
+	// Fixture Monkey (내부 테스트용)
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.1.11'
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-api:1.1.11'
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
 
-	// test-fixture 설정
-	testFixturesImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testFixturesRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testFixturesAnnotationProcessor 'org.projectlombok:lombok'
-	testFixturesImplementation 'org.projectlombok:lombok'
-
-	// Kafka client
+	// Kafka Client
 	implementation 'org.apache.kafka:kafka-clients:3.7.1'
+	// =====
 
-	// Kafka
-	implementation 'org.springframework.kafka:spring-kafka'
-	testFixturesImplementation 'org.springframework.kafka:spring-kafka-test'
+
+
+//	// 공통 라이브러리는 하위 모듈에도 전파되도록 'api'
+//	api 'org.springframework.boot:spring-boot-starter-web'
+//	api 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	api 'org.springframework.boot:spring-boot-starter-validation'
+//
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	implementation 'org.springframework.boot:spring-boot-starter-validation'
+//
+//	// JWT
+//	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+//	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+//	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+//
+//	// Lombok
+//	compileOnly 'org.projectlombok:lombok'
+//	annotationProcessor 'org.projectlombok:lombok'
+//
+//	// 테스트
+//	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//	testImplementation 'io.projectreactor:reactor-test'
+//	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//
+//	// Fixture Monkey 외부 사용
+//	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.11'
+//	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
+//
+//	// Fixture Monkey
+//	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.1.11'
+//	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-api:1.1.11'
+//	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
+//
+//	// test-fixture 설정
+//	testFixturesImplementation 'org.springframework.boot:spring-boot-starter-test'
+//	testFixturesRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//	testFixturesAnnotationProcessor 'org.projectlombok:lombok'
+//	testFixturesImplementation 'org.projectlombok:lombok'
+//
+//	// Kafka client
+//	implementation 'org.apache.kafka:kafka-clients:3.7.1'
+//
+//	// Kafka
+//	api 'org.springframework.kafka:spring-kafka'
+//	testFixturesImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
+// 라이브러리 역할을 하는 모듈이므로 bootJar(실행파일 생성)는 끄고 jar(라이브러리 생성)는 켬
 tasks.named('bootJar') {
 	enabled = false
 }

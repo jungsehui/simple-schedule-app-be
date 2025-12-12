@@ -14,6 +14,7 @@ public class KafkaProducer<T> {
 
     private final KafkaTemplate<String, T> kafkaTemplate;
 
+    // 동일한 파티션으로의 전송을 보장하지 않음
     public void produce(String topic, T message) {
         try {
             log.info("Try to produce topic using kafkaTemplate. topic: {}, domain: {}", topic, message);
