@@ -17,7 +17,7 @@ import java.util.concurrent.Executor;
 @Component
 public class NotificationRetryScheduler {
 
-    private static final int MAX_RETRY_COUNT = 4; // MAX_RETRY_COUNT 미만만큼 수행하므로 지금은 3번만 수행
+    private static final int MAX_RETRY_COUNT = 3;
 
     private final FailedNotificationRepository failedNotificationRepository;
     private final NotificationRetryService notificationRetryService;
