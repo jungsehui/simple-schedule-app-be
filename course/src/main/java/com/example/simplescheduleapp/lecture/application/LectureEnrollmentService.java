@@ -2,21 +2,23 @@ package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
-import com.example.simplescheduleapp.kafka.producer.AcceptLectureEnrollmentTopicProducer;
-import com.example.simplescheduleapp.kafka.producer.CancelLectureEnrollmentTopicProducer;
-import com.example.simplescheduleapp.kafka.producer.RejectLectureEnrollmentTopicProducer;
-import com.example.simplescheduleapp.kafka.producer.RequestLectureEnrollmentTopicProducer;
 import com.example.simplescheduleapp.lecture.application.command.*;
 import com.example.simplescheduleapp.lecture.domain.*;
 import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.event.LectureEnrollmentAcceptedEvent;
+import com.example.simplescheduleapp.lecture.event.LectureEnrollmentCanceledEvent;
+import com.example.simplescheduleapp.lecture.event.LectureEnrollmentRejectedEvent;
+import com.example.simplescheduleapp.lecture.event.LectureEnrollmentRequestedEvent;
 import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -27,21 +29,20 @@ import java.util.Objects;
 public class LectureEnrollmentService {
 
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
+
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
     private final LectureEnrollmentRepository lectureEnrollmentRepository;
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
 
-    private final RequestLectureEnrollmentTopicProducer requestLectureEnrollmentTopicProducer;
-    private final CancelLectureEnrollmentTopicProducer cancelLectureEnrollmentTopicProducer;
-    private final AcceptLectureEnrollmentTopicProducer acceptLectureEnrollmentTopicProducer;
-    private final RejectLectureEnrollmentTopicProducer rejectLectureEnrollmentTopicProducer;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Transactional
     public Long requestEnrollment(LectureEnrollmentCreateCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentService.create(command.lectureId(), command.studentId());
         pendingLectureEnrollmentRepository.save(pending);
         Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
-        requestLectureEnrollmentTopicProducer.produce(pending, lecture);
+        eventPublisher.publishEvent(new LectureEnrollmentRequestedEvent(pending, lecture));
         return pending.getId();
     }
 
@@ -57,16 +58,18 @@ public class LectureEnrollmentService {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         pendingLectureEnrollmentRepository.delete(pending);
     }
-    
+
+    @Transactional
     public void cancelLectureEnrollment(LectureEnrollmentCancelCommand command) {
         LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         Lecture lecture = lectureEnrollment.getLecture();
         lecture.cancel();
         lectureRepository.save(lecture);
         lectureEnrollmentRepository.delete(lectureEnrollment);
-        cancelLectureEnrollmentTopicProducer.produce(command.studentId(), lecture);
+        eventPublisher.publishEvent(new LectureEnrollmentCanceledEvent(lecture, command.studentId()));
     }
 
+    @Transactional
     public Long acceptEnrollment(PendingAcceptCommand command) {
         try {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
@@ -76,23 +79,26 @@ public class LectureEnrollmentService {
             pendingLectureEnrollmentRepository.delete(pending);
             LectureEnrollment lectureEnrollment = lecture.enroll(student);
             lectureEnrollmentRepository.save(lectureEnrollment);
-            acceptLectureEnrollmentTopicProducer.produce(lecture, student);
+            eventPublisher.publishEvent(new LectureEnrollmentAcceptedEvent(lecture, student));
             return lectureEnrollment.getId();
-        } catch (DataIntegrityViolationException e) {
-            log.error("이미 등록된 학생입니다. specialLectureId = {}", e.getMessage());
+        }catch (DataIntegrityViolationException e) {
+            log.error("이미 등록된 학생입니다. pendingId = {}", command.pendingId());
             throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
         } catch (ApplicationException e) {
-            log.error("수강생 등록 에러 메시지 {}", e.getMessage());
+            throw e; // 이미 정의된 예외는 그대로 던짐
+        } catch (Exception e) {
+            log.error("수강생 등록 에러", e);
             throw new ApplicationException(InternalServerExceptionCode.UNKNOWN_EXCEPTION);
         }
     }
 
+    @Transactional
     public void rejectEnrollment(PendingRejectCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
         pendingLectureEnrollmentRepository.delete(pending);
-        rejectLectureEnrollmentTopicProducer.produce(lecture, student);
+        eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
     }
 
     public List<Long> findStudentIdsByLectureId(Long lectureId) {

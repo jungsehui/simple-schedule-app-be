@@ -1,8 +1,7 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.kafka.topic.AcceptLectureEnrollmentTopicMessage;
-import com.example.simplescheduleapp.kafka.topic.RejectLectureEnrollmentTopicMessage;
+import com.example.simplescheduleapp.kafka.topic.CourseEventMessage;
 import com.example.simplescheduleapp.lecture.application.command.PendingAcceptCommand;
 import com.example.simplescheduleapp.lecture.application.command.PendingRejectCommand;
 import com.example.simplescheduleapp.lecture.domain.*;
@@ -86,15 +85,16 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
 
         // then
         // Kafka 메시지 소비 및 검증
-        ConsumerRecords<String, String> records = waitingConsumeTopicSync(KafkaTopics.ACCEPT_LECTURE_ENROLLMENT_TOPIC);
+        ConsumerRecords<String, String> records = waitingConsumeTopicSync(KafkaTopics.LECTURE_EVENT_TOPIC);
         assertThat(records.count()).isEqualTo(1); // 1개의 메시지만 소비되었는지 확인
 
         ConsumerRecord<String, String> record = records.iterator().next();
-        AcceptLectureEnrollmentTopicMessage message = objectMapper.readValue(record.value(), AcceptLectureEnrollmentTopicMessage.class);
+        CourseEventMessage message = objectMapper.readValue(record.value(), CourseEventMessage.class);
+//        AcceptLectureEnrollmentTopicMessage message = objectMapper.readValue(record.value(), AcceptLectureEnrollmentTopicMessage.class);
 
         assertThat(message.senderId()).isEqualTo(tutorId);
         assertThat(message.targetId()).isEqualTo(studentId);
-        assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
+        assertThat(message.title()).isEqualTo(lectureTitle);
 
         // 기존 DB 검증 유지
         then(lectureEnrollmentRepository).should().save(enrollment);
@@ -130,15 +130,15 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         lectureEnrollmentService.rejectEnrollment(command);
 
         // then
-        ConsumerRecords<String, String> records = waitingConsumeTopicSync(KafkaTopics.REJECT_LECTURE_ENROLLMENT_TOPIC);
+        ConsumerRecords<String, String> records = waitingConsumeTopicSync(KafkaTopics.LECTURE_EVENT_TOPIC);
         assertThat(records.count()).isEqualTo(1);
 
         ConsumerRecord<String, String> record = records.iterator().next();
-        RejectLectureEnrollmentTopicMessage message = objectMapper.readValue(record.value(), RejectLectureEnrollmentTopicMessage.class);
+        CourseEventMessage message = objectMapper.readValue(record.value(), CourseEventMessage.class);
 
         assertThat(message.senderId()).isEqualTo(tutorId);
         assertThat(message.targetId()).isEqualTo(studentId);
-        assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
+        assertThat(message.title()).isEqualTo(lectureTitle);
 
         then(pendingLectureEnrollmentRepository).should().delete(pending);
     }

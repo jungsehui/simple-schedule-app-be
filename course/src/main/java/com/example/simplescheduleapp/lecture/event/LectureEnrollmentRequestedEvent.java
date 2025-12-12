@@ -5,7 +5,7 @@ import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.student.domain.Student;
+import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollment;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -13,20 +13,20 @@ import lombok.NoArgsConstructor;
 
 import static lombok.AccessLevel.PROTECTED;
 
-@DiscriminatorValue("ENROLLMENT_REJECTED")
+@DiscriminatorValue("ENROLLMENT_REQUESTED")
 @NoArgsConstructor(access = PROTECTED)
 @Getter
 @Entity
-public class LectureEnrollmentRejectedEvent extends DomainEvent {
+public class LectureEnrollmentRequestedEvent extends DomainEvent {
 
     private Long studentId;
     private Long tutorId;
     private String lectureTitle;
 
-    public LectureEnrollmentRejectedEvent(Lecture lecture, Student student) {
-        super(lecture.getId()); // targetDomainId = lectureId
+    public LectureEnrollmentRequestedEvent(PendingLectureEnrollment pending, Lecture lecture) {
+        super(lecture.getId());
 
-        this.studentId = student.getId();
+        this.studentId = pending.getStudentId();
         this.tutorId = lecture.getTutor().getId();
         this.lectureTitle = lecture.getTitle();
     }
@@ -35,12 +35,12 @@ public class LectureEnrollmentRejectedEvent extends DomainEvent {
     public KafkaLectureEventMessage toMessage() {
         return KafkaLectureEventMessage.create(
                 this.getUuid(),
-                LectureEventType.ENROLLMENT_REJECTED,
+                LectureEventType.ENROLLMENT_REQUESTED,
                 this.getTargetDomainId(), // lectureId
                 this.studentId,
                 this.tutorId,
                 this.lectureTitle,
-                "수강 신청이 거절되었습니다 .."
+                "새로운 수강 신청 요청이 도착했습니다."
         );
     }
 
