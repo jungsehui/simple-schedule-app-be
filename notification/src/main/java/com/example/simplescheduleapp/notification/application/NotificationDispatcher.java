@@ -17,18 +17,18 @@ public class NotificationDispatcher {
     private final FcmService fcmService;
     private final RedisClientManager redisClientManager;
 
-    public void dispatchPushNotification(NotificationRequest event) {
+    public void dispatchPushNotification(NotificationRequest request) {
         // SSE가 연결되어 있으면 SSE로 보내고, 그렇지 않으면 FCM으로 보낸다.
-        if (redisClientManager.isClientConnected(event.targetId())) {
+        if (redisClientManager.isClientConnected(request.targetId())) {
             try {
-                sseService.sendSseNotification(event);
+                sseService.sendSseNotification(request);
             } catch (Exception e) {
-                log.warn("SSE 전송 실패. FCM으로 대체 전송합니다. targetId: {}", event.targetId());
-                fcmService.sendFcmNotification(event);
+                log.warn("SSE 전송 실패. FCM으로 대체 전송합니다. targetId: {}", request.targetId());
+                fcmService.sendFcmNotification(request);
             }
         } else {
             // SSE가 연결되어 있지 않다면 바로 FCM 전송
-            fcmService.sendFcmNotification(event);
+            fcmService.sendFcmNotification(request);
         }
     }
 }

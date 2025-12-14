@@ -2,6 +2,7 @@ package com.example.simplescheduleapp.kafka.infra.consumer;
 
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaIdempotencyFilter;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaMessageConsumeHistory;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaMessageProcessConsumeHistoryRepository;
@@ -42,7 +43,16 @@ class KafkaIdempotencyFilterTest extends ApplicationTest {
     @Test
     void 최초_메시지는_처리한다() {
         // given
-        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaLectureEventMessage(1L, "test-uuid", 1L));
+        KafkaLectureEventMessage message = new KafkaLectureEventMessage(
+                "test-uuid",                      // uuid
+                LectureEventType.LECTURE_UPDATED, // type
+                1L,                               // lectureId
+                1L,                               // studentId
+                1L,                               // tutorId
+                "Test Title",                     // lectureTitle
+                "Test Details"                    // details
+        );
+        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", message);
 
         // when
         boolean skip = kafkaIdempotencyFilter.filter(record);
@@ -55,7 +65,12 @@ class KafkaIdempotencyFilterTest extends ApplicationTest {
     void 중복_메시지_는_처리하지_않는다() {
         // given
         kafkaMessageProcessConsumeHistoryRepository.save(new KafkaMessageConsumeHistory("test-uuid", "TEST_TOPIC"));
-        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaLectureEventMessage(1L, "test-uuid", 1L));
+        KafkaLectureEventMessage message = new KafkaLectureEventMessage(
+                "test-uuid",
+                LectureEventType.LECTURE_UPDATED,
+                1L, 1L, 1L, "Title", "Details"
+        );
+        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", message);
 
         // when
         boolean skip = kafkaIdempotencyFilter.filter(record);
@@ -69,7 +84,12 @@ class KafkaIdempotencyFilterTest extends ApplicationTest {
         // given
         deadLetterRepository.save(new DeadLetter("test-uuid", "fail", false));
         kafkaMessageProcessConsumeHistoryRepository.save(new KafkaMessageConsumeHistory("test-uuid", "TEST_TOPIC"));
-        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", new KafkaLectureEventMessage(1L, "test-uuid", 1L));
+        KafkaLectureEventMessage message = new KafkaLectureEventMessage(
+                "test-uuid",
+                LectureEventType.LECTURE_UPDATED,
+                1L, 1L, 1L, "Title", "Details"
+        );
+        ConsumerRecord record = new ConsumerRecord("TEST_TOPIC", 1, 1L, "", message);
 
         // when
         boolean skip = kafkaIdempotencyFilter.filter(record);

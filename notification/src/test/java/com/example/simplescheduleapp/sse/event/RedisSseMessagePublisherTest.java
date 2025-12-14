@@ -47,7 +47,7 @@ class RedisSseMessagePublisherTest {
                 NotificationRequest deserializedEvent = objectMapper.readValue(json, NotificationRequest.class);
 
                 // 객체의 각 필드가 기대하는 값과 일치하는지 확인
-                assertEquals(senderMemberId, deserializedEvent.senderMId());
+                assertEquals(senderMemberId, deserializedEvent.senderId());
                 assertEquals(targetMemberId, deserializedEvent.targetId());
                 assertEquals(title, deserializedEvent.title());
                 assertEquals(body, deserializedEvent.body());

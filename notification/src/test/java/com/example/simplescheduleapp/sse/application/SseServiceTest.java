@@ -33,7 +33,7 @@ class SseServiceTest extends ApplicationTest {
         // then
         verify(redisSseMessagePublisher).publish(
                 new NotificationRequest(
-                        message.senderMId(),
+                        message.senderId(),
                         message.targetId(),
                         message.title(),
                         message.body()

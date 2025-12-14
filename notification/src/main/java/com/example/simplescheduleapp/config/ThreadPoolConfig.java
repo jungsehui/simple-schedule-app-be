@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 public class ThreadPoolConfig {
 
     public static final String NOTIFICATION_TASK_EXECUTOR = "notificationExecutor";
+    public static final String FAILED_NOTIFICATION_TASK_EXECUTOR = "failedNotificationExecutor";
 
     @Bean(name = NOTIFICATION_TASK_EXECUTOR)
     public Executor notificationExecutor() {
@@ -18,6 +19,16 @@ public class ThreadPoolConfig {
         executor.setMaxPoolSize(200);       // 최대 스레드 수
         executor.setQueueCapacity(100_000); // 대기 큐 크기
         executor.setThreadNamePrefix("Notification-");
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean(name = FAILED_NOTIFICATION_TASK_EXECUTOR)
+    public Executor failedNotificationExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);       // 기본 스레드 수
+        executor.setMaxPoolSize(5);        // 최대 스레드 수
+        executor.setThreadNamePrefix("Failed-Notification-");
         executor.initialize();
         return executor;
     }
