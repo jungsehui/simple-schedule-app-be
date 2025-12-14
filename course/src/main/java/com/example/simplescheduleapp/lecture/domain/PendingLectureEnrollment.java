@@ -35,4 +35,8 @@ public class PendingLectureEnrollment extends SoftDeletedDomain {
     public void accept() {
         this.permitted = true;
     }
+
+    public void reject() {
+        this.permitted = false;
+    }
 }

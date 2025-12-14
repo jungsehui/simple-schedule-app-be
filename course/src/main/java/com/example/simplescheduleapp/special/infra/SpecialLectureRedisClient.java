@@ -10,68 +10,45 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpecialLectureRedisClient {
 
-    private static final String ENROLLED_COUNT_KEY_PREFIX = "special_lecture:%d:enrolled_count";
-    private static final String CAPACITY_KEY_PREFIX = "special_lecture:%d:capacity";
-    private static final String INITIAL_ENROLLED_COUNT = "0";
+    private static final String AVAILABLE_SPECIAL_LECTURE_CAPACITY_KEY_PREFIX = "special_lecture:%d:available";
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    // 특강 생성 시 레디스 템플릿에 정원과 초기 신청 인원 수를 설정
+    // 특강 생성 시 수강 정원 설정
     public void initializeSpecialLecture(Long specialLectureId, int capacity) {
-        String countKey = buildEnrolledCountKey(specialLectureId);
-        String capacityKey = buildCapacityKey(specialLectureId);
-
-        // 초기 값
-        stringRedisTemplate.opsForValue().set(countKey, INITIAL_ENROLLED_COUNT);
-        stringRedisTemplate.opsForValue().set(capacityKey, String.valueOf(capacity));
+        String key = buildAvailableSpecialLectureCapacityKey(specialLectureId);
+        stringRedisTemplate.opsForValue().set(key, String.valueOf(capacity));
     }
 
-    // 특강 수강 신청 시도 (정원 체크 및 카운트 증가)
+    // 특강 수강 신청 시도 --> 정원 체크 및 카운트 감소
     public void enrollSpecialLectureEnrollment(Long specialLectureId) {
-        String countKey = buildEnrolledCountKey(specialLectureId);
-        String capacityKey = buildCapacityKey(specialLectureId);
 
-        // 신청 인원을 1 증가
-        Long currentCount = stringRedisTemplate.opsForValue().increment(countKey);
-        validateCurrentCount(currentCount);
+        String key = buildAvailableSpecialLectureCapacityKey(specialLectureId);
 
-        // 정원 정보를 가져 옴
-        String capacityStr = stringRedisTemplate.opsForValue().get(capacityKey);
-        validateCapacityStrNull(capacityStr, countKey);
+        // 값을 1 감소시키고, 감소된 후의 값을 받아서
+        Long remainingCapacity = stringRedisTemplate.opsForValue().decrement(key);
 
-        // 정원을 초과했는지 확인
-        long capacity = Long.parseLong(capacityStr);
-        validateCurrentCountOverCapacity(currentCount, capacity, countKey);
-    }
+        validateRedisResult(remainingCapacity);
 
-    private void validateCurrentCount(Long currentCount) {
-        // 안정성을 위해 유지
-        if (currentCount == null) {
-            throw new RuntimeException("Redis 처리 중 오류가 발생했습니다.");
-        }
-    }
+        // 남은 자리가 0보다 작다면? 즉, -1이 되었다면 정원 초과
+        if (remainingCapacity < 0) {
+            // 다시 1을 더해서 0으로 맞춰줌
+            // 사실 이 부분은 굳이 안 해도 되는 거 같긴 한데, 깔끔한 데이터를 위해 복구
+            stringRedisTemplate.opsForValue().increment(key);
 
-    private void validateCapacityStrNull(String capacityStr, String countKey) {
-        if (capacityStr == null) {
-            // 정원 정보가 없는 경우, 증가시켰던 카운트를 다시 원복 (보상 트랜잭션)
-            stringRedisTemplate.opsForValue().decrement(countKey);
-            throw new ApplicationException(LectureExceptionCode.CAPACITY_INFO_NOT_FOUND);
-        }
-    }
-
-    private void validateCurrentCountOverCapacity(long currentCount, long capacity, String countKey) {
-        if (currentCount > capacity) {
-            // 정원이 초과되면 즉시 카운트를 원복
-            stringRedisTemplate.opsForValue().decrement(countKey);
+            // 수강 신청 불가능 예외 처리
             throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
         }
     }
 
-    private String buildEnrolledCountKey(Long specialLectureId) {
-        return String.format(ENROLLED_COUNT_KEY_PREFIX, specialLectureId);
+    // 만약 값이 안 돌아 온다면 예외 처리
+    private void validateRedisResult(Long val) {
+        if (val == null) {
+            throw new RuntimeException("Redis 처리 중 오류가 발생했습니다.");
+        }
     }
 
-    private String buildCapacityKey(Long specialLectureId) {
-        return String.format(CAPACITY_KEY_PREFIX, specialLectureId);
+    private String buildAvailableSpecialLectureCapacityKey(Long specialLectureId) {
+        return String.format(AVAILABLE_SPECIAL_LECTURE_CAPACITY_KEY_PREFIX, specialLectureId);
     }
 }

@@ -81,7 +81,7 @@ public class LectureEnrollmentService {
             lectureEnrollmentRepository.save(lectureEnrollment);
             eventPublisher.publishEvent(new LectureEnrollmentAcceptedEvent(lecture, student));
             return lectureEnrollment.getId();
-        }catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) {
             log.error("이미 등록된 학생입니다. pendingId = {}", command.pendingId());
             throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
         } catch (ApplicationException e) {
@@ -97,6 +97,7 @@ public class LectureEnrollmentService {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
         Student student = studentRepository.getById(pending.getStudentId());
+        pending.reject();
         pendingLectureEnrollmentRepository.delete(pending);
         eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
     }
