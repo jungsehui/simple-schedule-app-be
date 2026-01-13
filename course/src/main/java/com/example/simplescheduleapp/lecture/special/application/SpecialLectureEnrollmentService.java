@@ -23,7 +23,6 @@ public class SpecialLectureEnrollmentService {
         SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
         Student student = studentRepository.getById(studentId);
         SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student);
-
         specialLectureRepository.save(specialLecture);
         return specialLectureEnrollmentRepository.save(specialLectureEnrollment);
     }

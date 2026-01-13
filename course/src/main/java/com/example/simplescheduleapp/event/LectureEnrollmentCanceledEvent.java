@@ -1,32 +1,31 @@
-package com.example.simplescheduleapp.lecture.event;
+package com.example.simplescheduleapp.lecture.general.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollment;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import static lombok.AccessLevel.PROTECTED;
-
-@DiscriminatorValue("ENROLLMENT_REQUESTED")
-@NoArgsConstructor(access = PROTECTED)
+@DiscriminatorValue("ENROLLMENT_CANCELED")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class LectureEnrollmentRequestedEvent extends DomainEvent {
+public class LectureEnrollmentCanceledEvent extends DomainEvent {
 
-    private Long studentId;
-    private Long tutorId;
+    private Long studentId;      // 취소한 학생 ID
+    private Long tutorId;        // 알림 받을 강사 ID
     private String lectureTitle;
 
-    public LectureEnrollmentRequestedEvent(PendingLectureEnrollment pending, Lecture lecture) {
-        super(lecture.getId());
+    // 취소 시점에는 Student 엔티티 전체보다는 ID만 넘어오는 경우가 많아 ID로 받도록 설계
+    public LectureEnrollmentCanceledEvent(Lecture lecture, Long studentId) {
+        super(lecture.getId()); // targetDomainId = lectureId
 
-        this.studentId = pending.getStudentId();
+        this.studentId = studentId;
         this.tutorId = lecture.getTutor().getId();
         this.lectureTitle = lecture.getTitle();
     }
@@ -35,12 +34,12 @@ public class LectureEnrollmentRequestedEvent extends DomainEvent {
     public KafkaLectureEventMessage toMessage() {
         return KafkaLectureEventMessage.create(
                 this.getUuid(),
-                LectureEventType.ENROLLMENT_REQUESTED,
+                LectureEventType.ENROLLMENT_CANCELED,
                 this.getTargetDomainId(), // lectureId
                 this.studentId,
                 this.tutorId,
                 this.lectureTitle,
-                "새로운 수강 신청 요청이 도착했습니다."
+                "학생이 수강 신청을 취소하였습니다 .."
         );
     }
 

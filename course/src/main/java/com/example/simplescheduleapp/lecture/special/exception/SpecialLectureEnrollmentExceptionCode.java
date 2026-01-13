@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.special.exception;
+package com.example.simplescheduleapp.lecture.special.exception;
 
 import com.example.simplescheduleapp.common.exception.ExceptionCode;
 import lombok.Getter;

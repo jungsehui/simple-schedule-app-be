@@ -1,4 +1,6 @@
-package com.example.simplescheduleapp.common.exception;
+package com.example.simplescheduleapp.common.exception.response;
+
+import com.example.simplescheduleapp.common.exception.ExceptionCode;
 
 public record ExceptionResponse(
         String code,

@@ -2,6 +2,8 @@ package com.example.simplescheduleapp.common.event.producer;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.event.DomainEventRepository;
+import com.example.simplescheduleapp.common.event.mapper.DomainEventMapperFactory;
+import com.example.simplescheduleapp.common.event.mapper.DomainEventMapper;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaEventProducer implements EventProducer {
 
+    private final DomainEventMapperFactory domainEventMapperFactory;
     private final KafkaProducer<KafkaLectureEventMessage> kafkaProducer;
     private final DomainEventRepository domainEventRepository;
 
@@ -24,8 +27,8 @@ public class KafkaEventProducer implements EventProducer {
         Long eventId = domainEvent.getId();
 
         try {
-            // 도메인 이벤트 스스로 메시지를 생성
-            KafkaLectureEventMessage message = domainEvent.toMessage();
+            DomainEventMapper mapper = domainEventMapperFactory.getMapper(domainEvent);
+            KafkaLectureEventMessage message = mapper.mapToMessage(domainEvent);
 
             log.info("Try to produce kafka topic. topic: {}, eventId: {}", topic, eventId);
 

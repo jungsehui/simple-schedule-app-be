@@ -1,31 +1,32 @@
-package com.example.simplescheduleapp.lecture.event;
+package com.example.simplescheduleapp.lecture.general.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
+import com.example.simplescheduleapp.student.domain.Student;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@DiscriminatorValue("ENROLLMENT_CANCELED")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+import static lombok.AccessLevel.PROTECTED;
+
+@DiscriminatorValue("ENROLLMENT_REJECTED")
+@NoArgsConstructor(access = PROTECTED)
 @Getter
 @Entity
-public class LectureEnrollmentCanceledEvent extends DomainEvent {
+public class LectureEnrollmentRejectedEvent extends DomainEvent {
 
-    private Long studentId;      // 취소한 학생 ID
-    private Long tutorId;        // 알림 받을 강사 ID
+    private Long studentId;
+    private Long tutorId;
     private String lectureTitle;
 
-    // 취소 시점에는 Student 엔티티 전체보다는 ID만 넘어오는 경우가 많아 ID로 받도록 설계
-    public LectureEnrollmentCanceledEvent(Lecture lecture, Long studentId) {
+    public LectureEnrollmentRejectedEvent(Lecture lecture, Student student) {
         super(lecture.getId()); // targetDomainId = lectureId
 
-        this.studentId = studentId;
+        this.studentId = student.getId();
         this.tutorId = lecture.getTutor().getId();
         this.lectureTitle = lecture.getTitle();
     }
@@ -34,12 +35,12 @@ public class LectureEnrollmentCanceledEvent extends DomainEvent {
     public KafkaLectureEventMessage toMessage() {
         return KafkaLectureEventMessage.create(
                 this.getUuid(),
-                LectureEventType.ENROLLMENT_CANCELED,
+                LectureEventType.ENROLLMENT_REJECTED,
                 this.getTargetDomainId(), // lectureId
                 this.studentId,
                 this.tutorId,
                 this.lectureTitle,
-                "학생이 수강 신청을 취소하였습니다 .."
+                "수강 신청이 거절되었습니다 .."
         );
     }
 

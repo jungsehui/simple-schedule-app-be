@@ -21,14 +21,14 @@ class SseServiceTest extends ApplicationTest {
     private RedisSseMessagePublisher redisSseMessagePublisher;
 
     @Test
-    void SSE_Service_의_sendSseNotification_호출_시_발행되는지_테스트() {
+    void SSE_Service_의_publishSseNotification_호출_시_발행되는지_테스트() {
         // given
         NotificationRequest message = new NotificationRequest(
                 123L, 1234L, "test-topic", "test-body"
         );
 
         // when
-        sseService.sendSseNotification(message);
+        sseService.publishSseNotification(message);
 
         // then
         verify(redisSseMessagePublisher).publish(

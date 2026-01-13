@@ -63,8 +63,5 @@ public abstract class DomainEvent extends SoftDeletedDomain {
         this.failReason = e.getMessage();
     }
 
-    // Kafka 메시지로 변환하는 책임
-    public abstract KafkaLectureEventMessage toMessage();
-
     public abstract String getTopic();
 }

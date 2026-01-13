@@ -1,7 +1,7 @@
-package com.example.simplescheduleapp.special.infra;
+package com.example.simplescheduleapp.lecture.special.infra;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;

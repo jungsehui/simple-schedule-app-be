@@ -1,10 +1,10 @@
-package com.example.simplescheduleapp.lecture.event;
+package com.example.simplescheduleapp.lecture.general.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 import com.example.simplescheduleapp.student.domain.Student;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
