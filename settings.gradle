@@ -1,4 +1,4 @@
-rootProject.name = 'simple-schedule-app'
+rootProject.name = "simple-schedule-app"
 
 // INFRA (Integration)
 include("common")
