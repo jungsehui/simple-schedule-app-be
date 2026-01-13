@@ -12,7 +12,7 @@ import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
-import com.example.simplescheduleapp.sse.application.SseService;
+import com.example.simplescheduleapp.sse.application.SseConnectionPublisher;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("NonAsciiCharacters")
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @EmbeddedKafka(
-        topics = {KafkaTopics.LECTURE_EVENT_TOPIC},
+        topics = {KafkaTopics.COURSE_EVENT_TOPIC},
         brokerProperties = {
                 "listeners=PLAINTEXT://localhost:" + PORT
         },
@@ -59,7 +59,7 @@ class NotificationIntegrationTest {
     private NotificationDispatcher notificationDispatcher;
 
     @SpyBean
-    private SseService sseService;
+    private SseConnectionPublisher sseConnectionPublisher;
 
     @SpyBean
     private FcmService fcmService;
@@ -85,7 +85,7 @@ class NotificationIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        reset(redisClientManager, courseClient, firebaseMessaging, sseService, fcmService);
+        reset(redisClientManager, courseClient, firebaseMessaging, sseConnectionPublisher, fcmService);
     }
 
     @DisplayName("Kafka 메시지 수신 시")
@@ -103,11 +103,11 @@ class NotificationIntegrationTest {
             given(courseClient.getEnrolledStudentInfosByLectureId(LECTURE_ID)).willReturn(response);
 
             // when
-            kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
+            kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
 
             // then
             await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-                verify(sseService, times(1)).sendSseNotification(any(NotificationRequest.class));
+                verify(sseConnectionPublisher, times(1)).publishSseNotification(any(NotificationRequest.class));
                 verify(fcmService, never()).sendFcmNotification(any());
             });
         }
@@ -123,15 +123,15 @@ class NotificationIntegrationTest {
             given(courseClient.getEnrolledStudentInfosByLectureId(LECTURE_ID)).willReturn(response);
 
             doCallRealMethod().when(notificationDispatcher).dispatchPushNotification(any());
-            doThrow(new RuntimeException("SSE Send Error")).when(sseService).sendSseNotification(any());
+            doThrow(new RuntimeException("SSE Send Error")).when(sseConnectionPublisher).publishSseNotification(any());
             doNothing().when(fcmService).sendFcmNotification(any());
 
             // when
-            kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
+            kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
 
             // then
             await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-                verify(sseService, times(1)).sendSseNotification(any());
+                verify(sseConnectionPublisher, times(1)).publishSseNotification(any());
                 verify(fcmService, times(1)).sendFcmNotification(any());
             });
         }
@@ -168,7 +168,7 @@ class NotificationIntegrationTest {
                         });
 
                 // when
-                kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
+                kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
 
                 // then
                 await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {

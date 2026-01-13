@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.notification.application;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.sse.application.SseService;
+import com.example.simplescheduleapp.sse.application.SseConnectionPublisher;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationDispatcher {
 
-    private final SseService sseService;
+    private final SseConnectionPublisher sseConnectionPublisher;
     private final FcmService fcmService;
     private final RedisClientManager redisClientManager;
 
@@ -21,7 +21,7 @@ public class NotificationDispatcher {
         // SSE가 연결되어 있으면 SSE로 보내고, 그렇지 않으면 FCM으로 보낸다.
         if (redisClientManager.isClientConnected(request.targetId())) {
             try {
-                sseService.sendSseNotification(request);
+                sseConnectionPublisher.publishSseNotification(request);
             } catch (Exception e) {
                 log.warn("SSE 전송 실패. FCM으로 대체 전송합니다. targetId: {}", request.targetId());
                 fcmService.sendFcmNotification(request);

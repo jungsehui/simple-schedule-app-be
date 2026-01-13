@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class SseService {
+public class SseConnectionPublisher {
 
     private final RedisSseMessagePublisher redisSseMessagePublisher;
 

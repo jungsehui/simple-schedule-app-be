@@ -2,7 +2,9 @@ package com.example.simplescheduleapp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.util.concurrent.Executor;
 
@@ -11,6 +13,7 @@ public class ThreadPoolConfig {
 
     public static final String NOTIFICATION_TASK_EXECUTOR = "notificationExecutor";
     public static final String FAILED_NOTIFICATION_TASK_EXECUTOR = "failedNotificationExecutor";
+    public static final String SSE_HEARTBEAT_SCHEDULER = "sseHeartbeatScheduler";
 
     @Bean(name = NOTIFICATION_TASK_EXECUTOR)
     public Executor notificationExecutor() {
@@ -31,5 +34,14 @@ public class ThreadPoolConfig {
         executor.setThreadNamePrefix("Failed-Notification-");
         executor.initialize();
         return executor;
+    }
+
+    @Bean(name = SSE_HEARTBEAT_SCHEDULER)
+    public TaskScheduler sseHeartbeatScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(5);          // 적절한 사이즈 설정
+        scheduler.setThreadNamePrefix("SSE-Heartbeat-");
+        scheduler.initialize();
+        return scheduler;
     }
 }

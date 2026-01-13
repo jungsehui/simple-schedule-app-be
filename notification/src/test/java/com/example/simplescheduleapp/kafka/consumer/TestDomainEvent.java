@@ -30,6 +30,6 @@ public class TestDomainEvent extends DomainEvent {
 
     @Override
     public String getTopic() {
-        return KafkaTopics.LECTURE_EVENT_TOPIC; // 테스트 대상 토픽 반환
+        return KafkaTopics.COURSE_EVENT_TOPIC; // 테스트 대상 토픽 반환
     }
 }

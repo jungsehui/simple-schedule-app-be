@@ -1,9 +1,8 @@
-package com.example.simplescheduleapp.notification.strategy.lecture;
+package com.example.simplescheduleapp.notification.strategy;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.notification.exception.NotificationTypeExceptionCode;
-import com.example.simplescheduleapp.notification.strategy.NotificationStrategy;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;

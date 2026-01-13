@@ -15,15 +15,9 @@ java {
 }
 
 dependencies {
-	// =====
 	// Common 모듈 의존
 	implementation project(':common')
-
-	// Common의 테스트 픽스처(Fixture Monkey 등) 사용
 	testImplementation(testFixtures(project(':common')))
-
-//	// Course 모듈 의존 (필요)
-//	implementation project(':course')
 
 	// Redis, Firebase, Retry, AOP
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -31,42 +25,10 @@ dependencies {
 	implementation 'org.springframework.retry:spring-retry'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+	// DB 드라이버
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	runtimeOnly 'com.h2database:h2'
 
+	// Configuration Processor (Lombok과 별개로 설정 파일 자동완성용)
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	// =====
-
-
-
-//	implementation project(':common')
-//	testImplementation(testFixtures(project(':common')))
-//
-//	implementation project(':course')
-//
-//	implementation 'org.springframework.boot:spring-boot-starter-web'
-//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//	implementation 'org.springframework.boot:spring-boot-starter-validation'
-//
-//	compileOnly 'org.projectlombok:lombok'
-//	annotationProcessor 'org.projectlombok:lombok'
-//
-//	implementation 'org.springframework.kafka:spring-kafka'
-//	testImplementation 'org.springframework.kafka:spring-kafka-test'
-//
-//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-//
-//	implementation 'com.google.firebase:firebase-admin:9.2.0'
-//
-//	implementation 'org.springframework.retry:spring-retry'
-//	implementation 'org.springframework.boot:spring-boot-starter-aop'
-//
-//	runtimeOnly 'com.h2database:h2'
-//	runtimeOnly 'com.mysql:mysql-connector-j'
-//
-//	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-//
-//	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//	testImplementation 'io.projectreactor:reactor-test'
-//	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

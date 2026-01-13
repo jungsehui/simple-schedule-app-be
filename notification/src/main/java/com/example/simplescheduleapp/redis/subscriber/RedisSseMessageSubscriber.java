@@ -1,114 +1,37 @@
 package com.example.simplescheduleapp.redis.subscriber;
 
-import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
-import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
-import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.example.simplescheduleapp.sse.application.SseConnectionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class RedisSseMessageSubscriber implements MessageListener {
 
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
-    private static final long INITIAL_DELAY = 10L;
-    private static final long PERIOD = 10L;
-
-    private final SseEmitterRepository sseEmitterRepository;
-    private final RedisClientManager redisClientManager;
-
-    public SseEmitter connect(Long memberId) {
-        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
-        sseEmitterRepository.save(memberId, emitter);
-        redisClientManager.subscribeClient(memberId);
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("connect")
-                    .data("SSE connected for memberId: " + memberId));
-            sendHeartbeat(memberId, emitter);
-        } catch (IOException e) {
-            emitter.completeWithError(e);
-        }
-        onCompletion(memberId, emitter);
-        onTimeout(memberId, emitter);
-        onError(memberId, emitter);
-        return emitter;
-    }
+    private final ObjectMapper objectMapper;
+    private final SseConnectionService sseConnectionService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String body = new String(message.getBody(), StandardCharsets.UTF_8);
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            NotificationRequest event = mapper.readValue(body, NotificationRequest.class);
-            sendSseNotification(event);
-        } catch (JsonProcessingException e) {
-            log.error("Redis 메시지 파싱 오류: {}", e.getMessage());
-        }
-    }
+            NotificationRequest event = objectMapper.readValue(body, NotificationRequest.class);
 
-    private void onCompletion(Long memberId, SseEmitter emitter) {
-        emitter.onCompletion(() -> {
-            sseEmitterRepository.delete(memberId);
-            log.debug("SSE Emitter 알림 성공 - memberId: {}", memberId);
-        });
-    }
-
-    private void onTimeout(Long memberId, SseEmitter emitter) {
-        emitter.onTimeout(() -> {
-            sseEmitterRepository.delete(memberId);
-            emitter.complete();
-            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
-        });
-    }
-
-    private void onError(Long memberId, SseEmitter emitter) {
-        emitter.onError((ex) -> {
-            sseEmitterRepository.delete(memberId);
-            emitter.completeWithError(ex);
-            redisClientManager.unsubscribeClient(memberId); // Redis Pub/Sub 구독 해지
-        });
-    }
-
-    private void sendHeartbeat(Long memberId, SseEmitter emitter) {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            try {
-                emitter.send(SseEmitter.event().name("heartbeat").data("연결 끊김 방지"));
-                redisClientManager.refreshConnection(memberId);
-            } catch (IOException e) {
-                emitter.complete();
-                sseEmitterRepository.delete(memberId);
-                redisClientManager.unsubscribeClient(memberId);
-            }
-        }, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
-    }
-
-    private void sendSseNotification(NotificationRequest event) {
-        SseEmitter emitter = sseEmitterRepository.get(event.targetId());
-        try {
-            emitter.send(SseEmitter.event()
-                    .name(event.title())
-                    .data(event.body()));
-            log.info("SSE 이벤트 전송 성공 - targetId: {}, title: {}, body: {}",
-                    event.targetId(), event.title(), event.body());
-        } catch (IOException e) {
-            log.error("targetId: {} 에게 SSE 이벤트 전송 실패: {}", event.targetId(), e.getMessage());
-            sseEmitterRepository.delete(event.targetId());
-            throw new ApplicationException(SseExceptionCode.SSE_SEND_FAILED);
+            sseConnectionService.sendSseNotification(
+                    event.targetId(),
+                    event.title(),
+                    event.body()
+            );
+        } catch (Exception e) {
+            log.error("Redis 메시지 처리 실패: {}", e.getMessage());
         }
     }
 }

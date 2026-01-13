@@ -12,10 +12,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = NotificationApplication.class)
-class SseServiceTest extends ApplicationTest {
+class SseConnectionPublisherTest extends ApplicationTest {
 
     @Autowired
-    private SseService sseService;
+    private SseConnectionPublisher sseConnectionPublisher;
 
     @MockitoBean
     private RedisSseMessagePublisher redisSseMessagePublisher;
@@ -28,7 +28,7 @@ class SseServiceTest extends ApplicationTest {
         );
 
         // when
-        sseService.publishSseNotification(message);
+        sseConnectionPublisher.publishSseNotification(message);
 
         // then
         verify(redisSseMessagePublisher).publish(

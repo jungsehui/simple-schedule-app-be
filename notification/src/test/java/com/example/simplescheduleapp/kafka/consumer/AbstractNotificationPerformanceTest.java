@@ -26,7 +26,7 @@ import static org.mockito.BDDMockito.doAnswer;
 import static org.mockito.BDDMockito.given;
 
 @EmbeddedKafka(
-        topics = {KafkaTopics.LECTURE_EVENT_TOPIC}, // 사용할 토픽 이름을 여기에 명시
+        topics = {KafkaTopics.COURSE_EVENT_TOPIC}, // 사용할 토픽 이름을 여기에 명시
         brokerProperties = {
                 "listeners=PLAINTEXT://localhost:" + PORT
         },
@@ -73,6 +73,6 @@ public abstract class AbstractNotificationPerformanceTest {
     protected void produceMessage() {
         TestDomainEvent testEvent = new TestDomainEvent(1L);
         KafkaDomainEventMessage message = KafkaDomainEventMessage.from(testEvent);
-        kafkaTemplate.send(KafkaTopics.LECTURE_EVENT_TOPIC, message);
+        kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
     }
 }
