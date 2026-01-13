@@ -1,7 +1,7 @@
-package com.example.simplescheduleapp.lecture.presentation.response;
+package com.example.simplescheduleapp.lecture.general.presentation.response;
 
-import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.LectureEnrollment;
 
 import java.time.LocalDateTime;
 import java.util.List;

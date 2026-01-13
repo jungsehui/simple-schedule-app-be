@@ -1,16 +1,16 @@
-package com.example.simplescheduleapp.lecture.application;
+package com.example.simplescheduleapp.lecture.general.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
-import com.example.simplescheduleapp.lecture.application.command.*;
-import com.example.simplescheduleapp.lecture.domain.*;
-import com.example.simplescheduleapp.lecture.domain.service.PendingLectureEnrollmentService;
-import com.example.simplescheduleapp.lecture.event.LectureEnrollmentAcceptedEvent;
-import com.example.simplescheduleapp.lecture.event.LectureEnrollmentCanceledEvent;
-import com.example.simplescheduleapp.lecture.event.LectureEnrollmentRejectedEvent;
-import com.example.simplescheduleapp.lecture.event.LectureEnrollmentRequestedEvent;
-import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
-import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.event.LectureEnrollmentAcceptedEvent;
+import com.example.simplescheduleapp.event.LectureEnrollmentCanceledEvent;
+import com.example.simplescheduleapp.event.LectureEnrollmentRejectedEvent;
+import com.example.simplescheduleapp.event.LectureEnrollmentRequestedEvent;
+import com.example.simplescheduleapp.lecture.general.application.command.*;
+import com.example.simplescheduleapp.lecture.general.domain.*;
+import com.example.simplescheduleapp.lecture.general.domain.service.PendingLectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import lombok.RequiredArgsConstructor;

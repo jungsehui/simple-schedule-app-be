@@ -36,10 +36,14 @@ public class RedissonDistributedLockAop {
                 signature.getParameterNames(),
                 distributedLock.key()
         );
+        // 락을 획득하려는 클라이언트가 여럿일 경우 pub/sub 방식으로 레디스 컴포넌트의 os 스케줄링을 통해 적당히 어떤 클라이언트든지 획득함
         RLock lock = redissonClient.getLock(key);
 
+        // 락을 획득하려는 클라이언트가 레디스 내부 대기열에 순서대로 저장됨
+        RLock fairLock = redissonClient.getFairLock(key);
+
         try {
-            boolean available = lock.tryLock(
+            boolean available = fairLock.tryLock(
                     distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit()
             );
             if (!available) {
@@ -53,8 +57,8 @@ public class RedissonDistributedLockAop {
             throw new InterruptedException("락 대기 중 인터럽트 발생. e: {}".formatted(e));
         } finally {
             try {
-                if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
+                if (fairLock.isLocked() && fairLock.isHeldByCurrentThread()) {
+                    fairLock.unlock();
                 }
             } catch (IllegalMonitorStateException e) {
                 log.info("Redisson Lock Already UnLock. serviceName: {}, key: {}", method.getName(), key);

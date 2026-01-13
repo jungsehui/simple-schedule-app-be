@@ -1,8 +1,6 @@
-package com.example.simplescheduleapp.lecture.general.event;
+package com.example.simplescheduleapp.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
-import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
-import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 import com.example.simplescheduleapp.student.domain.Student;
@@ -32,20 +30,7 @@ public class LectureEnrollmentRejectedEvent extends DomainEvent {
     }
 
     @Override
-    public KafkaLectureEventMessage toMessage() {
-        return KafkaLectureEventMessage.create(
-                this.getUuid(),
-                LectureEventType.ENROLLMENT_REJECTED,
-                this.getTargetDomainId(), // lectureId
-                this.studentId,
-                this.tutorId,
-                this.lectureTitle,
-                "수강 신청이 거절되었습니다 .."
-        );
-    }
-
-    @Override
     public String getTopic() {
-        return KafkaTopics.LECTURE_EVENT_TOPIC;
+        return KafkaTopics.COURSE_EVENT_TOPIC;
     }
 }

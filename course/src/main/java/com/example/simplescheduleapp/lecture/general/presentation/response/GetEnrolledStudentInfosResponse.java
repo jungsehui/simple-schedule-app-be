@@ -1,6 +1,6 @@
-package com.example.simplescheduleapp.lecture.presentation.response;
+package com.example.simplescheduleapp.lecture.general.presentation.response;
 
-import com.example.simplescheduleapp.lecture.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 
 import java.util.List;
 

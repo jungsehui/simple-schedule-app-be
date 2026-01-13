@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.lecture.domain;
+package com.example.simplescheduleapp.lecture.general.domain;
 
 import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import jakarta.persistence.*;

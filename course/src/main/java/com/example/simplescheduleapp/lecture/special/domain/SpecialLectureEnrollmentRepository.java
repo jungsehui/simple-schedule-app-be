@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.special.domain;
+package com.example.simplescheduleapp.lecture.special.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

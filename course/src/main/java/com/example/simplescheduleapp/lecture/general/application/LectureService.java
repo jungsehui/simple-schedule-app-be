@@ -1,10 +1,10 @@
-package com.example.simplescheduleapp.lecture.application;
+package com.example.simplescheduleapp.lecture.general.application;
 
-import com.example.simplescheduleapp.lecture.application.command.LectureCreateCommand;
-import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.lecture.domain.LectureRepository;
-import com.example.simplescheduleapp.lecture.event.LectureUpdatedEvent;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureCreateCommand;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureUpdateCommand;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.LectureRepository;
+import com.example.simplescheduleapp.event.LectureUpdatedEvent;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;

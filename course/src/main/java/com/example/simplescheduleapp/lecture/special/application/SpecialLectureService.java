@@ -1,14 +1,12 @@
-package com.example.simplescheduleapp.special.application;
+package com.example.simplescheduleapp.lecture.special.application;
 
-import com.example.simplescheduleapp.special.application.command.SpecialLectureCreateCommand;
-import com.example.simplescheduleapp.special.domain.SpecialLecture;
-import com.example.simplescheduleapp.special.domain.SpecialLectureRepository;
-import com.example.simplescheduleapp.special.infra.SpecialLectureRedisClient;
+import com.example.simplescheduleapp.lecture.special.application.command.SpecialLectureCreateCommand;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureRepository;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -1,9 +1,9 @@
-package com.example.simplescheduleapp.lecture.domain.service;
+package com.example.simplescheduleapp.lecture.general.domain.service;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollment;
-import com.example.simplescheduleapp.lecture.domain.PendingLectureEnrollmentRepository;
-import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.lecture.general.domain.PendingLectureEnrollment;
+import com.example.simplescheduleapp.lecture.general.domain.PendingLectureEnrollmentRepository;
+import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.lecture.application.command;
+package com.example.simplescheduleapp.lecture.general.application.command;
 
 public record LectureEnrollmentCreateCommand(
         Long studentId,

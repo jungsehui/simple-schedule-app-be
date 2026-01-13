@@ -1,16 +1,9 @@
-package com.example.simplescheduleapp.special.domain;
+package com.example.simplescheduleapp.lecture.special.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.special.exception.SpecialLectureExceptionCode;
-import jakarta.persistence.LockModeType;
+import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureExceptionCode;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 @Repository
 public interface SpecialLectureRepository extends JpaRepository<SpecialLecture, Long> {

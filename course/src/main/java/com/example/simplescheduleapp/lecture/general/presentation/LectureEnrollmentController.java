@@ -1,9 +1,9 @@
-package com.example.simplescheduleapp.lecture.presentation;
+package com.example.simplescheduleapp.lecture.general.presentation;
 
-import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
-import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
-import com.example.simplescheduleapp.lecture.presentation.response.LectureEnrollmentGetResponse;
-import com.example.simplescheduleapp.lecture.presentation.response.StudentInfoResponse;
+import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.general.domain.LectureEnrollment;
+import com.example.simplescheduleapp.lecture.general.presentation.response.LectureEnrollmentGetResponse;
+import com.example.simplescheduleapp.lecture.general.presentation.response.StudentInfoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.lecture.presentation.response;
+package com.example.simplescheduleapp.lecture.general.presentation.response;
 
 import java.time.LocalDateTime;
 

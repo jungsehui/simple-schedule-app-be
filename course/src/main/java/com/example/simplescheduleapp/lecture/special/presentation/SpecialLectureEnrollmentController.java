@@ -1,7 +1,7 @@
-package com.example.simplescheduleapp.special.presentation;
+package com.example.simplescheduleapp.lecture.special.presentation;
 
-import com.example.simplescheduleapp.special.application.RedisSpecialLectureEnrollmentService;
-import com.example.simplescheduleapp.special.application.command.SpecialLectureEnrollmentCreateCommand;
+import com.example.simplescheduleapp.lecture.special.application.RedisSpecialLectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.special.application.command.SpecialLectureEnrollmentCreateCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

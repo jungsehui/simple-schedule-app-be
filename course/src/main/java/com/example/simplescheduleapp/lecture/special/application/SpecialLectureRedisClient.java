@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.lecture.special.infra;
+package com.example.simplescheduleapp.lecture.special.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
@@ -22,7 +22,6 @@ public class SpecialLectureRedisClient {
 
     // 특강 수강 신청 시도 --> 정원 체크 및 카운트 감소
     public void enrollSpecialLectureEnrollment(Long specialLectureId) {
-
         String key = buildAvailableSpecialLectureCapacityKey(specialLectureId);
 
         // 값을 1 감소시키고, 감소된 후의 값을 받아서
@@ -39,6 +38,12 @@ public class SpecialLectureRedisClient {
             // 수강 신청 불가능 예외 처리
             throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
         }
+    }
+
+    // 레디스는 성공했는데 특강 DB 저장 실패 시 레디스 값 원상복구
+    public void compensateSpecialLectureEnrollment(Long specialLectureId) {
+        String key = buildAvailableSpecialLectureCapacityKey(specialLectureId);
+        stringRedisTemplate.opsForValue().increment(key);
     }
 
     // 만약 값이 안 돌아 온다면 예외 처리

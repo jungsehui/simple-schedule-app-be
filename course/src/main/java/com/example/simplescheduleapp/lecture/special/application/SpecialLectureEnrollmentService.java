@@ -1,9 +1,9 @@
-package com.example.simplescheduleapp.special.application;
+package com.example.simplescheduleapp.lecture.special.application;
 
-import com.example.simplescheduleapp.special.domain.SpecialLecture;
-import com.example.simplescheduleapp.special.domain.SpecialLectureEnrollment;
-import com.example.simplescheduleapp.special.domain.SpecialLectureEnrollmentRepository;
-import com.example.simplescheduleapp.special.domain.SpecialLectureRepository;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureEnrollment;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureEnrollmentRepository;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureRepository;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import lombok.RequiredArgsConstructor;

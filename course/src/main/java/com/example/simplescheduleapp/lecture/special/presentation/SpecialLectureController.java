@@ -1,10 +1,11 @@
-package com.example.simplescheduleapp.special.presentation;
+package com.example.simplescheduleapp.lecture.special.presentation;
 
-import com.example.simplescheduleapp.special.application.SpecialLectureService;
-import com.example.simplescheduleapp.special.application.command.SpecialLectureCreateCommand;
-import com.example.simplescheduleapp.special.domain.SpecialLecture;
-import com.example.simplescheduleapp.special.presentation.request.SpecialLectureCreateRequest;
-import com.example.simplescheduleapp.special.presentation.response.SpecialLectureCreateResponse;
+import com.example.simplescheduleapp.lecture.special.application.SpecialLectureService;
+import com.example.simplescheduleapp.lecture.special.application.command.SpecialLectureCreateCommand;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
+import com.example.simplescheduleapp.lecture.special.presentation.request.SpecialLectureCreateRequest;
+import com.example.simplescheduleapp.lecture.special.presentation.response.SpecialLectureCreateResponse;
+import com.example.simplescheduleapp.redis.lock.RedissonDistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

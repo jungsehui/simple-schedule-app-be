@@ -1,6 +1,6 @@
-package com.example.simplescheduleapp.lecture.presentation.request;
+package com.example.simplescheduleapp.lecture.general.presentation.request;
 
-import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureUpdateCommand;
 
 import java.time.LocalDateTime;
 

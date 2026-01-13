@@ -1,15 +1,15 @@
-package com.example.simplescheduleapp.lecture.presentation;
+package com.example.simplescheduleapp.lecture.general.presentation;
 
-import com.example.simplescheduleapp.lecture.application.LectureService;
-import com.example.simplescheduleapp.lecture.application.command.LectureCreateCommand;
-import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.lecture.presentation.request.LectureCreateRequest;
-import com.example.simplescheduleapp.lecture.presentation.request.LectureUpdateRequest;
-import com.example.simplescheduleapp.lecture.presentation.response.LectureCreateResponse;
-import com.example.simplescheduleapp.lecture.presentation.response.LectureSearchResponse;
-import com.example.simplescheduleapp.lecture.presentation.response.LectureUpdateResponse;
-import com.example.simplescheduleapp.lecture.presentation.response.TutorLectureGetResponse;
+import com.example.simplescheduleapp.lecture.general.application.LectureService;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureCreateCommand;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureUpdateCommand;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.presentation.request.LectureCreateRequest;
+import com.example.simplescheduleapp.lecture.general.presentation.request.LectureUpdateRequest;
+import com.example.simplescheduleapp.lecture.general.presentation.response.LectureCreateResponse;
+import com.example.simplescheduleapp.lecture.general.presentation.response.LectureSearchResponse;
+import com.example.simplescheduleapp.lecture.general.presentation.response.LectureUpdateResponse;
+import com.example.simplescheduleapp.lecture.general.presentation.response.TutorLectureGetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

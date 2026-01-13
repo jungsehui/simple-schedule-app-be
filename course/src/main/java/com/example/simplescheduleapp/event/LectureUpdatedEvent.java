@@ -1,8 +1,6 @@
-package com.example.simplescheduleapp.lecture.general.event;
+package com.example.simplescheduleapp.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
-import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
-import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 import jakarta.persistence.DiscriminatorValue;
@@ -32,20 +30,7 @@ public class LectureUpdatedEvent extends DomainEvent {
     }
 
     @Override
-    public KafkaLectureEventMessage toMessage() {
-        return KafkaLectureEventMessage.create(
-                this.getUuid(),
-                LectureEventType.LECTURE_UPDATED,
-                this.getTargetDomainId(), // lectureId
-                null,                     // studentId는 특정되지 않음 (N명 대상)
-                this.tutorId,
-                this.lectureTitle,
-                this.updatedDetails       // details에 수정 내용 포함
-        );
-    }
-
-    @Override
     public String getTopic() {
-        return KafkaTopics.LECTURE_EVENT_TOPIC;
+        return KafkaTopics.COURSE_EVENT_TOPIC;
     }
 }
