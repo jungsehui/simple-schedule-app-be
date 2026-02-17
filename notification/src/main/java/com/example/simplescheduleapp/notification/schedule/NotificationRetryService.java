@@ -27,9 +27,13 @@ public class NotificationRetryService {
 
                 // 성공 시 삭제
                 failedNotificationRepository.delete(failedNotification);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("알림 재전송 중 인터럽트 발생. ID: {}, Reason: {}", failedNotification.getId(), e.getMessage());
+                failedNotification.incrementRetryCount();
+                failedNotificationRepository.save(failedNotification);
             } catch (Exception e) {
                 log.warn("알림 재전송 실패. ID: {}, Reason: {}", failedNotification.getId(), e.getMessage());
-                // 실패 시 카운트 증가 및 업데이트
                 failedNotification.incrementRetryCount();
                 failedNotificationRepository.save(failedNotification);
             }

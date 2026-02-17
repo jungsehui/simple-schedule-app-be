@@ -50,8 +50,8 @@ logging:
     org:
       springframework:
         data:
-          jpa: DEBUG
-      hibernate: DEBUG
+          jpa: INFO
+      hibernate: INFO
 
 fcm:
   key:

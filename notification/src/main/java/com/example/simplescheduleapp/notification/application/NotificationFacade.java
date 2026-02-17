@@ -1,7 +1,5 @@
 package com.example.simplescheduleapp.notification.application;
 
-import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,19 +51,13 @@ public class NotificationFacade {
     private void sendMultipleAsync(Long senderId, List<Long> targetIds, String title, String content) {
         log.info("Starting async multicast notification. Count: {}", targetIds.size());
 
-        List<CompletableFuture<Void>> futures = targetIds.stream()
-                .map(targetId -> CompletableFuture.runAsync(() -> {
-                    // 내부에서 sendSingle 을 재활용하거나 직접 dispatch 호출
-                    sendSingle(senderId, targetId, title, content);
-                }, notificationExecutor).exceptionally(e -> {
-                    log.error("Failed to send notification to target ID: {}. Error: {}", targetId, e.getMessage());
-                    throw new ApplicationException(InternalServerExceptionCode.UNKNOWN_EXCEPTION);
-                }))
-                .toList();
-
-        // 모든 작업이 끝날 때까지 대기
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-        log.info("Finished async multicast notification.");
+        for (Long targetId : targetIds) {
+            CompletableFuture.runAsync(() ->
+                    sendSingle(senderId, targetId, title, content), notificationExecutor
+            ).exceptionally(e -> {
+                log.error("Failed to send notification to target ID: {}. Error: {}", targetId, e.getMessage());
+                return null;
+            });
+        }
     }
 }

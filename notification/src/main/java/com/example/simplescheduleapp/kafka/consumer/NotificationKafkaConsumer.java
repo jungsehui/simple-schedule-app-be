@@ -30,7 +30,7 @@ public class NotificationKafkaConsumer {
             Acknowledgment ack,
             @Header(KafkaHeaders.OFFSET) int offset
     ) {
-        log.info("Consume notification event. type: {}, targetId: {}, offset: {}",
+        log.info("Consume notification event. type: {}, lectureId: {}, offset: {}",
                 message.type(), message.lectureId(), offset);
 
         try {
@@ -45,32 +45,3 @@ public class NotificationKafkaConsumer {
         }
     }
 }
-
-//        // 2. ForkJoinPool parallelStream 사용
-//        studentIds.stream().parallel().forEach(studentId -> {
-//            try {
-//                NotificationRequest event = new NotificationRequest(
-//                        message.targetDomainId(),
-//                        studentId,
-//                        title,
-//                        "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
-//                );
-//                notificationService.sendPushNotification(event);
-//                log.info("Sent notification message. to student ID: {}", studentId);
-//            } catch (Exception e) {
-//                // 개별 알림 실패 시 로그 기록. 필요 시 DLQ 전송 등의 로직 추가 가능
-//                log.error("Failed to send notification to student ID: {}. Error: {}", studentId, e.getMessage());
-//            }
-//        });
-
-//        // 1. 단순 반복문 각 학생에게 개별적으로 알림 처리
-//        for (Long studentId : studentIds) {
-//            NotificationRequest event = new NotificationRequest(
-//                    message.targetDomainId(),
-//                    studentId,
-//                    title,
-//                    "강의 내용이 수정되었습니다. 수정 내용: {%s}".formatted(memo)
-//            );
-//            notificationService.sendPushNotification(event);
-//            log.info("send notification message. to student ID: {}", studentId);
-//        }
