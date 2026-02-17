@@ -42,14 +42,6 @@ public class RedisSpecialLectureEnrollmentService {
                 default ->
                         new ApplicationException(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_ENROLLMENT_FAILED);
             };
-
-//            if (e instanceof DataIntegrityViolationException) {
-//                throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.ALREADY_ENROLLED);
-//            } else if (e instanceof ApplicationException) {
-//                throw (ApplicationException) e;
-//            } else {
-//                throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_ENROLLMENT_FAILED);
-//            }
         }
     }
 }

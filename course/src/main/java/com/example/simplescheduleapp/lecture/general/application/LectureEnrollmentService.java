@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.lecture.general.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
 import com.example.simplescheduleapp.event.LectureEnrollmentAcceptedEvent;
 import com.example.simplescheduleapp.event.LectureEnrollmentCanceledEvent;
 import com.example.simplescheduleapp.event.LectureEnrollmentRejectedEvent;
@@ -48,8 +47,8 @@ public class LectureEnrollmentService {
 
     public List<LectureEnrollment> getLectureEnrollments(Long lectureId) {
         List<LectureEnrollment> lectureEnrollments = lectureEnrollmentRepository.getAllByLectureId(lectureId);
-        if (lectureEnrollments == null || lectureEnrollments.isEmpty()) {
-            throw new ApplicationException(LectureEnrollmentExceptionCode.LECTURE_ENROLLMENT_NOT_FOUND);
+        if (lectureEnrollments == null) {
+            return List.of();
         }
         return lectureEnrollments;
     }
@@ -85,11 +84,6 @@ public class LectureEnrollmentService {
         } catch (DataIntegrityViolationException e) {
             log.error("이미 등록된 학생입니다. pendingId = {}", command.pendingId());
             throw new ApplicationException(LectureExceptionCode.ALREADY_ENROLLED);
-        } catch (ApplicationException e) {
-            throw e; // 이미 정의된 예외는 그대로 던짐
-        } catch (Exception e) {
-            log.error("수강생 등록 에러", e);
-            throw new ApplicationException(InternalServerExceptionCode.UNKNOWN_EXCEPTION);
         }
     }
 

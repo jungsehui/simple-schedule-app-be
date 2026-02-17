@@ -9,6 +9,7 @@ import com.example.simplescheduleapp.student.domain.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class SpecialLectureEnrollmentService {
     private final SpecialLectureRepository specialLectureRepository;
     private final StudentRepository studentRepository;
 
+    @Transactional
     public SpecialLectureEnrollment enrollSpecialLectureEnrollment(Long specialLectureId, Long studentId) {
         SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
         Student student = studentRepository.getById(studentId);

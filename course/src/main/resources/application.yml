@@ -49,8 +49,8 @@ logging:
     org:
       springframework:
         data:
-          jpa: DEBUG
-      hibernate: DEBUG
+          jpa: INFO
+      hibernate: INFO
 
 cors:
   allowed-origins: http://localhost:3000
