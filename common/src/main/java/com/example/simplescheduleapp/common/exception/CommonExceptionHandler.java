@@ -21,7 +21,7 @@ public class CommonExceptionHandler {
     @ExceptionHandler(value = ApplicationException.class)
     public ResponseEntity<ExceptionResponse> handleApplicationException(ApplicationException exception) {
         ExceptionCode code = exception.getCode();
-        log.info("ApplicationException occurred !! code: {} message: {}", code.getCode(), code.getMessage());
+        log.error("ApplicationException occurred !! code: {} message: {}", code.getCode(), code.getMessage());
         return ResponseEntity
                 .status(code.getHttpStatus())
                 .body(ExceptionResponse.from(code));
@@ -35,7 +35,7 @@ public class CommonExceptionHandler {
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        log.info("MethodArgumentNotValidException occurred: {}", errors);
+        log.error("MethodArgumentNotValidException occurred: {}", errors);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

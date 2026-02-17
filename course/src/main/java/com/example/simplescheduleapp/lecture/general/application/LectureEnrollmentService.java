@@ -54,6 +54,7 @@ public class LectureEnrollmentService {
         return lectureEnrollments;
     }
 
+    @Transactional
     public void cancelPendingLectureEnrollment(PendingLectureEnrollmentCancelCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
         pendingLectureEnrollmentRepository.delete(pending);

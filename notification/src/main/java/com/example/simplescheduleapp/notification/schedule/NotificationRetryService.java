@@ -2,7 +2,6 @@ package com.example.simplescheduleapp.notification.schedule;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

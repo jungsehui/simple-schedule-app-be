@@ -2,6 +2,8 @@ package com.example.simplescheduleapp.lecture.special.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -49,7 +51,7 @@ public class SpecialLectureRedisClient {
     // 만약 값이 안 돌아 온다면 예외 처리
     private void validateRedisResult(Long val) {
         if (val == null) {
-            throw new RuntimeException("Redis 처리 중 오류가 발생했습니다.");
+            throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_ENROLLMENT_FAILED);
         }
     }
 
