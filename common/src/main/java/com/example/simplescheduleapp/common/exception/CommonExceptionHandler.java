@@ -21,7 +21,11 @@ public class CommonExceptionHandler {
     @ExceptionHandler(value = ApplicationException.class)
     public ResponseEntity<ExceptionResponse> handleApplicationException(ApplicationException exception) {
         ExceptionCode code = exception.getCode();
-        log.error("ApplicationException occurred !! code: {} message: {}", code.getCode(), code.getMessage());
+        if (code.getHttpStatus().is5xxServerError()) {
+            log.error("ApplicationException occurred. code: {}, message: {}", code.getCode(), code.getMessage(), exception);
+        } else {
+            log.warn("ApplicationException occurred. code: {}, message: {}", code.getCode(), code.getMessage());
+        }
         return ResponseEntity
                 .status(code.getHttpStatus())
                 .body(ExceptionResponse.from(code));
@@ -35,10 +39,18 @@ public class CommonExceptionHandler {
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        log.error("MethodArgumentNotValidException occurred: {}", errors);
+        log.warn("MethodArgumentNotValidException occurred: {}", errors);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(MethodArgumentExceptionResponse.from(InternalServerExceptionCode.INVALID_INPUT_VALUE, errors));
+    }
+
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ExceptionResponse> handleException(Exception exception) {
+        log.error("Unhandled exception occurred.", exception);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ExceptionResponse.from(InternalServerExceptionCode.UNKNOWN_EXCEPTION));
     }
 }

@@ -42,9 +42,8 @@ public class KafkaConsumerConfig {
         factory.setRecordFilterStrategy(kafkaIdempotencyFilter);
         factory.setAckDiscarded(true); // 필터링된 메시지도 Ack 처리 (커밋)
 
-        // 에러 핸들러 (1초 간격 2회 재시도 후 DLQ 저장)
-//        FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2L);
-        FixedBackOff fixedBackOff = new FixedBackOff(0, 0);
+        // 에러 핸들러 (1초 간격 2회 재시도 후 Dead Letter 저장)
+        FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2L);
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler(deadLetterRecorder, fixedBackOff);
         factory.setCommonErrorHandler(defaultErrorHandler);
 
@@ -61,7 +60,7 @@ public class KafkaConsumerConfig {
 
         // KafkaLectureEventMessage 타입으로 역직렬화
         JsonDeserializer<KafkaLectureEventMessage> deserializer = new JsonDeserializer<>(KafkaLectureEventMessage.class, false);
-        deserializer.addTrustedPackages("*"); // 모든 패키지 신뢰
+        deserializer.addTrustedPackages("com.example.simplescheduleapp");
 
         return new DefaultKafkaConsumerFactory<>(configs, new StringDeserializer(), deserializer);
     }
