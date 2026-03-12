@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
 @SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE schedule_id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type")
 @Table(name = "schedule")

@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.common.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
@@ -16,5 +17,6 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 public abstract class SoftDeletedDomain extends BaseDomain {
 
+    @Column(name = "deleted_date")
     private LocalDateTime deletedDate;
 }
