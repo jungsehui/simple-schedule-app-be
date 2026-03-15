@@ -45,6 +45,7 @@ public class RedissonDistributedLockAop {
             boolean available = fairLock.tryLock(
                     distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit()
             );
+
             if (!available) {
                 log.warn("Redisson Lock 획득 실패. key: {}", key);
                 throw new ApplicationException(InternalServerExceptionCode.UNKNOWN_EXCEPTION);
