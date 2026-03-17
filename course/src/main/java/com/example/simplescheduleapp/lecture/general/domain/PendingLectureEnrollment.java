@@ -12,7 +12,12 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 
 @SQLRestriction(DELETED_DATE_IS_NULL)
 @SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
-@Table(name = "pending_lecture_enrollment")
+@Table(
+        name = "pending_lecture_enrollment",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_pending_lecture_student", columnNames = {"lecture_id", "student_id"})
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
