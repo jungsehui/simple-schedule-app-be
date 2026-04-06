@@ -9,6 +9,9 @@ import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.schedule.domain.service.ScheduleConflictValidator;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +51,7 @@ public class LectureService {
         return lectureRepository.findByKeyword(keyword);
     }
 
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     @Transactional
     public Lecture updateLecture(LectureUpdateCommand command) {
         Tutor tutor = tutorRepository.getById(command.tutorId());
