@@ -22,6 +22,10 @@ dependencies {
 	// Redisson
 	implementation 'org.redisson:redisson-spring-boot-starter:3.29.0'
 
+	// Retry (for optimistic locking)
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
 	// DB 드라이버
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	runtimeOnly 'com.h2database:h2'

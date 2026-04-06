@@ -19,6 +19,9 @@ import java.time.LocalDateTime;
 @Entity
 public class Lecture extends Schedule {
 
+    @Version
+    private Long version;
+
     @ManyToOne
     @JoinColumn(name = "tutor_id")
     private Tutor tutor;
