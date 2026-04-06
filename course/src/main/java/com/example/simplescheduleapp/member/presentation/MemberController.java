@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.member.application.LoginResult;
 import com.example.simplescheduleapp.member.application.MemberService;
 import com.example.simplescheduleapp.member.presentation.request.LoginRequest;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,7 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request
     ) {
         LoginResult result = memberService.login(request.username(), request.password());
         Token token = tokenService.createToken(result.memberId(), result.role());
