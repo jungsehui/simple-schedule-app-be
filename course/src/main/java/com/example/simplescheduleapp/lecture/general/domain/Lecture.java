@@ -43,8 +43,15 @@ public class Lecture extends Schedule {
 
     public void update(Tutor tutor, Schedule schedule, int capacity) {
         validateTutorAuthority(tutor);
+        validateCapacityNotBelowEnrolled(capacity);
         updateSchedule(schedule);
         this.capacity = capacity;
+    }
+
+    private void validateCapacityNotBelowEnrolled(int newCapacity) {
+        if (newCapacity < this.enrolledCount) {
+            throw new ApplicationException(LectureExceptionCode.CAPACITY_BELOW_ENROLLED);
+        }
     }
 
     public void cancel() {

@@ -10,6 +10,7 @@ import com.example.simplescheduleapp.lecture.general.presentation.response.Lectu
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureSearchResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureUpdateResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.TutorLectureGetResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class LectureController {
     @PostMapping("/lectures")
     public ResponseEntity<LectureCreateResponse> createLecture(
             @RequestParam Long tutorId,
-            @RequestBody LectureCreateRequest lectureCreateRequest
+            @Valid @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
         LectureCreateCommand command = lectureCreateRequest.toCommand(tutorId);
         Lecture savedLecture = lectureService.createLecture(command);
@@ -58,7 +59,7 @@ public class LectureController {
     public ResponseEntity<LectureUpdateResponse> updateLecture(
             @RequestParam Long tutorId,
             @PathVariable Long lectureId,
-            @RequestBody LectureUpdateRequest lectureUpdateRequest
+            @Valid @RequestBody LectureUpdateRequest lectureUpdateRequest
     ) {
         LectureUpdateCommand command = lectureUpdateRequest.toCommand(tutorId, lectureId);
         Lecture updatedLecture = lectureService.updateLecture(command);
