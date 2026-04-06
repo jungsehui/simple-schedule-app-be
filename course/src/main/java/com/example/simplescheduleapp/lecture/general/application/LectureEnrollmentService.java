@@ -10,6 +10,7 @@ import com.example.simplescheduleapp.lecture.general.domain.*;
 import com.example.simplescheduleapp.lecture.general.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.schedule.domain.service.ScheduleConflictValidator;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.Objects;
 public class LectureEnrollmentService {
 
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
+    private final ScheduleConflictValidator scheduleConflictValidator;
 
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
@@ -75,6 +77,7 @@ public class LectureEnrollmentService {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
             Student student = studentRepository.getById(pending.getStudentId());
+            scheduleConflictValidator.validateNoStudentConflict(student.getId(), lecture.getStartTime(), lecture.getEndTime(), null);
             pending.accept();
             pendingLectureEnrollmentRepository.delete(pending);
             LectureEnrollment lectureEnrollment = lecture.enroll(student);

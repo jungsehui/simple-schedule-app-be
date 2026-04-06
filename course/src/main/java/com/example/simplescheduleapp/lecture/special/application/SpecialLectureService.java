@@ -3,6 +3,7 @@ package com.example.simplescheduleapp.lecture.special.application;
 import com.example.simplescheduleapp.lecture.special.application.command.SpecialLectureCreateCommand;
 import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
 import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureRepository;
+import com.example.simplescheduleapp.schedule.domain.service.ScheduleConflictValidator;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,12 @@ public class SpecialLectureService {
     private final SpecialLectureRepository specialLectureRepository;
     private final TutorRepository tutorRepository;
     private final SpecialLectureRedisClient specialLectureRedisClient;
+    private final ScheduleConflictValidator scheduleConflictValidator;
 
     @Transactional
     public SpecialLecture createSpecialLecture(SpecialLectureCreateCommand command) {
         Tutor tutor = tutorRepository.getById(command.memberId());
+        scheduleConflictValidator.validateNoTutorConflict(tutor.getId(), command.startTime(), command.endTime(), null);
         SpecialLecture specialLecture = new SpecialLecture(
                 command.title(), command.startTime(), command.endTime(), command.memo(), tutor, command.capacity()
         );
