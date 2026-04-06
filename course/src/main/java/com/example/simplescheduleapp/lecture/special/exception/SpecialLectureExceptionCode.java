@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 public enum SpecialLectureExceptionCode implements ExceptionCode {
 
     SPECIAL_LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "SL001", "특별 강의를 찾을 수 없습니다."),
+    SPECIAL_LECTURE_NOT_FOUND_IN_REDIS(HttpStatus.NOT_FOUND, "SL002", "Redis에서 특별 강의 정원 정보를 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

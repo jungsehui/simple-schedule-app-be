@@ -28,7 +28,9 @@ public class SpecialLectureService {
 
         // 먼저 DB에 저장하여 ID를 부여
         SpecialLecture savedSpecialLecture = specialLectureRepository.save(specialLecture);
-        specialLectureRedisClient.initializeSpecialLecture(savedSpecialLecture.getId(), savedSpecialLecture.getCapacity());
+        specialLectureRedisClient.initializeSpecialLecture(
+                savedSpecialLecture.getId(), savedSpecialLecture.getCapacity(), savedSpecialLecture.getEndTime()
+        );
         return savedSpecialLecture;
     }
 }
