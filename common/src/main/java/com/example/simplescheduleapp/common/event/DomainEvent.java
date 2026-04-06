@@ -38,6 +38,9 @@ public abstract class DomainEvent extends SoftDeletedDomain {
 
     private String failReason;
 
+    // 무애노테이션(기본 매핑) — 신규 jakarta.persistence 사용은 아키텍처 래칫 신규 위반이 됨
+    private int retryCount = 0;
+
     protected DomainEvent(Long targetDomainId) {
         this.uuid = UUID.randomUUID().toString();
         this.status = EventStatus.INIT;
@@ -61,6 +64,14 @@ public abstract class DomainEvent extends SoftDeletedDomain {
     public void produceFail(Throwable e) {
         this.status = EventStatus.PRODUCE_FAIL;
         this.failReason = e.getMessage();
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount++;
+    }
+
+    public void markDead() {
+        this.status = EventStatus.DEAD;
     }
 
     public abstract String getTopic();
