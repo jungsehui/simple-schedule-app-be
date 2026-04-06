@@ -1,5 +1,8 @@
 package com.example.simplescheduleapp.lecture.special.presentation;
 
+import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.MemberRole;
+import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.lecture.special.application.SpecialLectureService;
 import com.example.simplescheduleapp.lecture.special.application.command.SpecialLectureCreateCommand;
 import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
@@ -11,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -23,12 +25,13 @@ public class SpecialLectureController {
 
     private final SpecialLectureService specialLectureService;
 
+    @RequireRole(MemberRole.TUTOR)
     @PostMapping("/special-lectures")
     public ResponseEntity<SpecialLectureCreateResponse> createSpecialLecture(
-            @RequestParam Long tutorId,
+            @Auth Long memberId,
             @RequestBody SpecialLectureCreateRequest request
     ) {
-        SpecialLectureCreateCommand command = request.toCommand(tutorId);
+        SpecialLectureCreateCommand command = request.toCommand(memberId);
         SpecialLecture savedSpecialLecture = specialLectureService.createSpecialLecture(command);
         URI location = URI.create("/special-lectures/" + savedSpecialLecture.getId());
         return ResponseEntity

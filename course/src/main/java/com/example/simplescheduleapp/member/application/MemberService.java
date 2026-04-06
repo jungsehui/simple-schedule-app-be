@@ -11,9 +11,9 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
-    public Long login(String username, String password) {
+    public Member login(String username, String password) {
         Member member = memberRepository.getByUsername(username);
         member.login(password);
-        return member.getId();
+        return member;
     }
 }

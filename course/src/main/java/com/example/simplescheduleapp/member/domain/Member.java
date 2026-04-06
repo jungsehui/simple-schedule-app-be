@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.member.domain;
 
+import com.example.simplescheduleapp.common.auth.MemberRole;
 import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
@@ -55,5 +56,13 @@ public class Member extends SoftDeletedDomain {
         if (!same) {
             throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_PASSWORD);
         }
+    }
+
+    public MemberRole getMemberRole() {
+        DiscriminatorValue annotation = this.getClass().getAnnotation(DiscriminatorValue.class);
+        if (annotation == null) {
+            throw new ApplicationException(MemberExceptionCode.MEMBER_NOT_FOUND);
+        }
+        return MemberRole.valueOf(annotation.value());
     }
 }

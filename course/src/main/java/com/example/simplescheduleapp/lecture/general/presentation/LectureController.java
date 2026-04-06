@@ -1,5 +1,8 @@
 package com.example.simplescheduleapp.lecture.general.presentation;
 
+import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.MemberRole;
+import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.lecture.general.application.LectureService;
 import com.example.simplescheduleapp.lecture.general.application.command.LectureCreateCommand;
 import com.example.simplescheduleapp.lecture.general.application.command.LectureUpdateCommand;
@@ -23,12 +26,13 @@ public class LectureController {
 
     private final LectureService lectureService;
 
+    @RequireRole(MemberRole.TUTOR)
     @PostMapping("/lectures")
     public ResponseEntity<LectureCreateResponse> createLecture(
-            @RequestParam Long tutorId,
+            @Auth Long memberId,
             @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
-        LectureCreateCommand command = lectureCreateRequest.toCommand(tutorId);
+        LectureCreateCommand command = lectureCreateRequest.toCommand(memberId);
         Lecture savedLecture = lectureService.createLecture(command);
         URI location = URI.create("/lectures/" + savedLecture.getId());
         return ResponseEntity
@@ -54,13 +58,14 @@ public class LectureController {
         return ResponseEntity.ok(LectureSearchResponse.from(lectures));
     }
 
+    @RequireRole(MemberRole.TUTOR)
     @PatchMapping("/lectures/{lectureId}")
     public ResponseEntity<LectureUpdateResponse> updateLecture(
-            @RequestParam Long tutorId,
+            @Auth Long memberId,
             @PathVariable Long lectureId,
             @RequestBody LectureUpdateRequest lectureUpdateRequest
     ) {
-        LectureUpdateCommand command = lectureUpdateRequest.toCommand(tutorId, lectureId);
+        LectureUpdateCommand command = lectureUpdateRequest.toCommand(memberId, lectureId);
         Lecture updatedLecture = lectureService.updateLecture(command);
         return ResponseEntity.ok(LectureUpdateResponse.from(updatedLecture));
     }

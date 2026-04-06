@@ -74,6 +74,7 @@ public class LectureEnrollmentService {
         try {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+            validateTutorOwnership(command.memberId(), lecture);
             Student student = studentRepository.getById(pending.getStudentId());
             pending.accept();
             pendingLectureEnrollmentRepository.delete(pending);
@@ -91,10 +92,17 @@ public class LectureEnrollmentService {
     public void rejectEnrollment(PendingRejectCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+        validateTutorOwnership(command.memberId(), lecture);
         Student student = studentRepository.getById(pending.getStudentId());
         pending.reject();
         pendingLectureEnrollmentRepository.delete(pending);
         eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
+    }
+
+    private void validateTutorOwnership(Long memberId, Lecture lecture) {
+        if (!lecture.getTutor().getId().equals(memberId)) {
+            throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
+        }
     }
 
     public List<Long> findStudentIdsByLectureId(Long lectureId) {

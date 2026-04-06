@@ -1,5 +1,8 @@
 package com.example.simplescheduleapp.tutor.presentation;
 
+import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.MemberRole;
+import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
@@ -33,24 +36,28 @@ public class TutorController {
     ) {
         TutorSignUpCommand command = request.toCommand();
         Long id = tutorService.signUpTutor(command);
-        Token token = tokenService.createToken(id);
+        Token token = tokenService.createToken(id, MemberRole.TUTOR);
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
     }
 
+    @RequireRole(MemberRole.TUTOR)
     @PostMapping("/enrollments/accept")
     public ResponseEntity<LectureEnrollmentAcceptedResponse> acceptEnrollment(
+            @Auth Long memberId,
             @RequestBody PendingAcceptRequest request
     ) {
-        PendingAcceptCommand command = request.toCommand();
+        PendingAcceptCommand command = request.toCommand(memberId);
         Long lectureEnrollmentId = lectureEnrollmentService.acceptEnrollment(command);
         return ResponseEntity.ok(new LectureEnrollmentAcceptedResponse(lectureEnrollmentId));
     }
 
+    @RequireRole(MemberRole.TUTOR)
     @PostMapping("/enrollments/reject")
     public ResponseEntity<Void> rejectEnrollment(
+            @Auth Long memberId,
             @RequestBody PendingRejectRequest request
     ) {
-        PendingRejectCommand command = request.toCommand();
+        PendingRejectCommand command = request.toCommand(memberId);
         lectureEnrollmentService.rejectEnrollment(command);
         return ResponseEntity.ok().build();
     }

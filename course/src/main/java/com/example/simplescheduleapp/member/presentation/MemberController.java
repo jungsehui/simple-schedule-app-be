@@ -3,6 +3,7 @@ package com.example.simplescheduleapp.member.presentation;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.member.application.MemberService;
+import com.example.simplescheduleapp.member.domain.Member;
 import com.example.simplescheduleapp.member.presentation.request.LoginRequest;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,8 @@ public class MemberController {
     public ResponseEntity<LoginResponse> login(
             @RequestBody LoginRequest request
     ) {
-        Long id = memberService.login(request.username(), request.password());
-        Token token = tokenService.createToken(id);
-        return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
+        Member member = memberService.login(request.username(), request.password());
+        Token token = tokenService.createToken(member.getId(), member.getMemberRole());
+        return ResponseEntity.ok(new LoginResponse(member.getId(), token.accessToken()));
     }
 }
