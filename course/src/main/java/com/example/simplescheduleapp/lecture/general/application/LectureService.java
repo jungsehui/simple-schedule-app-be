@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 import com.example.simplescheduleapp.lecture.general.domain.LectureRepository;
 import com.example.simplescheduleapp.event.LectureUpdatedEvent;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
+import com.example.simplescheduleapp.schedule.domain.service.ScheduleConflictValidator;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,14 @@ public class LectureService {
 
     private final LectureRepository lectureRepository;
     private final TutorRepository tutorRepository;
+    private final ScheduleConflictValidator scheduleConflictValidator;
 
     private final ApplicationEventPublisher eventPublisher;
 
+    @Transactional
     public Lecture createLecture(LectureCreateCommand command) {
         Tutor tutor = tutorRepository.getById(command.memberId());
+        scheduleConflictValidator.validateNoTutorConflict(tutor.getId(), command.startTime(), command.endTime(), null);
         Lecture lecture = new Lecture(command.title(), command.startTime(), command.endTime(), command.memo(), tutor, command.capacity());
         return lectureRepository.save(lecture);
     }
@@ -48,6 +52,7 @@ public class LectureService {
     public Lecture updateLecture(LectureUpdateCommand command) {
         Tutor tutor = tutorRepository.getById(command.tutorId());
         Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
+        scheduleConflictValidator.validateNoTutorConflict(tutor.getId(), command.startTime(), command.endTime(), lecture.getId());
         Schedule schedule = command.toSchedule();
         int capacity = command.capacity();
         lecture.update(tutor, schedule, capacity);
