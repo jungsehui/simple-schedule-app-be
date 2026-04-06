@@ -58,6 +58,15 @@ fcm:
     json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
     url: https://www.googleapis.com/auth/firebase.messaging
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
 cors:
   allowed-origins: http://localhost:3000
 
