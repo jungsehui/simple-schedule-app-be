@@ -11,6 +11,7 @@ import com.example.simplescheduleapp.common.kafka.producer.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class KafkaEventProducer implements EventProducer {
     private final KafkaProducer<KafkaLectureEventMessage> kafkaProducer;
     private final DomainEventRepository domainEventRepository;
 
+    @Transactional
     @Override
     public void produce(DomainEvent domainEvent) {
         String topic = domainEvent.getTopic();
