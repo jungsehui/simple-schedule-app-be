@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: geek-chat-server
+
+  threads:
+    virtual:
+      enabled: true
+
+  main:
+    lazy-initialization: true
+
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:geekchat}
+    username: ${DATABASE_USERNAME:}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      leak-detection-threshold: 30000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        format_sql: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${PORT:8080}
+  tomcat:
+    accept-count: 10
+    max-connections: 200
+    threads:
+      max: 10
+      min-spare: 2
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-32-characters-long}
+    access-token-expiry: 15m
+    refresh-token-expiry-days: 14
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  oauth:
+    callback-url: ${OAUTH_CALLBACK_URL:http://localhost:8080/auth/callback}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    naver:
+      client-id: ${NAVER_CLIENT_ID:}
+      client-secret: ${NAVER_CLIENT_SECRET:}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  main:
+    lazy-initialization: false
+
+app:
+  jwt:
+    secret: test-secret-key-must-be-at-least-32-characters-long-for-testing

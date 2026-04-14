@@ -1,0 +1,51 @@
+services:
+  - type: web
+    runtime: docker
+    name: geek-chat-server-v2
+    repo: https://github.com/geek-chat/server-v2
+    branch: main
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: geekchat-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: geekchat-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: geekchat-db
+          property: database
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: geekchat-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: geekchat-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://geek-chat-web.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: NAVER_CLIENT_ID
+        sync: false
+      - key: NAVER_CLIENT_SECRET
+        sync: false
+      - key: OAUTH_CALLBACK_URL
+        sync: false
+      - key: PORT
+        value: "8080"
+
+databases:
+  - name: geekchat-db
+    plan: free
+    databaseName: geekchat
+    postgresMajorVersion: "16"

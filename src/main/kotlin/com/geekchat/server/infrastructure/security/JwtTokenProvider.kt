@@ -1,0 +1,74 @@
+package com.geekchat.server.infrastructure.security
+
+import com.geekchat.server.domain.error.ChatError
+import com.geekchat.server.domain.error.Either
+import com.geekchat.server.infrastructure.config.AppProperties
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
+import org.springframework.stereotype.Component
+import java.util.Date
+
+@Component
+class JwtTokenProvider(
+    private val appProperties: AppProperties,
+) {
+    private val key by lazy {
+        Keys.hmacShaKeyFor(appProperties.jwt.secret.toByteArray())
+    }
+
+    fun generateAccessToken(userId: String): String {
+        val now = Date()
+        val expiry = Date(now.time + appProperties.jwt.accessTokenExpiry.toMillis())
+
+        return Jwts.builder()
+            .subject(userId)
+            .issuedAt(now)
+            .expiration(expiry)
+            .signWith(key)
+            .compact()
+    }
+
+    fun generateLinkToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String {
+        val now = Date()
+        val expiry = Date(now.time + expiryMinutes * 60 * 1000)
+
+        val builder = Jwts.builder()
+            .issuedAt(now)
+            .expiration(expiry)
+            .signWith(key)
+        claims.forEach { (k, v) -> builder.claim(k, v) }
+
+        return builder.compact()
+    }
+
+    fun validateToken(token: String): Either<ChatError, String> {
+        return try {
+            val claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+            Either.Right(claims.subject)
+        } catch (e: ExpiredJwtException) {
+            Either.Left(ChatError.TokenExpired())
+        } catch (_: Exception) {
+            Either.Left(ChatError.InvalidToken())
+        }
+    }
+
+    fun parseLinkToken(token: String): Either<ChatError, Map<String, Any>> {
+        return try {
+            val claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+            Either.Right(claims.toMap())
+        } catch (_: ExpiredJwtException) {
+            Either.Left(ChatError.InvalidLinkToken())
+        } catch (_: Exception) {
+            Either.Left(ChatError.InvalidLinkToken())
+        }
+    }
+}

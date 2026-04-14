@@ -1,0 +1,23 @@
+package com.geekchat.server.adapter.`in`.web.dto
+
+import com.geekchat.server.application.service.MessageWithSender
+
+data class MessageResponse(
+    val id: String,
+    val senderId: String,
+    val senderNickname: String,
+    val content: String,
+    val type: String,
+    val createdAt: String,
+) {
+    companion object {
+        fun from(mws: MessageWithSender): MessageResponse = MessageResponse(
+            id = mws.message.id,
+            senderId = mws.message.senderId,
+            senderNickname = mws.senderNickname,
+            content = mws.message.content,
+            type = mws.message.type.name,
+            createdAt = mws.message.createdAt.toString(),
+        )
+    }
+}

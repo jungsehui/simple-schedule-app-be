@@ -1,0 +1,25 @@
+# Gradle
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.vscode/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# JVM
+*.jsa
+hs_err_pid*
+
+# OS
+.DS_Store
+Thumbs.db

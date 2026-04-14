@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "command": "./gradlew test"
+      }
+    ]
+  }
+}
