@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.redis.lock;
+package com.example.simplescheduleapp.common.redis.lock;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

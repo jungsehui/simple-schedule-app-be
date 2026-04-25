@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.redis.aop;
+package com.example.simplescheduleapp.common.redis.lock;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

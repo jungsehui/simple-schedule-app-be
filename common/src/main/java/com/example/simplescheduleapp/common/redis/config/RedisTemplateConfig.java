@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.config;
+package com.example.simplescheduleapp.common.redis.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

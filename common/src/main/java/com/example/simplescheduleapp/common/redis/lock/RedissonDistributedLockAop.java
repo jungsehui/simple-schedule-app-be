@@ -1,9 +1,8 @@
-package com.example.simplescheduleapp.redis.aop;
+package com.example.simplescheduleapp.common.redis.lock;
 
 import com.example.simplescheduleapp.common.aop.AopForTransaction;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
-import com.example.simplescheduleapp.redis.lock.RedissonDistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -27,7 +26,7 @@ public class RedissonDistributedLockAop {
     private final RedissonClient redissonClient;
     private final AopForTransaction aopForTransaction;
 
-    @Around("@annotation(com.example.simplescheduleapp.redis.lock.RedissonDistributedLock)")
+    @Around("@annotation(com.example.simplescheduleapp.common.redis.lock.RedissonDistributedLock)")
     public Object lock(final ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();

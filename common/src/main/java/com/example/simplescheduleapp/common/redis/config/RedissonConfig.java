@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.config;
+package com.example.simplescheduleapp.common.redis.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
