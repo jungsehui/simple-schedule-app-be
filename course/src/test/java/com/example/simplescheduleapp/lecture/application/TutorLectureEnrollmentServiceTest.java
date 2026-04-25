@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.lecture.application;
 
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
-import com.example.simplescheduleapp.kafka.topic.CourseEventMessage;
 import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.general.application.command.PendingAcceptCommand;
 import com.example.simplescheduleapp.lecture.general.application.command.PendingRejectCommand;
@@ -90,12 +90,11 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         assertThat(records.count()).isEqualTo(1); // 1개의 메시지만 소비되었는지 확인
 
         ConsumerRecord<String, String> record = records.iterator().next();
-        CourseEventMessage message = objectMapper.readValue(record.value(), CourseEventMessage.class);
-//        AcceptLectureEnrollmentTopicMessage message = objectMapper.readValue(record.value(), AcceptLectureEnrollmentTopicMessage.class);
+        KafkaLectureEventMessage message = objectMapper.readValue(record.value(), KafkaLectureEventMessage.class);
 
-        assertThat(message.senderId()).isEqualTo(tutorId);
-        assertThat(message.targetId()).isEqualTo(studentId);
-        assertThat(message.title()).isEqualTo(lectureTitle);
+        assertThat(message.tutorId()).isEqualTo(tutorId);
+        assertThat(message.studentId()).isEqualTo(studentId);
+        assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
 
         // 기존 DB 검증 유지
         then(lectureEnrollmentRepository).should().save(enrollment);
@@ -135,11 +134,11 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         assertThat(records.count()).isEqualTo(1);
 
         ConsumerRecord<String, String> record = records.iterator().next();
-        CourseEventMessage message = objectMapper.readValue(record.value(), CourseEventMessage.class);
+        KafkaLectureEventMessage message = objectMapper.readValue(record.value(), KafkaLectureEventMessage.class);
 
-        assertThat(message.senderId()).isEqualTo(tutorId);
-        assertThat(message.targetId()).isEqualTo(studentId);
-        assertThat(message.title()).isEqualTo(lectureTitle);
+        assertThat(message.tutorId()).isEqualTo(tutorId);
+        assertThat(message.studentId()).isEqualTo(studentId);
+        assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
 
         then(pendingLectureEnrollmentRepository).should().delete(pending);
     }
