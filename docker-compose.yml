@@ -1,0 +1,87 @@
+# GeekChat v2 — Production Docker Compose
+# Usage:
+#   1. cp .env.docker.example .env.docker  &&  fill in secrets
+#   2. docker compose --env-file .env.docker up -d --build
+#
+# Stack:
+#   - app   : Spring Boot (Kotlin)            — 8080 (internal only)
+#   - db    : MySQL 8.0 (utf8mb4)             — 3306 (internal only)
+#   - nginx : reverse proxy + TLS termination — 80, 443 (host)
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Spring profile: empty = production (validate)
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      # Database
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Bootstrap toggle (one-time schema creation)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
+      # Auth
+      JWT_SECRET: ${JWT_SECRET}
+      # Frontend / CORS
+      FRONTEND_URL: ${FRONTEND_URL}
+      APP_FRONTEND_ORIGIN_PATTERNS: ${FRONTEND_ORIGIN_PATTERNS:-https://*.vercel.app}
+      # OAuth
+      OAUTH_CALLBACK_URL: ${OAUTH_CALLBACK_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
+    networks:
+      - backend
+    # No host port exposure — only nginx talks to app
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /srv/acme:/var/www/acme:ro
+    networks:
+      - backend
+
+volumes:
+  mysql-data:
+
+networks:
+  backend:

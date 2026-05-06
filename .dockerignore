@@ -1,0 +1,35 @@
+# Build artifacts
+build/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Planning / Claude artifacts
+.planning/
+.omc/
+.claude/
+
+# Docs (not needed in image)
+*.md
+docs/
+
+# Test artifacts
+src/test/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env (never bake into image)
+.env
+.env.*

@@ -17,13 +17,11 @@ WORKDIR /app
 
 COPY --from=builder /build/build/libs/*.jar app.jar
 
-ENV JAVA_OPTS="-XX:+UseSerialGC \
-  -Xms128m -Xmx256m \
-  -Xss512k \
-  -XX:MaxMetaspaceSize=80m \
-  -XX:ReservedCodeCacheSize=32m \
-  -XX:CompressedClassSpaceSize=16m \
-  -XX:TieredStopAtLevel=1 \
+# JVM tuned for 8GB host (friend's cloud).
+# G1GC for concurrent low-pause; 2GB max heap leaves room for DB + nginx in same VM.
+ENV JAVA_OPTS="-XX:+UseG1GC \
+  -Xms512m -Xmx2g \
+  -XX:MaxMetaspaceSize=256m \
   -Djava.security.egd=file:/dev/./urandom \
   -Dspring.jmx.enabled=false"
 
