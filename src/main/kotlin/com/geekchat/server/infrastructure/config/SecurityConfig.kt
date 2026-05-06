@@ -4,13 +4,15 @@ import com.geekchat.server.infrastructure.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.http.HttpStatus
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -29,8 +31,11 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/auth/me").authenticated()
+                    // authenticated endpoints under /auth
+                    .requestMatchers("/auth/me", "/auth/withdraw").authenticated()
+                    // public auth endpoints (signup/login/oauth/refresh/logout/dev-login/...)
                     .requestMatchers("/auth/**").permitAll()
+                    // utilities
                     .requestMatchers("/health").permitAll()
                     .requestMatchers("/ws/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -45,7 +50,13 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
-        config.allowedOrigins = listOf(appProperties.frontendUrl)
+        // Use allowedOriginPatterns to support wildcards (e.g., Vercel preview deploys)
+        // and credential-bearing requests simultaneously.
+        val patterns = buildList {
+            add(appProperties.frontendUrl)
+            addAll(appProperties.frontendOriginPatterns)
+        }
+        config.allowedOriginPatterns = patterns
         config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         config.allowedHeaders = listOf("*")
         config.allowCredentials = true
@@ -54,4 +65,7 @@ class SecurityConfig(
         source.registerCorsConfiguration("/**", config)
         return source
     }
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder(12)
 }

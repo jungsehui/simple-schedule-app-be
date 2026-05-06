@@ -1,5 +1,6 @@
 package com.geekchat.server.domain.model
 
+import java.time.Duration
 import java.time.Instant
 
 data class ChatRoom(
@@ -7,6 +8,7 @@ data class ChatRoom(
     val type: ChatRoomType,
     val name: String? = null,
     val lastMessageAt: Instant? = null,
+    val expiresAt: Instant? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
     val deletedAt: Instant? = null,
@@ -24,6 +26,12 @@ data class ChatRoom(
 
     fun withLastMessageAt(at: Instant = Instant.now()): ChatRoom =
         copy(lastMessageAt = at, updatedAt = Instant.now())
+
+    fun isExpired(now: Instant = Instant.now()): Boolean =
+        expiresAt != null && now >= expiresAt
+
+    fun isExpiringSoon(now: Instant = Instant.now(), threshold: Duration = Duration.ofMinutes(10)): Boolean =
+        expiresAt != null && !isExpired(now) && now >= expiresAt.minus(threshold)
 
     fun validateInvariant() {
         if (type == ChatRoomType.DIRECT) {

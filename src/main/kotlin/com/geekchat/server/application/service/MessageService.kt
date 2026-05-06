@@ -38,6 +38,7 @@ class MessageService(
         senderId: String,
         content: String,
         clientMessageId: String,
+        ttlSeconds: Long = 0,
     ): Either<ChatError, Message> {
         // Idempotency: check memory/DB first
         messageRepository.findByClientMessageId(clientMessageId)?.let {
@@ -52,12 +53,15 @@ class MessageService(
             return Either.Left(ChatError.EmptyMessage())
         }
 
+        val expiresAt = if (ttlSeconds > 0) Instant.now().plusSeconds(ttlSeconds) else null
+
         val message = Message(
             id = UUID.randomUUID().toString(),
             chatRoomId = roomId,
             senderId = senderId,
             clientMessageId = clientMessageId,
             content = content,
+            expiresAt = expiresAt,
         )
 
         val saved = try {
@@ -82,10 +86,11 @@ class MessageService(
                 messageId = saved.id,
                 roomId = roomId,
                 senderId = senderId,
-                content = saved.content,
+                content = saved.content, // TODO: Remove content from log before production
                 messageType = saved.type,
                 createdAt = saved.createdAt,
                 clientMessageId = clientMessageId,
+                expiresAt = saved.expiresAt,
             ),
         )
 

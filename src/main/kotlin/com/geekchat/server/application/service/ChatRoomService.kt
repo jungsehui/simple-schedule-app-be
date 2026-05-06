@@ -12,6 +12,8 @@ import com.geekchat.server.domain.model.ChatRoomType
 import com.geekchat.server.domain.model.User
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 data class RoomWithMembers(
@@ -57,11 +59,12 @@ class ChatRoomService(
         userId: String,
         memberIds: List<String>,
         name: String?,
+        ttlHours: Long? = null,
     ): Either<ChatError, RoomWithMembers> {
         return if (memberIds.size == 1 && name == null) {
             findOrCreateDirectRoom(userId, memberIds[0])
         } else {
-            createGroupRoom(userId, memberIds, name)
+            createGroupRoom(userId, memberIds, name, ttlHours)
         }
     }
 
@@ -95,6 +98,7 @@ class ChatRoomService(
         userId: String,
         memberIds: List<String>,
         name: String?,
+        ttlHours: Long? = null,
     ): Either<ChatError, RoomWithMembers> {
         val allMemberIds = (listOf(userId) + memberIds).distinct()
 
@@ -109,11 +113,14 @@ class ChatRoomService(
             return Either.Left(ChatError.RoomFull("", ChatRoom.MAX_GROUP_MEMBERS))
         }
 
+        val expiresAt = ttlHours?.let { Instant.now().plus(it, ChronoUnit.HOURS) }
+
         val room = chatRoomRepository.save(
             ChatRoom(
                 id = UUID.randomUUID().toString(),
                 type = ChatRoomType.GROUP,
                 name = name ?: "Group",
+                expiresAt = expiresAt,
             ),
         )
 

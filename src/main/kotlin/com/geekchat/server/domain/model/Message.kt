@@ -9,6 +9,7 @@ data class Message(
     val clientMessageId: String,
     val content: String,
     val type: MessageType = MessageType.TEXT,
+    val expiresAt: Instant? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
     val deletedAt: Instant? = null,

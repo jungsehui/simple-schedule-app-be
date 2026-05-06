@@ -41,7 +41,7 @@ class RoomController(
         @AuthenticationPrincipal userId: String,
         @Valid @RequestBody request: CreateRoomRequest,
     ): ResponseEntity<*> {
-        return chatRoomService.createRoom(userId, request.memberIds, request.name).fold(
+        return chatRoomService.createRoom(userId, request.memberIds, request.name, request.ttlHours).fold(
             onLeft = { it.toResponseEntity() },
             onRight = { room -> ResponseEntity.ok(CreateRoomResponse.from(room)) },
         )

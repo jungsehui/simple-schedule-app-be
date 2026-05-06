@@ -10,6 +10,7 @@ data class CreateRoomRequest(
     @field:NotEmpty(message = "memberIds is required")
     val memberIds: List<String> = emptyList(),
     val name: String? = null,
+    val ttlHours: Long? = null,
 )
 
 // --- Responses ---
@@ -19,6 +20,7 @@ data class RoomListResponse(
     val type: String,
     val name: String?,
     val lastMessageAt: String?,
+    val expiresAt: String?,
     val members: List<RoomMemberResponse>,
 ) {
     companion object {
@@ -27,6 +29,7 @@ data class RoomListResponse(
             type = roomWithMembers.room.type.name,
             name = roomWithMembers.room.name,
             lastMessageAt = roomWithMembers.room.lastMessageAt?.toString(),
+            expiresAt = roomWithMembers.room.expiresAt?.toString(),
             members = roomWithMembers.members.map { RoomMemberResponse.from(it) },
         )
     }
@@ -50,6 +53,7 @@ data class CreateRoomResponse(
     val id: String,
     val type: String,
     val name: String?,
+    val expiresAt: String?,
     val members: List<CreateRoomMemberResponse>,
 ) {
     companion object {
@@ -57,6 +61,7 @@ data class CreateRoomResponse(
             id = roomWithMembers.room.id,
             type = roomWithMembers.room.type.name,
             name = roomWithMembers.room.name,
+            expiresAt = roomWithMembers.room.expiresAt?.toString(),
             members = roomWithMembers.members.map {
                 CreateRoomMemberResponse(userId = it.userId, nickname = it.nickname)
             },

@@ -9,6 +9,7 @@ data class MessageResponse(
     val content: String,
     val type: String,
     val createdAt: String,
+    val expiresAt: String? = null,
 ) {
     companion object {
         fun from(mws: MessageWithSender): MessageResponse = MessageResponse(
@@ -18,6 +19,7 @@ data class MessageResponse(
             content = mws.message.content,
             type = mws.message.type.name,
             createdAt = mws.message.createdAt.toString(),
+            expiresAt = mws.message.expiresAt?.toString(),
         )
     }
 }

@@ -29,7 +29,11 @@ class JwtTokenProvider(
             .compact()
     }
 
-    fun generateLinkToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String {
+    /**
+     * Generic short-lived JWT for OAuth flows (linkToken / signupToken).
+     * Subject is left empty; consumers should put context into [claims].
+     */
+    fun generateClaimsToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String {
         val now = Date()
         val expiry = Date(now.time + expiryMinutes * 60 * 1000)
 
@@ -41,6 +45,14 @@ class JwtTokenProvider(
 
         return builder.compact()
     }
+
+    /** Backwards-compatible alias used by older callers. */
+    fun generateLinkToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String =
+        generateClaimsToken(claims, expiryMinutes)
+
+    /** Issues a 10-min "signup" token used for OAuth-completion flow (Deferred user creation). */
+    fun generateSignupToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String =
+        generateClaimsToken(claims, expiryMinutes)
 
     fun validateToken(token: String): Either<ChatError, String> {
         return try {
@@ -69,6 +81,21 @@ class JwtTokenProvider(
             Either.Left(ChatError.InvalidLinkToken())
         } catch (_: Exception) {
             Either.Left(ChatError.InvalidLinkToken())
+        }
+    }
+
+    fun parseSignupToken(token: String): Either<ChatError, Map<String, Any>> {
+        return try {
+            val claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+            Either.Right(claims.toMap())
+        } catch (_: ExpiredJwtException) {
+            Either.Left(ChatError.InvalidSignupToken())
+        } catch (_: Exception) {
+            Either.Left(ChatError.InvalidSignupToken())
         }
     }
 }

@@ -7,6 +7,8 @@ import java.time.Duration
 data class AppProperties(
     val jwt: JwtProperties = JwtProperties(),
     val frontendUrl: String = "http://localhost:3000",
+    // Additional CORS allow patterns (e.g. https://[wildcard].vercel.app for preview deploys).
+    val frontendOriginPatterns: List<String> = emptyList(),
     val oauth: OAuthProperties = OAuthProperties(),
 ) {
     data class JwtProperties(

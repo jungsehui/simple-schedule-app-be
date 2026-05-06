@@ -17,6 +17,11 @@ sealed class ChatError {
     data class UserNotFound(val userId: String, override val message: String = "User not found: $userId") : ChatError()
     data class UsernameAlreadyTaken(val username: String, override val message: String = "Username already taken: $username") : ChatError()
     data class InvalidUsername(override val message: String = "Username must be 3-20 characters, lowercase letters, numbers, and underscores only") : ChatError()
+    data class WeakPassword(val reason: String = "Password must be at least 8 characters with letters and numbers", override val message: String = reason) : ChatError()
+    data class InvalidCredentials(override val message: String = "Invalid username or password") : ChatError()
+    data class NicknameRequired(override val message: String = "Nickname is required") : ChatError()
+    data class EmailAlreadyInUse(val email: String, override val message: String = "Email already in use: $email") : ChatError()
+    data class AccountWithdrawn(override val message: String = "Account has been withdrawn") : ChatError()
 
     // Room
     data class RoomNotFound(val roomId: String, override val message: String = "Room not found: $roomId") : ChatError()
@@ -33,6 +38,17 @@ sealed class ChatError {
     data class NotAuthenticated(override val message: String = "Not authenticated") : ChatError()
     data class RateLimited(override val message: String = "Reconnecting too fast") : ChatError()
     data class MaxConnectionsExceeded(val max: Int, override val message: String = "Max $max connections per user") : ChatError()
+
+    // InviteLink
+    data class InviteLinkNotFound(val code: String, override val message: String = "Invite link not found: $code") : ChatError()
+    data class InviteLinkExpired(val code: String, override val message: String = "Invite link has expired") : ChatError()
+    data class InviteLinkMaxUsesReached(val code: String, override val message: String = "Invite link has reached maximum uses") : ChatError()
+    data class AlreadyRoomMember(val userId: String, val roomId: String, override val message: String = "Already a member of this room") : ChatError()
+
+    // OAuth
+    data class OAuthExchangeFailed(val provider: String, val reason: String, override val message: String = "OAuth exchange failed for $provider: $reason") : ChatError()
+    data class OAuthProfileMissingId(val provider: String, override val message: String = "OAuth profile from $provider is missing required id") : ChatError()
+    data class InvalidSignupToken(override val message: String = "Invalid or expired signup token") : ChatError()
 
     // Generic
     data class Internal(override val message: String = "An unexpected error occurred") : ChatError()

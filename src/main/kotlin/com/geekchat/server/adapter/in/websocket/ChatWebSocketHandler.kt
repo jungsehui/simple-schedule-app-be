@@ -125,10 +125,11 @@ class ChatWebSocketHandler(
             ?: return sendError(session, "INVALID_DATA", "content is required")
         val clientMessageId = data.get("clientMessageId")?.asText()
             ?: return sendError(session, "INVALID_DATA", "clientMessageId is required")
+        val ttlSeconds = data.get("ttlSeconds")?.asLong() ?: 0L
 
         val startTime = System.currentTimeMillis()
 
-        messageService.sendMessage(roomId, userId, content, clientMessageId).fold(
+        messageService.sendMessage(roomId, userId, content, clientMessageId, ttlSeconds).fold(
             onLeft = { error -> sendError(session, "SEND_FAILED", error.message) },
             onRight = { msg ->
                 sendToSession(

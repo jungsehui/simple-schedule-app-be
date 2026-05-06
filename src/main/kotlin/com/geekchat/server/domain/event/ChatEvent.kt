@@ -13,6 +13,7 @@ sealed class ChatEvent {
         val messageType: MessageType,
         val createdAt: Instant,
         val clientMessageId: String,
+        val expiresAt: Instant? = null,
     ) : ChatEvent()
 
     data class MessageRead(
@@ -29,5 +30,21 @@ sealed class ChatEvent {
     data class UserDisconnected(
         val userId: String,
         val sessionId: String,
+    ) : ChatEvent()
+
+    data class RoomExpiring(
+        val roomId: String,
+        val roomName: String?,
+        val expiresAt: Instant,
+    ) : ChatEvent()
+
+    data class RoomExpired(
+        val roomId: String,
+        val roomName: String?,
+    ) : ChatEvent()
+
+    data class MessageExpired(
+        val roomId: String,
+        val messageIds: List<String>,
     ) : ChatEvent()
 }

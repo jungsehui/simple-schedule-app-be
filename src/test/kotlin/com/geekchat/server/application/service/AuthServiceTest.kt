@@ -16,6 +16,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +30,8 @@ class AuthServiceTest {
     private val userRepository = mockk<UserRepository>()
     private val userProviderRepository = mockk<UserProviderRepository>()
     private val refreshTokenRepository = mockk<RefreshTokenRepository>()
+    private val passwordEncoder = org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
+    private val oauthClient = mockk<com.geekchat.server.application.port.out.OAuthClient>()
 
     private val appProperties = AppProperties(
         jwt = AppProperties.JwtProperties(
@@ -45,7 +48,7 @@ class AuthServiceTest {
     fun setUp() {
         authService = AuthService(
             userRepository, userProviderRepository, refreshTokenRepository,
-            jwtTokenProvider, appProperties,
+            jwtTokenProvider, appProperties, passwordEncoder, oauthClient,
         )
     }
 
@@ -91,6 +94,7 @@ class AuthServiceTest {
         )
         every { refreshTokenRepository.findByToken("valid-token") } returns stored
         every { refreshTokenRepository.deleteByToken("valid-token") } just runs
+        every { userRepository.findById("u1") } returns User(id = "u1", nickname = "Alice")
         val tokenSlot = slot<RefreshToken>()
         every { refreshTokenRepository.save(capture(tokenSlot)) } answers { tokenSlot.captured }
 
@@ -146,5 +150,221 @@ class AuthServiceTest {
 
         assertTrue(result.isLeft)
         assertTrue((result as Either.Left).value is ChatError.UserNotFound)
+    }
+
+    // ───────── Local signup/login/withdraw ─────────
+
+    @Test
+    fun `signup creates user with hashed password`() {
+        every { userRepository.existsByUsername("alice") } returns false
+        every { userRepository.existsByEmailAndStatusActive(any()) } returns false
+        val userSlot = slot<User>()
+        every { userRepository.save(capture(userSlot)) } answers { userSlot.captured }
+        val tokenSlot = slot<RefreshToken>()
+        every { refreshTokenRepository.save(capture(tokenSlot)) } answers { tokenSlot.captured }
+
+        val cmd = com.geekchat.server.application.service.SignupCommand(
+            username = "alice", password = "hunter2x", nickname = "Alice",
+        )
+        val result = authService.signup(cmd)
+
+        assertTrue(result.isRight)
+        assertTrue(userSlot.captured.passwordHash != null)
+        // BCrypt hash, never plaintext
+        assertTrue(userSlot.captured.passwordHash != "hunter2x")
+    }
+
+    @Test
+    fun `signup rejects weak password`() {
+        val cmd = com.geekchat.server.application.service.SignupCommand(
+            username = "alice", password = "short1", nickname = "Alice",
+        )
+        val result = authService.signup(cmd)
+
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.WeakPassword)
+    }
+
+    @Test
+    fun `signup rejects taken username`() {
+        every { userRepository.existsByUsername("alice") } returns true
+
+        val cmd = com.geekchat.server.application.service.SignupCommand(
+            username = "alice", password = "hunter2x", nickname = "Alice",
+        )
+        val result = authService.signup(cmd)
+
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.UsernameAlreadyTaken)
+    }
+
+    @Test
+    fun `login succeeds with correct password`() {
+        val hashed = passwordEncoder.encode("hunter2x")
+        val user = User(id = "u1", nickname = "Alice", username = "alice", passwordHash = hashed)
+        every { userRepository.findByUsername("alice") } returns user
+        val tokenSlot = slot<RefreshToken>()
+        every { refreshTokenRepository.save(capture(tokenSlot)) } answers { tokenSlot.captured }
+
+        val result = authService.login("alice", "hunter2x")
+        assertTrue(result.isRight)
+    }
+
+    @Test
+    fun `login fails with wrong password`() {
+        val hashed = passwordEncoder.encode("hunter2x")
+        val user = User(id = "u1", nickname = "Alice", username = "alice", passwordHash = hashed)
+        every { userRepository.findByUsername("alice") } returns user
+
+        val result = authService.login("alice", "wrong-password")
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.InvalidCredentials)
+    }
+
+    @Test
+    fun `login fails when user is withdrawn`() {
+        val user = User(
+            id = "u1", nickname = "deleted_user_xx", username = null,
+            passwordHash = passwordEncoder.encode("hunter2x"),
+            status = com.geekchat.server.domain.model.UserStatus.WITHDRAWN,
+        )
+        every { userRepository.findByUsername("alice") } returns user
+
+        val result = authService.login("alice", "hunter2x")
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.AccountWithdrawn)
+    }
+
+    @Test
+    fun `login fails when user has no password`() {
+        // OAuth-only user has no passwordHash
+        val user = User(id = "u1", nickname = "Alice", username = "alice")
+        every { userRepository.findByUsername("alice") } returns user
+
+        val result = authService.login("alice", "hunter2x")
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.InvalidCredentials)
+    }
+
+    @Test
+    fun `withdraw anonymizes user, deletes providers and refresh tokens`() {
+        val user = User(id = "u1", nickname = "Alice", username = "alice", email = "alice@x.com")
+        every { userRepository.findById("u1") } returns user
+        val userSlot = slot<User>()
+        every { userRepository.save(capture(userSlot)) } answers { userSlot.captured }
+        every { userProviderRepository.deleteAllByUserId("u1") } just runs
+        every { refreshTokenRepository.deleteAllByUserId("u1") } just runs
+
+        val result = authService.withdraw("u1")
+
+        assertTrue(result.isRight)
+        assertEquals(com.geekchat.server.domain.model.UserStatus.WITHDRAWN, userSlot.captured.status)
+        assertTrue(userSlot.captured.nickname.startsWith("deleted_user_"))
+        assertEquals(null, userSlot.captured.email)
+        verify { userProviderRepository.deleteAllByUserId("u1") }
+        verify { refreshTokenRepository.deleteAllByUserId("u1") }
+    }
+
+    @Test
+    fun `withdraw is idempotent for already-withdrawn user`() {
+        val user = User(
+            id = "u1", nickname = "deleted_user_xx",
+            status = com.geekchat.server.domain.model.UserStatus.WITHDRAWN,
+        )
+        every { userRepository.findById("u1") } returns user
+
+        val result = authService.withdraw("u1")
+        assertTrue(result.isRight)
+    }
+
+    // ───────── OAuth ─────────
+
+    @Test
+    fun `oauthCallback existing provider returns LoggedIn`() {
+        val provider = com.geekchat.server.domain.model.UserProvider(
+            id = "p1", userId = "u1", provider = AuthProvider.GOOGLE, providerId = "g123",
+        )
+        val user = User(id = "u1", nickname = "Alice")
+        every { userProviderRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, "g123") } returns provider
+        every { userRepository.findById("u1") } returns user
+        val tokenSlot = slot<RefreshToken>()
+        every { refreshTokenRepository.save(capture(tokenSlot)) } answers { tokenSlot.captured }
+
+        val profile = com.geekchat.server.application.port.out.OAuthProfile(
+            provider = AuthProvider.GOOGLE,
+            providerId = "g123",
+            email = "alice@x.com",
+            nickname = "Alice",
+            profileImageUrl = null,
+        )
+        val result = authService.oauthCallback(profile)
+
+        assertTrue(result.isRight)
+        assertTrue(result.getOrNull() is com.geekchat.server.application.service.OAuthCallbackResult.LoggedIn)
+    }
+
+    @Test
+    fun `oauthCallback no match returns SignupRequired`() {
+        every { userProviderRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, "g999") } returns null
+        every { userProviderRepository.findByEmail(any()) } returns null
+
+        val profile = com.geekchat.server.application.port.out.OAuthProfile(
+            provider = AuthProvider.GOOGLE,
+            providerId = "g999",
+            email = "newbie@x.com",
+            nickname = "Newbie",
+            profileImageUrl = null,
+        )
+        val result = authService.oauthCallback(profile)
+
+        assertTrue(result.isRight)
+        val signupReq = result.getOrNull() as com.geekchat.server.application.service.OAuthCallbackResult.SignupRequired
+        assertTrue(signupReq.signupToken.isNotBlank())
+        assertEquals("Newbie", signupReq.suggestedNickname)
+    }
+
+    @Test
+    fun `completeOAuthSignup creates user and issues tokens`() {
+        // Generate a valid signup token first via the helper
+        val signupToken = jwtTokenProvider.generateSignupToken(
+            mapOf(
+                "signupProvider" to "GOOGLE",
+                "signupProviderId" to "g999",
+                "signupEmail" to "newbie@x.com",
+                "signupNickname" to "Newbie",
+                "signupProfileImageUrl" to "",
+            ),
+        )
+        every { userProviderRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, "g999") } returns null
+        val userSlot = slot<User>()
+        every { userRepository.save(capture(userSlot)) } answers { userSlot.captured }
+        every { userProviderRepository.save(any()) } answers { firstArg() }
+        every { refreshTokenRepository.save(any()) } answers { firstArg() }
+
+        val result = authService.completeOAuthSignup(signupToken, "ChosenName")
+        assertTrue(result.isRight)
+        assertEquals("ChosenName", userSlot.captured.nickname)
+        assertEquals("newbie@x.com", userSlot.captured.email)
+    }
+
+    @Test
+    fun `completeOAuthSignup rejects empty nickname`() {
+        val signupToken = jwtTokenProvider.generateSignupToken(
+            mapOf(
+                "signupProvider" to "GOOGLE",
+                "signupProviderId" to "g999",
+            ),
+        )
+
+        val result = authService.completeOAuthSignup(signupToken, "")
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.NicknameRequired)
+    }
+
+    @Test
+    fun `completeOAuthSignup with invalid token returns InvalidSignupToken`() {
+        val result = authService.completeOAuthSignup("not-a-token", "Newbie")
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.InvalidSignupToken)
     }
 }
