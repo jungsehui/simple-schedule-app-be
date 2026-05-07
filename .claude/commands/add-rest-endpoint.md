@@ -38,5 +38,4 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 
 ## 컨벤션 참조
 - 에러 처리: `Either<ChatError, T>` (예외 던지지 X)
-- 컨벤션 자세히: `.claude/CONVENTIONS.md`
-- 절대 금지: `.claude/FORBIDDEN.md`
+- 절대 규칙 + 코드 패턴: `.claude/RULES.md`

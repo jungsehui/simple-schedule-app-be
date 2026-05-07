@@ -1,51 +1,58 @@
 #!/usr/bin/env bash
 # .claude/hooks/check-domain-imports.sh
 #
-# Domain layer import guard.
-# Reads JSON tool input from stdin (Claude Code PreToolUse:Edit/Write hook),
-# extracts the file_path + content, and blocks if domain/ files contain
-# forbidden imports (JPA, Spring, Jackson, etc.)
+# Edit/Write guard: blocks two violations at once.
+#   1) Domain layer cannot import JPA / Spring
+#   2) v1 code (~/Work/geek-chat/geek-chat-server/, geek-chat-web/) is read-only
+#
+# Reads JSON tool input from stdin (Claude Code PreToolUse:Edit|Write|MultiEdit).
 #
 # Exit codes:
-#   0 — allow (no violation)
-#   1 — silent allow (couldn't parse stdin — fail open)
-#   2 — block with reason printed to stderr (Claude Code shows this to the user)
+#   0 — allow
+#   2 — block with reason on stderr
 
 set -uo pipefail
 
-# Read tool input JSON from stdin
 input="$(cat)"
 
-# Extract file_path (works for both Edit and Write tools)
 file_path=$(printf '%s' "$input" | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+[[ -z "$file_path" ]] && exit 0
 
-if [[ -z "$file_path" ]]; then
-  exit 0  # not an Edit/Write call we care about
+# ── (1) v1 read-only check ──
+expanded=$(eval echo "$file_path")
+if [[ "$expanded" == "$HOME/Work/geek-chat/geek-chat-server/"* ]] || \
+   [[ "$expanded" == "$HOME/Work/geek-chat/geek-chat-web/"* ]]; then
+  cat >&2 <<EOF
+🚫 BLOCKED: v1 code is read-only.
+
+  File: $expanded
+
+v1 NestJS / v1 Expo Web are reference-only.
+Read OK; modifications require explicit user approval.
+See .claude/RULES.md §2.
+EOF
+  exit 2
 fi
 
-# Only check files inside domain/
+# ── (2) domain layer JPA/Spring import check ──
+# Only run on files inside src/main/kotlin/.../domain/
 if [[ "$file_path" != *"/src/main/kotlin/com/geekchat/server/domain/"* ]]; then
   exit 0
 fi
-
-# Tests can have JPA/Spring (integration tests check round-trip)
+# Tests are exempt
 if [[ "$file_path" == *"/src/test/"* ]]; then
   exit 0
 fi
 
-# Extract content. Edit tool uses new_string; Write uses content.
-# Best-effort: just dump the input and grep the forbidden patterns.
 if printf '%s' "$input" | grep -qE '"(new_string|content)"[^"]*"[^"]*import jakarta\.persistence'; then
   cat >&2 <<EOF
 🚫 BLOCKED: Domain layer cannot import JPA.
 
   File: $file_path
-  Reason: 'jakarta.persistence' import detected in domain/ layer.
 
-Domain entities must be pure Kotlin (no framework dependencies).
-JPA entities live in adapter/out/persistence/entity/ with toDomain()/fromDomain() mappings.
-
-See .claude/FORBIDDEN.md §1 for the full rule.
+Domain models are pure Kotlin (no framework). JPA entities live in
+adapter/out/persistence/entity/ with toDomain()/fromDomain() mappings.
+See .claude/RULES.md §1.
 EOF
   exit 2
 fi
@@ -55,12 +62,9 @@ if printf '%s' "$input" | grep -qE '"(new_string|content)"[^"]*"[^"]*import org\
 🚫 BLOCKED: Domain layer cannot import Spring.
 
   File: $file_path
-  Reason: 'org.springframework' import detected in domain/ layer.
 
-Domain models must be pure Kotlin. Spring annotations belong to application/service/
-or adapter/ layers.
-
-See .claude/FORBIDDEN.md §1 for the full rule.
+Spring annotations belong to application/service/ or adapter/ layers.
+See .claude/RULES.md §1.
 EOF
   exit 2
 fi

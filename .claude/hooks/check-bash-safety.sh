@@ -24,7 +24,7 @@ block() {
   Command: $cmd
   Reason : $1
 
-If you really need this, ask the user explicitly. See .claude/FORBIDDEN.md §5.
+If you really need this, ask the user explicitly. See .claude/RULES.md §4.
 EOF
   exit 2
 }
