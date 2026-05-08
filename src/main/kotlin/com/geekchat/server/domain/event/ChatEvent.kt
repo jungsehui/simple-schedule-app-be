@@ -14,6 +14,8 @@ sealed class ChatEvent {
         val createdAt: Instant,
         val clientMessageId: String,
         val expiresAt: Instant? = null,
+        val replyToMessageId: String? = null,
+        val burnAfterRead: Boolean = false,
     ) : ChatEvent()
 
     data class MessageRead(
@@ -46,5 +48,11 @@ sealed class ChatEvent {
     data class MessageExpired(
         val roomId: String,
         val messageIds: List<String>,
+    ) : ChatEvent()
+
+    /** Burn-on-Read: receiver opened a burnAfterRead message → hard-deleted, broadcast to room. */
+    data class MessageBurned(
+        val roomId: String,
+        val messageId: String,
     ) : ChatEvent()
 }

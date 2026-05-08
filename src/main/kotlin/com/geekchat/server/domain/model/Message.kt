@@ -10,6 +10,8 @@ data class Message(
     val content: String,
     val type: MessageType = MessageType.TEXT,
     val expiresAt: Instant? = null,
+    val replyToMessageId: String? = null,
+    val burnAfterRead: Boolean = false,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
     val deletedAt: Instant? = null,

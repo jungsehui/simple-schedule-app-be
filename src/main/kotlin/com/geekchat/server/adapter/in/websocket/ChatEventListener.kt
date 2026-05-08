@@ -30,6 +30,8 @@ class ChatEventListener(
                     "type" to event.messageType.name,
                     "createdAt" to event.createdAt.toString(),
                     "expiresAt" to event.expiresAt?.toString(),
+                    "replyToMessageId" to event.replyToMessageId,
+                    "burnAfterRead" to event.burnAfterRead,
                 ),
             ),
         )
@@ -38,6 +40,20 @@ class ChatEventListener(
             "message_broadcast roomId={} senderId={} messageId={}",
             event.roomId, event.senderId, event.messageId,
         )
+    }
+
+    /** Burn-on-Read fires once when a non-sender reads the message → hard-deleted. */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun onMessageBurned(event: ChatEvent.MessageBurned) {
+        broadcaster.broadcastToRoom(
+            roomId = event.roomId,
+            message = WsOutMessage(
+                type = "message_burned",
+                data = mapOf("roomId" to event.roomId, "messageId" to event.messageId),
+            ),
+        )
+        log.info("message_burned_broadcast roomId={} messageId={}", event.roomId, event.messageId)
     }
 
     @Async

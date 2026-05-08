@@ -39,6 +39,8 @@ class MessageService(
         content: String,
         clientMessageId: String,
         ttlSeconds: Long = 0,
+        replyToMessageId: String? = null,
+        burnAfterRead: Boolean = false,
     ): Either<ChatError, Message> {
         // Idempotency: check memory/DB first
         messageRepository.findByClientMessageId(clientMessageId)?.let {
@@ -53,6 +55,16 @@ class MessageService(
             return Either.Left(ChatError.EmptyMessage())
         }
 
+        // Reply target validation: must exist and belong to the same room.
+        if (replyToMessageId != null) {
+            val replyTo = messageRepository.findById(replyToMessageId)
+                ?: return Either.Left(ChatError.MessageNotFound(replyToMessageId))
+            if (replyTo.chatRoomId != roomId) {
+                // Same error to avoid leaking room membership info.
+                return Either.Left(ChatError.MessageNotFound(replyToMessageId))
+            }
+        }
+
         val expiresAt = if (ttlSeconds > 0) Instant.now().plusSeconds(ttlSeconds) else null
 
         val message = Message(
@@ -62,6 +74,8 @@ class MessageService(
             clientMessageId = clientMessageId,
             content = content,
             expiresAt = expiresAt,
+            replyToMessageId = replyToMessageId,
+            burnAfterRead = burnAfterRead,
         )
 
         val saved = try {
@@ -91,6 +105,8 @@ class MessageService(
                 createdAt = saved.createdAt,
                 clientMessageId = clientMessageId,
                 expiresAt = saved.expiresAt,
+                replyToMessageId = saved.replyToMessageId,
+                burnAfterRead = saved.burnAfterRead,
             ),
         )
 
@@ -100,6 +116,24 @@ class MessageService(
         )
 
         return Either.Right(saved)
+    }
+
+    /**
+     * Burn-on-Read: when a non-sender reads a burn message, hard-delete it
+     * and broadcast `message_burned` to the room. Idempotent on repeat reads.
+     */
+    @Transactional
+    fun handleBurnAfterReadOnAck(messageId: String, readerId: String): Either<ChatError, Unit> {
+        val message = messageRepository.findById(messageId) ?: return Either.Right(Unit)
+        if (!message.burnAfterRead) return Either.Right(Unit)
+        if (message.senderId == readerId) return Either.Right(Unit)
+
+        messageRepository.hardDeleteByIds(listOf(messageId))
+        eventPublisher.publishEvent(
+            ChatEvent.MessageBurned(roomId = message.chatRoomId, messageId = messageId),
+        )
+        log.info("message_burned roomId={} messageId={} readerId={}", message.chatRoomId, messageId, readerId)
+        return Either.Right(Unit)
     }
 
     @Transactional
@@ -126,6 +160,10 @@ class MessageService(
                 ),
             )
         }
+
+        // Burn-on-Read: also burn the read target itself (if it's a burn-after-read msg
+        // sent by someone else).
+        handleBurnAfterReadOnAck(lastReadMessageId, userId)
 
         return Either.Right(Unit)
     }

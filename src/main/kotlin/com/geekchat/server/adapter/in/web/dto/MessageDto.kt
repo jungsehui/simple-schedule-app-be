@@ -10,6 +10,8 @@ data class MessageResponse(
     val type: String,
     val createdAt: String,
     val expiresAt: String? = null,
+    val replyToMessageId: String? = null,
+    val burnAfterRead: Boolean = false,
 ) {
     companion object {
         fun from(mws: MessageWithSender): MessageResponse = MessageResponse(
@@ -20,6 +22,8 @@ data class MessageResponse(
             type = mws.message.type.name,
             createdAt = mws.message.createdAt.toString(),
             expiresAt = mws.message.expiresAt?.toString(),
+            replyToMessageId = mws.message.replyToMessageId,
+            burnAfterRead = mws.message.burnAfterRead,
         )
     }
 }

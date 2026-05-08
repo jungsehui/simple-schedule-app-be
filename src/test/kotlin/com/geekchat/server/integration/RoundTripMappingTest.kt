@@ -84,6 +84,8 @@ class RoundTripMappingTest {
             clientMessageId = clientMsgId,
             content = "Hello, World!",
             type = MessageType.TEXT,
+            replyToMessageId = "parent-msg-id",
+            burnAfterRead = true,
         )
         val saved = messageRepo.saveAndFlush(entity)
         val loaded = messageRepo.findById(saved.id).get()
@@ -95,11 +97,13 @@ class RoundTripMappingTest {
         assertEquals(clientMsgId, domain.clientMessageId)
         assertEquals("Hello, World!", domain.content)
         assertEquals(MessageType.TEXT, domain.type)
+        assertEquals("parent-msg-id", domain.replyToMessageId)
+        assertEquals(true, domain.burnAfterRead)
         assertNull(domain.deletedAt)
     }
 
     @Test
-    fun `ChatRoomMember round-trip preserves all fields`() {
+    fun `ChatRoomMember round-trip preserves all fields including muted`() {
         val user = userRepo.saveAndFlush(UserJpaEntity(id = UUID.randomUUID().toString(), nickname = "Member"))
         val room = chatRoomRepo.saveAndFlush(ChatRoomJpaEntity(id = UUID.randomUUID().toString(), type = ChatRoomType.DIRECT))
 
@@ -107,6 +111,7 @@ class RoundTripMappingTest {
             id = UUID.randomUUID().toString(),
             user = user,
             chatRoom = room,
+            muted = true,
         )
         val saved = memberRepo.saveAndFlush(entity)
         val loaded = memberRepo.findById(saved.id).get()
@@ -115,6 +120,7 @@ class RoundTripMappingTest {
         assertEquals(entity.id, domain.id)
         assertEquals(user.id, domain.userId)
         assertEquals(room.id, domain.chatRoomId)
+        assertEquals(true, domain.muted)
         assertNotNull(domain.joinedAt)
         assertNull(domain.lastReadAt)
     }

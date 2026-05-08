@@ -113,4 +113,85 @@ class MessageServiceTest {
         assertTrue(result.isLeft)
         assertTrue((result as Either.Left).value is ChatError.MessageNotFound)
     }
+
+    // ────── Reply (M2 P0) ──────
+
+    @Test
+    fun `sendMessage with replyToMessageId succeeds when target is in same room`() {
+        val replyTo = Message(id = "m0", chatRoomId = "r1", senderId = "u2", clientMessageId = "c0", content = "Hi")
+        every { messageRepository.findByClientMessageId("cid1") } returns null
+        every { messageRepository.findById("m0") } returns replyTo
+        every { chatRoomMemberRepository.existsByUserIdAndChatRoomId("u1", "r1") } returns true
+        val msgSlot = slot<Message>()
+        every { messageRepository.save(capture(msgSlot)) } answers { msgSlot.captured }
+        every { chatRoomRepository.findById("r1") } returns ChatRoom(id = "r1", type = ChatRoomType.DIRECT)
+        every { chatRoomRepository.save(any()) } answers { firstArg() }
+
+        val result = service.sendMessage("r1", "u1", "Hello", "cid1", replyToMessageId = "m0")
+
+        assertTrue(result.isRight)
+        assertEquals("m0", msgSlot.captured.replyToMessageId)
+    }
+
+    @Test
+    fun `sendMessage with replyToMessageId fails when target does not exist`() {
+        every { messageRepository.findByClientMessageId("cid1") } returns null
+        every { chatRoomMemberRepository.existsByUserIdAndChatRoomId("u1", "r1") } returns true
+        every { messageRepository.findById("m-missing") } returns null
+
+        val result = service.sendMessage("r1", "u1", "Hello", "cid1", replyToMessageId = "m-missing")
+
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.MessageNotFound)
+    }
+
+    @Test
+    fun `sendMessage with replyToMessageId fails when target is in different room`() {
+        val replyTo = Message(id = "m0", chatRoomId = "OTHER", senderId = "u2", clientMessageId = "c0", content = "Hi")
+        every { messageRepository.findByClientMessageId("cid1") } returns null
+        every { chatRoomMemberRepository.existsByUserIdAndChatRoomId("u1", "r1") } returns true
+        every { messageRepository.findById("m0") } returns replyTo
+
+        val result = service.sendMessage("r1", "u1", "Hello", "cid1", replyToMessageId = "m0")
+
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.MessageNotFound)
+    }
+
+    // ────── Burn-on-Read (M2 spike) ──────
+
+    @Test
+    fun `markAsRead burns a burn-after-read message from another sender`() {
+        val burnMsg = Message(
+            id = "m1", chatRoomId = "r1", senderId = "u2", clientMessageId = "c1",
+            content = "self-destruct", burnAfterRead = true,
+        )
+        val member = ChatRoomMember(id = "mb1", userId = "u1", chatRoomId = "r1")
+        every { messageRepository.findById("m1") } returns burnMsg
+        every { chatRoomMemberRepository.findByUserIdAndChatRoomId("u1", "r1") } returns member
+        every { chatRoomMemberRepository.save(any()) } answers { firstArg() }
+        io.mockk.justRun { messageRepository.hardDeleteByIds(listOf("m1")) }
+
+        val result = service.markAsRead("r1", "u1", "m1")
+
+        assertTrue(result.isRight)
+        verify(exactly = 1) { messageRepository.hardDeleteByIds(listOf("m1")) }
+    }
+
+    @Test
+    fun `markAsRead does NOT burn the sender's own burn-after-read message`() {
+        val burnMsg = Message(
+            id = "m1", chatRoomId = "r1", senderId = "u1", clientMessageId = "c1",
+            content = "self-destruct", burnAfterRead = true,
+        )
+        val member = ChatRoomMember(id = "mb1", userId = "u1", chatRoomId = "r1")
+        every { messageRepository.findById("m1") } returns burnMsg
+        every { chatRoomMemberRepository.findByUserIdAndChatRoomId("u1", "r1") } returns member
+        every { chatRoomMemberRepository.save(any()) } answers { firstArg() }
+
+        val result = service.markAsRead("r1", "u1", "m1")
+
+        assertTrue(result.isRight)
+        verify(exactly = 0) { messageRepository.hardDeleteByIds(any()) }
+    }
 }
