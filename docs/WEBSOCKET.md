@@ -35,7 +35,9 @@ Client: new WebSocket(`wss://api.<domain>/ws?token=<JWT_ACCESS_TOKEN>`)
     "roomId": "uuid",
     "content": "Hello!",
     "clientMessageId": "uuid",
-    "ttlSeconds": 0
+    "ttlSeconds": 0,
+    "replyToMessageId": null,
+    "burnAfterRead": false
   }
 }
 ```
@@ -78,11 +80,15 @@ ChatRoomMember.lastReadAt 갱신 (forward-only). 모든 멤버에게 `read_updat
     "id": "uuid", "roomId": "uuid", "senderId": "uuid",
     "content": "Hello!", "type": "TEXT",
     "createdAt": "2026-04-15T...",
-    "expiresAt": null
+    "expiresAt": null,
+    "replyToMessageId": null,
+    "burnAfterRead": false
   }
 }
 ```
 방 모든 멤버에게 (발신자 포함). 트랜잭션 AFTER_COMMIT 후 비동기.
+- `replyToMessageId` (M2 P0): null이 아니면 해당 메시지에 대한 답장. 클라이언트는 인용 UI 표시.
+- `burnAfterRead` (M2 spike): true면 발신자 외의 누군가가 mark_read하는 순간 hard delete + `message_burned` 브로드캐스트.
 
 ### 4.3 typing_indicator
 ```json
@@ -114,7 +120,14 @@ ChatRoomMember.lastReadAt 갱신 (forward-only). 모든 멤버에게 `read_updat
 ```
 1분마다 hard delete된 메시지 ID 배치. 클라이언트는 해당 메시지 UI 제거.
 
-### 4.8 error
+### 4.8 message_burned (M2 spike — Burn-on-Read)
+```json
+{ "type": "message_burned", "data": { "roomId": "uuid", "messageId": "uuid" } }
+```
+`burnAfterRead=true` 메시지를 발신자가 아닌 멤버가 read한 직후 발행. 해당 메시지는 DB에서 hard delete됨.
+클라이언트는 받자마자 UI에서 메시지 제거. 송신자에게도 동일하게 브로드캐스트되어 양쪽 모두에서 사라진다.
+
+### 4.9 error
 ```json
 { "type": "error", "data": { "code": "TOKEN_EXPIRED", "message": "Token expired" } }
 ```

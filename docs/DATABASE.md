@@ -91,6 +91,7 @@ CREATE TABLE chat_room_member (
   chat_room_id  VARCHAR(36)  NOT NULL,
   joined_at     DATETIME(6)  NOT NULL,
   last_read_at  DATETIME(6)          NULL,
+  muted         TINYINT(1)   NOT NULL DEFAULT 0,    -- M2 P0: 알림 끄기
   created_at    DATETIME(6)  NOT NULL,
   updated_at    DATETIME(6)  NOT NULL,
   CONSTRAINT uk_member UNIQUE (user_id, chat_room_id),
@@ -102,18 +103,21 @@ CREATE TABLE chat_room_member (
 ### 3.6 `message`
 ```sql
 CREATE TABLE message (
-  id                VARCHAR(36)  NOT NULL PRIMARY KEY,
-  chat_room_id      VARCHAR(36)  NOT NULL,
-  sender_id         VARCHAR(36)  NOT NULL,
-  client_message_id VARCHAR(255) NOT NULL UNIQUE,
-  content           TEXT         NOT NULL,
-  type              VARCHAR(20)  NOT NULL,         -- TEXT | SYSTEM
-  expires_at        DATETIME(6)          NULL,    -- 자동삭제 메시지
-  created_at        DATETIME(6)  NOT NULL,
-  updated_at        DATETIME(6)  NOT NULL,
-  deleted_at        DATETIME(6)          NULL,
+  id                   VARCHAR(36)  NOT NULL PRIMARY KEY,
+  chat_room_id         VARCHAR(36)  NOT NULL,
+  sender_id            VARCHAR(36)  NOT NULL,
+  client_message_id    VARCHAR(255) NOT NULL UNIQUE,
+  content              TEXT         NOT NULL,
+  type                 VARCHAR(20)  NOT NULL,            -- TEXT | SYSTEM
+  expires_at           DATETIME(6)          NULL,        -- 자동삭제 메시지
+  reply_to_message_id  VARCHAR(36)          NULL,        -- M2 P0: 답장 대상
+  burn_after_read      TINYINT(1)   NOT NULL DEFAULT 0,  -- M2 spike: Burn-on-Read
+  created_at           DATETIME(6)  NOT NULL,
+  updated_at           DATETIME(6)  NOT NULL,
+  deleted_at           DATETIME(6)          NULL,
   INDEX idx_message_room_created (chat_room_id, created_at DESC),
   INDEX idx_message_expires_at (expires_at),
+  INDEX idx_message_reply_to (reply_to_message_id),
   CONSTRAINT fk_message_room FOREIGN KEY (chat_room_id) REFERENCES chat_room(id),
   CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES users(id)
 ) ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

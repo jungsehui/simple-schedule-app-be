@@ -175,11 +175,21 @@ OAuth 후 닉네임 입력 완료.
       "id": "uuid", "senderId": "uuid", "senderNickname": "Alice",
       "content": "Hello!", "type": "TEXT",
       "createdAt": "2026-04-15T...",
-      "expiresAt": null
+      "expiresAt": null,
+      "replyToMessageId": null,
+      "burnAfterRead": false
     }
   ]
   ```
 - **Errors**: 403 (NotRoomMember), 404 (RoomNotFound), 400 (Invalid cursor)
+
+### 3.4 [ROOM] PATCH /api/rooms/{id}/mute
+방 알림 끄기/켜기 (M2 P0).
+- **Auth**: 필요 (방 멤버만)
+- **Request**: `{ "muted": true }`
+- **Response 200**: `{ "muted": true }`
+- **Errors**: 403 (NotRoomMember)
+- 효과: 사용자별 `ChatRoomMember.muted` 토글. 푸시 알림 라우팅 시 사용 (M2 P1).
 
 ## 4. Invite Links
 
