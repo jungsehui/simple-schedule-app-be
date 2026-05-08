@@ -23,6 +23,9 @@
     "Stop": [
       {
         "command": "./gradlew test"
+      },
+      {
+        "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/check-stale-docs.sh"
       }
     ]
   }
