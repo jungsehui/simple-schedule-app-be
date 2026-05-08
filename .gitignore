@@ -8,7 +8,7 @@ build/
 *.iml
 *.iws
 *.ipr
-out/
+/out/
 .vscode/
 
 # Environment / secrets

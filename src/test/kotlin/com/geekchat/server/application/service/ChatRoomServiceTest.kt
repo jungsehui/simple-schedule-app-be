@@ -105,4 +105,29 @@ class ChatRoomServiceTest {
         assertTrue(result.isLeft)
         assertTrue((result as Either.Left).value is ChatError.UserNotFound)
     }
+
+    // ────── Mute Room (M2 P0) ──────
+
+    @Test
+    fun `setRoomMuted succeeds for member`() {
+        val member = ChatRoomMember(id = "m1", userId = "u1", chatRoomId = "r1", muted = false)
+        every { chatRoomMemberRepository.findByUserIdAndChatRoomId("u1", "r1") } returns member
+        val saved = slot<ChatRoomMember>()
+        every { chatRoomMemberRepository.save(capture(saved)) } answers { saved.captured }
+
+        val result = service.setRoomMuted("u1", "r1", true)
+
+        assertTrue(result.isRight)
+        assertTrue(saved.captured.muted)
+    }
+
+    @Test
+    fun `setRoomMuted fails when not member`() {
+        every { chatRoomMemberRepository.findByUserIdAndChatRoomId("u1", "r1") } returns null
+
+        val result = service.setRoomMuted("u1", "r1", true)
+
+        assertTrue(result.isLeft)
+        assertTrue((result as Either.Left).value is ChatError.NotRoomMember)
+    }
 }

@@ -34,6 +34,14 @@ class ChatRoomService(
     private val userRepository: UserRepository,
     private val webSocketBroadcaster: WebSocketBroadcaster,
 ) {
+    @Transactional
+    fun setRoomMuted(userId: String, roomId: String, muted: Boolean): Either<ChatError, Unit> {
+        val member = chatRoomMemberRepository.findByUserIdAndChatRoomId(userId, roomId)
+            ?: return Either.Left(ChatError.NotRoomMember(userId, roomId))
+        chatRoomMemberRepository.save(member.withMuted(muted))
+        return Either.Right(Unit)
+    }
+
     fun getRoomsForUser(userId: String): Either<ChatError, List<RoomWithMembers>> {
         val rooms = chatRoomRepository.findAllByUserId(userId)
 

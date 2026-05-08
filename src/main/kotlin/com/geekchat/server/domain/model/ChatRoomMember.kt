@@ -8,6 +8,7 @@ data class ChatRoomMember(
     val chatRoomId: String,
     val joinedAt: Instant = Instant.now(),
     val lastReadAt: Instant? = null,
+    val muted: Boolean = false,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 ) {
@@ -17,4 +18,7 @@ data class ChatRoomMember(
         }
         return copy(lastReadAt = readAt, updatedAt = Instant.now())
     }
+
+    fun withMuted(value: Boolean): ChatRoomMember =
+        if (muted == value) this else copy(muted = value, updatedAt = Instant.now())
 }

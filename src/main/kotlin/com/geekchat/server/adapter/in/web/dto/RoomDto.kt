@@ -13,6 +13,10 @@ data class CreateRoomRequest(
     val ttlHours: Long? = null,
 )
 
+data class MuteRoomRequest(
+    val muted: Boolean = false,
+)
+
 // --- Responses ---
 
 data class RoomListResponse(

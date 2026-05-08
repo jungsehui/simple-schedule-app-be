@@ -3,6 +3,7 @@ package com.geekchat.server.adapter.`in`.web
 import com.geekchat.server.adapter.`in`.web.dto.CreateRoomRequest
 import com.geekchat.server.adapter.`in`.web.dto.CreateRoomResponse
 import com.geekchat.server.adapter.`in`.web.dto.MessageResponse
+import com.geekchat.server.adapter.`in`.web.dto.MuteRoomRequest
 import com.geekchat.server.adapter.`in`.web.dto.RoomListResponse
 import com.geekchat.server.adapter.`in`.web.dto.toResponseEntity
 import com.geekchat.server.application.port.out.PaginationDirection
@@ -12,6 +13,7 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -46,6 +48,16 @@ class RoomController(
             onRight = { room -> ResponseEntity.ok(CreateRoomResponse.from(room)) },
         )
     }
+
+    @PatchMapping("/{id}/mute")
+    fun setMute(
+        @AuthenticationPrincipal userId: String,
+        @PathVariable id: String,
+        @Valid @RequestBody request: MuteRoomRequest,
+    ): ResponseEntity<*> = chatRoomService.setRoomMuted(userId, id, request.muted).fold(
+        onLeft = { it.toResponseEntity() },
+        onRight = { ResponseEntity.ok(mapOf("muted" to request.muted)) },
+    )
 
     @GetMapping("/{id}/messages")
     fun getMessages(
