@@ -41,12 +41,30 @@ public class Schedule extends SoftDeletedDomain {
     @Column(name = "memo")
     private String memo;
 
+    /**
+     * 3차 방어선: 낙관적 락(Optimistic Lock)을 위한 버전 필드.
+     * <p>
+     * JPA 제약상 {@code @Version}은 엔티티 계층의 <b>루트(root)</b>에만 존재할 수 있다.
+     * Schedule이 {@code @Inheritance(JOINED)} 계층의 root entity이므로,
+     * 여기에 두어 모든 자식 엔티티(Lecture, SpecialLecture, Consultation)가 함께 낙관적 락 보호를 받는다.
+     * <p>
+     * JPA가 UPDATE 시 {@code WHERE version = ?}을 자동으로 추가한다.
+     * 다른 트랜잭션이 먼저 commit했다면 UPDATE 결과가 0행 → {@link jakarta.persistence.OptimisticLockException} 발생.
+     * <p>
+     * 정상 시(2차 분산 락이 직렬화 보장): 버전 체크 비용만 추가, 충돌 없음.
+     * 비정상 시(분산 락 만료/네트워크 파티션): 동시 수정을 감지하여 안전 실패.
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     public Schedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
         validatePastTime(startTime, endTime);
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
         this.memo = memo;
+        this.version = 0L;
     }
 
     protected void updateSchedule(Schedule schedule) {
