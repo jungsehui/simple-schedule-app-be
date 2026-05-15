@@ -49,7 +49,10 @@ drift 발견 → 사용자에게 어느 쪽이 정답인지 물어보고 다른 
 
 ### 3. HANDOFF.md 갱신 (필수)
 
-`HANDOFF.md`는 워크스페이스 루트(`~/Work/geek-chat/HANDOFF.md`)에 둔다.
+`HANDOFF.md` 정식 위치는 **server-v2 repo 루트**(`geek-chat-server-v2/HANDOFF.md`)다 — clone 시 함께 따라오도록. 워크스페이스 루트(`~/Work/geek-chat/HANDOFF.md`)는 이 파일을 가리키는 포인터 스텁만 유지한다.
+
+> 보안: HANDOFF는 PUBLIC repo에 포함된다. 사설 IP / SSH 유저 / VPN 피어 등 인프라 자격증명은 절대 기록하지 않는다 (§11은 비-기밀 항목만).
+
 다음 섹션을 매번 갱신:
 
 ```markdown
