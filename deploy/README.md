@@ -1,4 +1,6 @@
-# Deploy — Friend's cloud (10.64.212.20)
+# Deploy — 배포 호스트
+
+> 실제 호스트/SSH/WireGuard 값은 PUBLIC repo 보안상 placeholder 마스킹. 비공개 채널 참조.
 
 빠른 참조. 상세 절차는 `../docs/DEPLOYMENT.md` 참고.
 
@@ -6,7 +8,7 @@
 
 ```bash
 # 개발 머신에서: WireGuard UP
-wg-quick up shjung || open -a WireGuard
+wg-quick up <WG_TUNNEL> || open -a WireGuard
 
 # SSH 접속
 ssh geekchat-host

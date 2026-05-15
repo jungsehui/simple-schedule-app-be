@@ -1,14 +1,17 @@
-# Deployment Runbook — 친구 클라우드 (10.64.212.20)
+# Deployment Runbook — 배포 호스트
+
+> 실제 호스트 IP / SSH 유저 / WireGuard 엔드포인트는 PUBLIC repo 보안상
+> placeholder로 마스킹됨. 실제 값은 비공개 채널/로컬 메모 참조.
 
 ## 1. 인프라 개요
 
 | 항목 | 값 |
 |---|---|
-| Host | `10.64.212.20` (private, VPN 내부) |
+| Host | `<DEPLOY_HOST>` (private, VPN 내부 — 실제 값 비공개 채널) |
 | 스펙 | 4 vCPU, 8 GB RAM |
 | 외부 노출 포트 | **80, 443만** (다른 포트 차단) |
 | OS | Linux (Docker 호환) |
-| VPN | WireGuard (`shjung.conf`, peer `dokalab.iptime.org:40773`) |
+| VPN | WireGuard (`<WG_CONFIG>`, peer `<VPN_PEER_ENDPOINT>` — 비공개 채널) |
 | SSH | 등록된 공개키로만 (id_rsa.pub) |
 | TLS | Let's Encrypt (certbot --webroot) |
 | DNS | 친구가 A 레코드 → 호스트 public IP로 가리킴 |
@@ -19,16 +22,16 @@
 
 macOS:
 - App Store에서 **WireGuard** 설치
-- `shjung.conf` 파일 import → "shjung" 터널 활성화
+- `<WG_CONFIG>` 파일 import → "<WG_TUNNEL>" 터널 활성화
 - 확인: `ifconfig | grep utun` → wg 인터페이스 존재
-- 호스트 ping 테스트: `ping -c 3 10.64.212.20`
+- 호스트 ping 테스트: `ping -c 3 <DEPLOY_HOST>`
 
 ### 2.2 SSH 첫 접속
 
 ```bash
 # ~/.ssh/config 추가
 Host geekchat-host
-    HostName 10.64.212.20
+    HostName <DEPLOY_HOST>
     User <YOUR_USERNAME>      # 친구가 만들어준 리눅스 계정
     IdentityFile ~/.ssh/id_rsa
     ServerAliveInterval 30    # WireGuard 끊김 대비
@@ -126,7 +129,7 @@ curl https://api.<domain>/health
 
 ```bash
 # 개발 머신: WireGuard UP 확인
-wg show shjung    # 최근 handshake 있는지 확인 (없으면 터널 재시작)
+wg show <WG_TUNNEL>    # 최근 handshake 있는지 확인 (없으면 터널 재시작)
 
 # 배포
 ssh geekchat-host '
@@ -235,7 +238,7 @@ docker compose ps                   # 컨테이너 상태
 
 ```bash
 # WG 상태
-wg show shjung
+wg show <WG_TUNNEL>
 
 # 호스트 도커 상태
 ssh geekchat-host 'docker compose -f /srv/geekchat/server-v2/docker-compose.yml ps'

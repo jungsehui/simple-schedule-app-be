@@ -52,7 +52,7 @@ cd ~/Work/geek-chat/geek-chat-server && git status --porcelain
 
 ### 7. WireGuard VPN 연결 (원격 배포 시)
 ```bash
-wg show shjung 2>&1 | grep -E "latest handshake|peer"
+wg show <WG_TUNNEL> 2>&1 | grep -E "latest handshake|peer"
 # 최근 handshake 있어야 ssh 가능
 ```
 
