@@ -110,9 +110,23 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 
 ## 진행 상태
 
+브랜치: `migration/modular-monolith` (로컬, 미push)
+
 - ✅ 코드베이스 매핑 (`.planning/codebase/` 8개 문서)
-- ✅ 타깃 스택 조사 + Boot 경로 결정
-- ⏳ Phase 0 진행 중
+- ✅ 타깃 스택 조사 + Boot 경로 결정 (Boot 4.1 + AI 2.0)
+- ⏳ **Phase 0 진행 중** — 112 tests green, bootRun(local) 검증됨
+  - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
+  - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`
+  - ✅ 0.4a dev-login → `@Profile("dev","local")` DevAuthController (prod 부재) — commit `975480e`
+  - ✅ 0.4b JWT secret fail-fast (기본값 제거 + ≥32B 검증) — commit `975480e`
+  - ✅ 0.7 GitHub Actions CI (`.github/workflows/ci.yml`) — commit `f7fd58b`
+  - ⬜ 0.3 bootRun 문서화 (README/CLAUDE.md)
+  - ⬜ 0.5 prod `lazy-initialization: false` + `@Async` 바운디드 executor
+  - ⬜ 0.6 characterization 테스트 (OAuth 상태머신 / WS 이벤트·브로드캐스트 / 스케줄러)
+  - ⬜ 0.4c content를 `ChatEvent.MessageSent`에서 제거 (0.6 선행 필요 — async 회귀 위험)
+
+> 참고: 로컬 실행 프로필은 `dev`가 아닌 **`local`** (`dev`는 통합 테스트와 공유하는 JPA 시맨틱 전용).
+> 실행: `docker compose -f docker-compose.dev.yml up -d` → `./gradlew bootRun --args='--spring.profiles.active=local'`
 
 ## 핵심 원칙 (마이그레이션 내내)
 
