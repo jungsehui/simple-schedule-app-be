@@ -50,7 +50,8 @@ server:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-32-characters-long}
+    # No default — prod MUST provide JWT_SECRET (>= 32 bytes) or the app fails to start.
+    secret: ${JWT_SECRET}
     access-token-expiry: 15m
     refresh-token-expiry-days: 14
   frontend-url: ${FRONTEND_URL:http://localhost:3000}

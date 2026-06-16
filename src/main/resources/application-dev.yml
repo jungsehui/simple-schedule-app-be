@@ -1,13 +1,9 @@
-# dev 프로필 — 로컬 개발. application.yml(기본) 위에 병합됨.
-# 실행: ./gradlew bootRun --args='--spring.profiles.active=dev'
-# DB: docker-compose.dev.yml의 MySQL (docker compose -f docker-compose.dev.yml up -d)
-# 자격증명은 docker-compose.dev.yml의 MYSQL_USER/MYSQL_PASSWORD와 일치 — env 설정 없이 즉시 실행.
+# dev 프로필 — JPA 개발 시맨틱(ddl update + show-sql)만.
+# 통합 테스트(@ActiveProfiles("test","dev"))와 공유되므로, datasource/secret 같은
+# 환경별 연결 정보는 여기 두지 않는다 (테스트의 H2 datasource / test secret을 덮어쓰면 안 됨).
+# 로컬에서 앱을 실행할 땐 자기완결 `local` 프로필 사용:
+#   ./gradlew bootRun --args='--spring.profiles.active=local'
 spring:
-  datasource:
-    # docker-compose.dev.yml maps host 3310 → container 3306. Override DB_PORT to use a different port.
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3310}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
-    username: ${DB_USERNAME:geekchat}
-    password: ${DB_PASSWORD:geekchat}
   jpa:
     hibernate:
       ddl-auto: update

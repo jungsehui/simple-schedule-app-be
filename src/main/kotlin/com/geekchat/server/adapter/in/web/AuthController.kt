@@ -1,7 +1,6 @@
 package com.geekchat.server.adapter.`in`.web
 
 import com.geekchat.server.adapter.`in`.web.dto.CompleteOAuthSignupRequest
-import com.geekchat.server.adapter.`in`.web.dto.DevLoginResponse
 import com.geekchat.server.adapter.`in`.web.dto.ErrorResponse
 import com.geekchat.server.adapter.`in`.web.dto.LinkProviderRequest
 import com.geekchat.server.adapter.`in`.web.dto.LoginRequest
@@ -19,8 +18,6 @@ import com.geekchat.server.application.service.SignupCommand
 import com.geekchat.server.domain.model.AuthProvider
 import com.geekchat.server.infrastructure.config.AppProperties
 import jakarta.validation.Valid
-import org.springframework.core.env.Environment
-import org.springframework.core.env.Profiles
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -38,7 +35,6 @@ import java.net.URI
 @RequestMapping("/auth")
 class AuthController(
     private val authService: AuthService,
-    private val environment: Environment,
     private val appProperties: AppProperties,
 ) {
     // ───────────── Local (ID/PW) ─────────────
@@ -167,26 +163,6 @@ class AuthController(
     }
 
     // ───────────── Existing endpoints ─────────────
-
-    @GetMapping("/dev-login")
-    fun devLogin(@RequestParam name: String?): ResponseEntity<*> {
-        if (!environment.acceptsProfiles(Profiles.of("dev"))) {
-            return ResponseEntity.notFound().build<Unit>()
-        }
-        if (name.isNullOrBlank()) {
-            return ResponseEntity.badRequest().body(
-                ErrorResponse(statusCode = 400, message = "name query parameter is required"),
-            )
-        }
-        return authService.devLogin(name).fold(
-            onLeft = { it.toResponseEntity() },
-            onRight = { result ->
-                ResponseEntity.ok(
-                    DevLoginResponse(result.accessToken, result.refreshToken, result.message),
-                )
-            },
-        )
-    }
 
     @PostMapping("/refresh")
     fun refresh(@Valid @RequestBody request: RefreshTokenRequest): ResponseEntity<*> {

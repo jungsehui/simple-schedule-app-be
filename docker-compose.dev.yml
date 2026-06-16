@@ -3,7 +3,7 @@
 #
 # Usage:
 #   1. docker compose -f docker-compose.dev.yml up -d        # start MySQL
-#   2. ./gradlew bootRun --args='--spring.profiles.active=dev'
+#   2. ./gradlew bootRun --args='--spring.profiles.active=local'
 #   3. docker compose -f docker-compose.dev.yml down          # stop (data kept)
 #      docker compose -f docker-compose.dev.yml down -v       # stop + wipe data
 #
