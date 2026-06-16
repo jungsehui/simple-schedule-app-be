@@ -1,0 +1,17 @@
+# dev 프로필 — 로컬 개발. application.yml(기본) 위에 병합됨.
+# 실행: ./gradlew bootRun --args='--spring.profiles.active=dev'
+# DB: docker-compose.dev.yml의 MySQL (docker compose -f docker-compose.dev.yml up -d)
+# 자격증명은 docker-compose.dev.yml의 MYSQL_USER/MYSQL_PASSWORD와 일치 — env 설정 없이 즉시 실행.
+spring:
+  datasource:
+    # docker-compose.dev.yml maps host 3310 → container 3306. Override DB_PORT to use a different port.
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3310}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
+    username: ${DB_USERNAME:geekchat}
+    password: ${DB_PASSWORD:geekchat}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
