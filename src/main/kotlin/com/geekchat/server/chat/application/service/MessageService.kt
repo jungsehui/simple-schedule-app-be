@@ -1,4 +1,5 @@
 package com.geekchat.server.chat.application.service
+import com.geekchat.server.chat.domain.event.*
 
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.room.domain.repository.ChatRoomRepository
@@ -7,7 +8,6 @@ import com.geekchat.server.chat.domain.repository.PaginationDirection
 import com.geekchat.server.user.domain.repository.UserRepository
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
-import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.chat.domain.model.Message
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -96,7 +96,7 @@ class MessageService(
 
         // Publish domain event (broadcast happens AFTER_COMMIT)
         eventPublisher.publishEvent(
-            ChatEvent.MessageSent(
+            MessageSent(
                 messageId = saved.id,
                 roomId = roomId,
                 senderId = senderId,
@@ -130,7 +130,7 @@ class MessageService(
 
         messageRepository.hardDeleteByIds(listOf(messageId))
         eventPublisher.publishEvent(
-            ChatEvent.MessageBurned(roomId = message.chatRoomId, messageId = messageId),
+            MessageBurned(roomId = message.chatRoomId, messageId = messageId),
         )
         log.info("message_burned roomId={} messageId={} readerId={}", message.chatRoomId, messageId, readerId)
         return Either.Right(Unit)
@@ -153,7 +153,7 @@ class MessageService(
             chatRoomMemberRepository.save(updated)
 
             eventPublisher.publishEvent(
-                ChatEvent.MessageRead(
+                MessageRead(
                     roomId = roomId,
                     userId = userId,
                     lastReadAt = message.createdAt,

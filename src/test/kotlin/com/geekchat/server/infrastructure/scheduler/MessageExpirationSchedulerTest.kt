@@ -1,8 +1,8 @@
 package com.geekchat.server.infrastructure.scheduler
+import com.geekchat.server.chat.domain.event.*
 
 import com.geekchat.server.chat.domain.repository.MessageRepository
 import com.geekchat.server.chat.infrastructure.scheduler.MessageExpirationScheduler
-import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.chat.domain.model.Message
 import io.mockk.every
 import io.mockk.just
@@ -38,7 +38,7 @@ class MessageExpirationSchedulerTest {
         scheduler.cleanupExpiredMessages()
 
         verify { messageRepository.hardDeleteByIds(listOf("m1", "m2")) }
-        verify { eventPublisher.publishEvent(any<ChatEvent.MessageExpired>()) }
+        verify { eventPublisher.publishEvent(any<MessageExpired>()) }
     }
 
     @Test
@@ -52,7 +52,7 @@ class MessageExpirationSchedulerTest {
         scheduler.cleanupExpiredMessages()
 
         verify(exactly = 2) { messageRepository.hardDeleteByIds(any()) }
-        verify(exactly = 2) { eventPublisher.publishEvent(any<ChatEvent.MessageExpired>()) }
+        verify(exactly = 2) { eventPublisher.publishEvent(any<MessageExpired>()) }
     }
 
     @Test

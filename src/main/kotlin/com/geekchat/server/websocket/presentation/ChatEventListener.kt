@@ -1,7 +1,8 @@
 package com.geekchat.server.websocket.presentation
+import com.geekchat.server.room.domain.event.*
+import com.geekchat.server.chat.domain.event.*
 
 import com.geekchat.server.websocket.application.port.out.WebSocketBroadcaster
-import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.room.domain.event.RoomMemberJoined
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -29,7 +30,7 @@ class ChatEventListener(
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun onMessageSent(event: ChatEvent.MessageSent) {
+    fun onMessageSent(event: MessageSent) {
         broadcaster.broadcastToRoom(
             roomId = event.roomId,
             message = WsOutMessage(
@@ -57,7 +58,7 @@ class ChatEventListener(
     /** Burn-on-Read fires once when a non-sender reads the message → hard-deleted. */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun onMessageBurned(event: ChatEvent.MessageBurned) {
+    fun onMessageBurned(event: MessageBurned) {
         broadcaster.broadcastToRoom(
             roomId = event.roomId,
             message = WsOutMessage(
@@ -70,7 +71,7 @@ class ChatEventListener(
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun onMessageRead(event: ChatEvent.MessageRead) {
+    fun onMessageRead(event: MessageRead) {
         broadcaster.broadcastToRoom(
             roomId = event.roomId,
             message = WsOutMessage(
@@ -86,7 +87,7 @@ class ChatEventListener(
 
     @Async
     @EventListener
-    fun onRoomExpiring(event: ChatEvent.RoomExpiring) {
+    fun onRoomExpiring(event: RoomExpiring) {
         broadcaster.broadcastToRoom(
             roomId = event.roomId,
             message = WsOutMessage(
@@ -103,7 +104,7 @@ class ChatEventListener(
 
     @Async
     @EventListener
-    fun onRoomExpired(event: ChatEvent.RoomExpired) {
+    fun onRoomExpired(event: RoomExpired) {
         broadcaster.broadcastToRoom(
             roomId = event.roomId,
             message = WsOutMessage(
@@ -116,7 +117,7 @@ class ChatEventListener(
 
     @Async
     @EventListener
-    fun onMessageExpired(event: ChatEvent.MessageExpired) {
+    fun onMessageExpired(event: MessageExpired) {
         broadcaster.broadcastToRoom(
             roomId = event.roomId,
             message = WsOutMessage(

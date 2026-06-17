@@ -1,7 +1,8 @@
 package com.geekchat.server.websocket.presentation
+import com.geekchat.server.room.domain.event.*
+import com.geekchat.server.chat.domain.event.*
 
 import com.geekchat.server.websocket.application.port.out.WebSocketBroadcaster
-import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.chat.domain.model.MessageType
 import io.mockk.mockk
 import io.mockk.slot
@@ -40,7 +41,7 @@ class ChatEventListenerTest {
     fun `onMessageSent broadcasts new_message with all required fields`() {
         val createdAt = Instant.parse("2024-01-15T10:00:00Z")
         val expiresAt = Instant.parse("2024-01-15T10:05:00Z")
-        val event = ChatEvent.MessageSent(
+        val event = MessageSent(
             messageId = "msg-1",
             roomId = "room-1",
             senderId = "user-1",
@@ -78,7 +79,7 @@ class ChatEventListenerTest {
 
     @Test
     fun `onMessageSent with nullable optional fields broadcasts null for expiresAt and replyToMessageId`() {
-        val event = ChatEvent.MessageSent(
+        val event = MessageSent(
             messageId = "msg-2",
             roomId = "room-2",
             senderId = "user-2",
@@ -105,7 +106,7 @@ class ChatEventListenerTest {
 
     @Test
     fun `onMessageSent with SYSTEM messageType broadcasts type as SYSTEM`() {
-        val event = ChatEvent.MessageSent(
+        val event = MessageSent(
             messageId = "msg-sys",
             roomId = "room-3",
             senderId = "system",
@@ -133,7 +134,7 @@ class ChatEventListenerTest {
 
     @Test
     fun `onMessageBurned broadcasts message_burned with roomId and messageId`() {
-        val event = ChatEvent.MessageBurned(roomId = "room-1", messageId = "msg-burn")
+        val event = MessageBurned(roomId = "room-1", messageId = "msg-burn")
 
         val msgSlot = slot<WsOutMessage>()
         listener.onMessageBurned(event)
@@ -158,7 +159,7 @@ class ChatEventListenerTest {
     @Test
     fun `onMessageRead broadcasts read_update with roomId, userId, lastReadAt`() {
         val lastReadAt = Instant.parse("2024-03-01T12:30:00Z")
-        val event = ChatEvent.MessageRead(roomId = "room-4", userId = "user-4", lastReadAt = lastReadAt)
+        val event = MessageRead(roomId = "room-4", userId = "user-4", lastReadAt = lastReadAt)
 
         val msgSlot = slot<WsOutMessage>()
         listener.onMessageRead(event)
@@ -184,7 +185,7 @@ class ChatEventListenerTest {
     @Test
     fun `onMessageExpired broadcasts message_expired with roomId and messageIds list`() {
         val messageIds = listOf("msg-a", "msg-b", "msg-c")
-        val event = ChatEvent.MessageExpired(roomId = "room-5", messageIds = messageIds)
+        val event = MessageExpired(roomId = "room-5", messageIds = messageIds)
 
         val msgSlot = slot<WsOutMessage>()
         listener.onMessageExpired(event)
@@ -204,7 +205,7 @@ class ChatEventListenerTest {
 
     @Test
     fun `onMessageExpired with empty messageIds list broadcasts empty list`() {
-        val event = ChatEvent.MessageExpired(roomId = "room-6", messageIds = emptyList())
+        val event = MessageExpired(roomId = "room-6", messageIds = emptyList())
 
         val msgSlot = slot<WsOutMessage>()
         listener.onMessageExpired(event)
@@ -225,7 +226,7 @@ class ChatEventListenerTest {
     @Test
     fun `onRoomExpiring broadcasts room_expiring with roomId, roomName, expiresAt`() {
         val expiresAt = Instant.parse("2024-06-01T00:00:00Z")
-        val event = ChatEvent.RoomExpiring(roomId = "room-7", roomName = "Dev Chat", expiresAt = expiresAt)
+        val event = RoomExpiring(roomId = "room-7", roomName = "Dev Chat", expiresAt = expiresAt)
 
         val msgSlot = slot<WsOutMessage>()
         listener.onRoomExpiring(event)
@@ -247,7 +248,7 @@ class ChatEventListenerTest {
     @Test
     fun `onRoomExpiring with null roomName broadcasts null roomName`() {
         val expiresAt = Instant.parse("2024-06-01T00:00:00Z")
-        val event = ChatEvent.RoomExpiring(roomId = "room-8", roomName = null, expiresAt = expiresAt)
+        val event = RoomExpiring(roomId = "room-8", roomName = null, expiresAt = expiresAt)
 
         val msgSlot = slot<WsOutMessage>()
         listener.onRoomExpiring(event)
@@ -267,7 +268,7 @@ class ChatEventListenerTest {
 
     @Test
     fun `onRoomExpired broadcasts room_expired with roomId and roomName`() {
-        val event = ChatEvent.RoomExpired(roomId = "room-9", roomName = "Old Room")
+        val event = RoomExpired(roomId = "room-9", roomName = "Old Room")
 
         val msgSlot = slot<WsOutMessage>()
         listener.onRoomExpired(event)

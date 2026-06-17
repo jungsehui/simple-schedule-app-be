@@ -1,11 +1,11 @@
 package com.geekchat.server.websocket.presentation
+import com.geekchat.server.websocket.domain.event.*
 
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.chat.application.service.MessageService
 import com.geekchat.server.common.error.Either
-import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.auth.infrastructure.security.JwtTokenProvider
 import com.geekchat.server.websocket.infrastructure.WebSocketBroadcasterAdapter
 import com.geekchat.server.websocket.infrastructure.WebSocketSessionManager
@@ -70,7 +70,7 @@ class ChatWebSocketHandler(
         val members = chatRoomMemberRepository.findAllByUserId(userId)
         members.forEach { member -> sessionManager.joinRoom(userId, member.chatRoomId) }
 
-        eventPublisher.publishEvent(ChatEvent.UserConnected(userId, session.id))
+        eventPublisher.publishEvent(UserConnected(userId, session.id))
 
         log.info(
             "ws_connected userId={} socketId={} roomCount={} totalConnections={}",
@@ -83,7 +83,7 @@ class ChatWebSocketHandler(
         sessionManager.unregister(session)
 
         if (userId != null) {
-            eventPublisher.publishEvent(ChatEvent.UserDisconnected(userId, session.id))
+            eventPublisher.publishEvent(UserDisconnected(userId, session.id))
             log.info(
                 "ws_disconnected userId={} socketId={} totalConnections={}",
                 userId, session.id, sessionManager.getTotalConnections(),

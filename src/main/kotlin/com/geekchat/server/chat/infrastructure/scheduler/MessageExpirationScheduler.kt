@@ -1,7 +1,7 @@
 package com.geekchat.server.chat.infrastructure.scheduler
+import com.geekchat.server.chat.domain.event.*
 
 import com.geekchat.server.chat.domain.repository.MessageRepository
-import com.geekchat.server.domain.event.ChatEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
@@ -30,7 +30,7 @@ class MessageExpirationScheduler(
             val ids = messages.map { it.id }
             messageRepository.hardDeleteByIds(ids)
 
-            eventPublisher.publishEvent(ChatEvent.MessageExpired(roomId = roomId, messageIds = ids))
+            eventPublisher.publishEvent(MessageExpired(roomId = roomId, messageIds = ids))
             log.info("messages_expired roomId={} count={}", roomId, ids.size)
         }
     }
