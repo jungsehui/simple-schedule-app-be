@@ -89,9 +89,3 @@ data class SignupTokenResponse(
     val signupToken: String,
     val suggestedNickname: String,
 )
-
-data class ErrorResponse(
-    val statusCode: Int,
-    val message: String,
-    val error: String? = null,
-)

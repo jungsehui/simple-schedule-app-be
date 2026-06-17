@@ -3,7 +3,7 @@ package com.geekchat.server.adapter.`in`.web
 import com.geekchat.server.adapter.`in`.web.dto.CreateInviteLinkRequest
 import com.geekchat.server.adapter.`in`.web.dto.CreateRoomResponse
 import com.geekchat.server.adapter.`in`.web.dto.InviteLinkResponse
-import com.geekchat.server.adapter.`in`.web.dto.toResponseEntity
+import com.geekchat.server.common.presentation.web.toResponseEntity
 import com.geekchat.server.application.service.InviteLinkService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal

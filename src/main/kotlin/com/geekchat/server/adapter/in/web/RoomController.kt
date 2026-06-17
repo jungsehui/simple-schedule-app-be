@@ -5,7 +5,7 @@ import com.geekchat.server.adapter.`in`.web.dto.CreateRoomResponse
 import com.geekchat.server.adapter.`in`.web.dto.MessageResponse
 import com.geekchat.server.adapter.`in`.web.dto.MuteRoomRequest
 import com.geekchat.server.adapter.`in`.web.dto.RoomListResponse
-import com.geekchat.server.adapter.`in`.web.dto.toResponseEntity
+import com.geekchat.server.common.presentation.web.toResponseEntity
 import com.geekchat.server.application.port.out.PaginationDirection
 import com.geekchat.server.application.service.ChatRoomService
 import com.geekchat.server.application.service.MessageService

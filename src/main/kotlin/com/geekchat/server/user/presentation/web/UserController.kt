@@ -2,7 +2,7 @@ package com.geekchat.server.user.presentation.web
 
 import com.geekchat.server.user.presentation.web.dto.SetUsernameRequest
 import com.geekchat.server.user.presentation.web.dto.UserSearchResponse
-import com.geekchat.server.adapter.`in`.web.dto.toResponseEntity
+import com.geekchat.server.common.presentation.web.toResponseEntity
 import com.geekchat.server.user.application.service.UserService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity

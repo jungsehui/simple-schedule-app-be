@@ -1,7 +1,7 @@
 package com.geekchat.server.adapter.`in`.web
 
 import com.geekchat.server.adapter.`in`.web.dto.CompleteOAuthSignupRequest
-import com.geekchat.server.adapter.`in`.web.dto.ErrorResponse
+import com.geekchat.server.common.presentation.web.ErrorResponse
 import com.geekchat.server.adapter.`in`.web.dto.LinkProviderRequest
 import com.geekchat.server.adapter.`in`.web.dto.LoginRequest
 import com.geekchat.server.adapter.`in`.web.dto.LogoutRequest
@@ -10,7 +10,7 @@ import com.geekchat.server.adapter.`in`.web.dto.SignupRequest
 import com.geekchat.server.adapter.`in`.web.dto.SignupTokenResponse
 import com.geekchat.server.adapter.`in`.web.dto.TokenPairResponse
 import com.geekchat.server.adapter.`in`.web.dto.UserMeResponse
-import com.geekchat.server.adapter.`in`.web.dto.toResponseEntity
+import com.geekchat.server.common.presentation.web.toResponseEntity
 import com.geekchat.server.application.service.AuthService
 import com.geekchat.server.application.service.LinkProviderResult
 import com.geekchat.server.application.service.OAuthCallbackResult

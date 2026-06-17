@@ -1,4 +1,4 @@
-package com.geekchat.server.adapter.`in`.web.dto
+package com.geekchat.server.common.presentation.web
 
 import com.geekchat.server.common.error.ChatError
 import org.springframework.http.HttpStatus
