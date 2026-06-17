@@ -5,8 +5,8 @@ import com.geekchat.server.application.port.out.OAuthProfile
 import com.geekchat.server.application.port.out.RefreshTokenRepository
 import com.geekchat.server.application.port.out.UserProviderRepository
 import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.model.AuthProvider
 import com.geekchat.server.domain.model.RefreshToken
 import com.geekchat.server.domain.model.User

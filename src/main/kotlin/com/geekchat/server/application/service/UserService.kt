@@ -1,8 +1,8 @@
 package com.geekchat.server.application.service
 
 import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.model.User
 import org.springframework.stereotype.Service
 

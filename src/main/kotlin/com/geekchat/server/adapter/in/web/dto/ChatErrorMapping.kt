@@ -1,6 +1,6 @@
 package com.geekchat.server.adapter.`in`.web.dto
 
-import com.geekchat.server.domain.error.ChatError
+import com.geekchat.server.common.error.ChatError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 

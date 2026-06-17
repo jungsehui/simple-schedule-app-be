@@ -19,6 +19,13 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        // PROBE: latest stable Modulith targets Boot 3.5/Framework 6.2; testing on Boot 4.1.
+        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.0")
+    }
+}
+
 dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -39,6 +46,10 @@ dependencies {
 
     // Database
     runtimeOnly("com.mysql:mysql-connector-j")
+
+    // Spring Modulith (Phase 3) — PROBE on Boot 4.1
+    implementation("org.springframework.modulith:spring-modulith-starter-core")
+    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")

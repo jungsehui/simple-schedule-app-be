@@ -1,4 +1,4 @@
-package com.geekchat.server.domain.error
+package com.geekchat.server.common.error
 
 sealed class Either<out L, out R> {
     data class Left<L>(val value: L) : Either<L, Nothing>()

@@ -1,7 +1,7 @@
 package com.geekchat.server.infrastructure.security
 
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
 import com.geekchat.server.infrastructure.config.AppProperties
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts

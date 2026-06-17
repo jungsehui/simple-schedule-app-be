@@ -1,4 +1,4 @@
-package com.geekchat.server.domain.error
+package com.geekchat.server.common.error
 
 sealed class ChatError {
     abstract val message: String

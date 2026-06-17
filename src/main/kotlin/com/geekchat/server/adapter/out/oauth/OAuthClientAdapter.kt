@@ -3,8 +3,8 @@ package com.geekchat.server.adapter.out.oauth
 import tools.jackson.databind.JsonNode
 import com.geekchat.server.application.port.out.OAuthClient
 import com.geekchat.server.application.port.out.OAuthProfile
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.model.AuthProvider
 import com.geekchat.server.infrastructure.config.AppProperties
 import org.slf4j.LoggerFactory

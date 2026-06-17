@@ -5,8 +5,8 @@ import com.geekchat.server.application.port.out.ChatRoomRepository
 import com.geekchat.server.application.port.out.InviteLinkRepository
 import com.geekchat.server.application.port.out.UserRepository
 import com.geekchat.server.application.port.out.WebSocketBroadcaster
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.model.ChatRoom
 import com.geekchat.server.domain.model.ChatRoomMember
 import com.geekchat.server.domain.model.ChatRoomType
