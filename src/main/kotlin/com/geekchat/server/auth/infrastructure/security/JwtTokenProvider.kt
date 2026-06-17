@@ -3,7 +3,7 @@ package com.geekchat.server.auth.infrastructure.security
 import com.geekchat.server.auth.application.port.out.TokenService
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
-import com.geekchat.server.infrastructure.config.AppProperties
+import com.geekchat.server.common.config.AppProperties
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

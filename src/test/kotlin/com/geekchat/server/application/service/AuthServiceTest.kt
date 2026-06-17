@@ -13,7 +13,7 @@ import com.geekchat.server.user.domain.model.AuthProvider
 import com.geekchat.server.auth.domain.model.RefreshToken
 import com.geekchat.server.user.domain.model.User
 import com.geekchat.server.user.domain.model.UserProvider
-import com.geekchat.server.infrastructure.config.AppProperties
+import com.geekchat.server.common.config.AppProperties
 import com.geekchat.server.auth.infrastructure.security.JwtTokenProvider
 import io.mockk.every
 import io.mockk.just

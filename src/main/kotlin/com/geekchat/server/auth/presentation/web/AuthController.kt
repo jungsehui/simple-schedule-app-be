@@ -7,7 +7,7 @@ import com.geekchat.server.auth.application.service.LinkProviderResult
 import com.geekchat.server.auth.application.service.OAuthCallbackResult
 import com.geekchat.server.auth.application.service.SignupCommand
 import com.geekchat.server.user.domain.model.AuthProvider
-import com.geekchat.server.infrastructure.config.AppProperties
+import com.geekchat.server.common.config.AppProperties
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

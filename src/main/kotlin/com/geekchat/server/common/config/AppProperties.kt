@@ -1,4 +1,4 @@
-package com.geekchat.server.infrastructure.config
+package com.geekchat.server.common.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.time.Duration

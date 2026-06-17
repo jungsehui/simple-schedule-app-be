@@ -1,4 +1,4 @@
-package com.geekchat.server.adapter.`in`.web
+package com.geekchat.server.common.presentation.web
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

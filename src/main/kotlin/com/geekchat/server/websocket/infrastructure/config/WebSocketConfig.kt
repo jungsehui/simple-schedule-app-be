@@ -1,7 +1,7 @@
 package com.geekchat.server.websocket.infrastructure.config
 
 import com.geekchat.server.websocket.presentation.ChatWebSocketHandler
-import com.geekchat.server.infrastructure.config.AppProperties
+import com.geekchat.server.common.config.AppProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.socket.config.annotation.EnableWebSocket
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer
