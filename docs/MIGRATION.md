@@ -105,10 +105,15 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 - ✅ ChatError 매핑 + ErrorResponse → `common/presentation/web` (step 5 일부 선행, auth 차단 해소) — commit `c1c6dc7`
 - ✅ `auth` 모듈 (RefreshToken, OAuthClient, AuthService, Auth/DevAuthController, Jwt*, SecurityConfig, OAuthClientAdapter, RefreshToken 영속) — `TokenService` 포트 추출로 AuthService→infrastructure 결합 해소, `refreshTokenExpiryDays`는 `@Value` 주입. 131 green
 - ✅ `room` 모듈 (ChatRoom/ChatRoomMember/ChatRoomType/InviteLink, ChatRoom/InviteLink Repository, ChatRoom/InviteLink Service, Room/InviteLink Controller+Dto, RoomExpirationScheduler, room 영속) — `WebSocketBroadcaster.joinRoom` 직접 호출을 `RoomMemberJoined`(room/domain/event) 이벤트로 대체. **동기 `@EventListener`로 처리(타이밍 동일, sync→async 아님)** — 인메모리 세션 등록은 트랜잭션 커밋 순서 제약이 없으므로 안전. 131 green
-- ✅ `chat` 모듈 (Message/MessageType, MessageRepository(+PaginationDirection), MessageService, MessageDto, MessageExpirationScheduler, Message 영속) — GET messages 엔드포인트는 RoomController에 유지(room→chat via MessageService/MessageResponse/PaginationDirection, 허용된 방향). 131 green
-- ⬜ websocket (green+커밋) → ChatEvent 분할 → `ModularityTests.verify()` 활성화
+- ✅ `chat` 모듈 (Message/MessageType, MessageRepository(+PaginationDirection), MessageService, MessageDto, MessageExpirationScheduler, Message 영속) — commit `99877cf`
+- ✅ `websocket` 모듈 (WebSocketBroadcaster 포트, Handler/EventListener/WsOutMessage, BroadcasterAdapter/SessionManager, WebSocketConfig) — commit `8a1fca0`
+- ✅ AppProperties + HealthController → `common` — commit `5dbca8c`
+- ✅ `ChatEvent` sealed class 분할 → chat/room/websocket per-module 이벤트 — commit `657bbb8`
+- ✅ chat↔room **순환 제거**: GET messages → chat `MessageController` 이동; RoomExpirationScheduler 메시지 정리 → chat `RoomExpiryMessageCleanup`(RoomExpired 리스너, room→chat 제거) — commit `d0b37e7`
+- ✅ 6개 모듈 `@ApplicationModule(type=OPEN)` + `ModularityTests.verify()` 통과(순환 0) — commit `d0b37e7`
 
-검증 게이트: `ApplicationModules.verify()` 통과 + 전체 테스트 green + bootRun(local).
+✅ **Phase 3 완료** — 72파일을 6개 기능 모듈(common/user/auth/room/chat/websocket)로 재배치, 옛 레이어 패키지 0, `verify()` green, **132 tests green**.
+후속 정제(선택): OPEN → CLOSED + `@NamedInterface` API 노출 + 명시적 allowedDependencies로 방향 강제.
 
 ### 문서화된 타협 (test 수정)
 - `AuthServiceTest`/`AuthServiceOAuthTest`: AuthService 생성자 인자 변경(plumbing) — `appProperties` → `appProperties.jwt.refreshTokenExpiryDays`(Long), `jwtTokenProvider`는 `TokenService` 구현체로 그대로 전달. 단언(assertion) 로직 무변경, 이동 파생 import 추가만.
