@@ -1,17 +1,18 @@
 package com.geekchat.server.application.service
 
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
-import com.geekchat.server.application.port.out.ChatRoomRepository
-import com.geekchat.server.application.port.out.InviteLinkRepository
-import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.application.port.out.WebSocketBroadcaster
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
-import com.geekchat.server.domain.model.ChatRoom
-import com.geekchat.server.domain.model.ChatRoomMember
-import com.geekchat.server.domain.model.ChatRoomType
-import com.geekchat.server.domain.model.InviteLink
-import com.geekchat.server.domain.model.User
+import com.geekchat.server.room.application.service.InviteLinkService
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomRepository
+import com.geekchat.server.room.domain.repository.InviteLinkRepository
+import com.geekchat.server.user.domain.repository.UserRepository
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
+import com.geekchat.server.room.domain.event.RoomMemberJoined
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.model.ChatRoomType
+import com.geekchat.server.room.domain.model.InviteLink
+import com.geekchat.server.user.domain.model.User
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -31,13 +33,13 @@ class InviteLinkServiceTest {
     private val chatRoomRepository = mockk<ChatRoomRepository>()
     private val chatRoomMemberRepository = mockk<ChatRoomMemberRepository>()
     private val userRepository = mockk<UserRepository>()
-    private val webSocketBroadcaster = mockk<WebSocketBroadcaster> { every { joinRoom(any(), any()) } just runs }
+    private val eventPublisher = mockk<ApplicationEventPublisher> { every { publishEvent(any<RoomMemberJoined>()) } just runs }
 
     private lateinit var service: InviteLinkService
 
     @BeforeEach
     fun setUp() {
-        service = InviteLinkService(inviteLinkRepository, chatRoomRepository, chatRoomMemberRepository, userRepository, webSocketBroadcaster)
+        service = InviteLinkService(inviteLinkRepository, chatRoomRepository, chatRoomMemberRepository, userRepository, eventPublisher)
     }
 
     @Test
@@ -94,7 +96,7 @@ class InviteLinkServiceTest {
         val result = service.joinByInviteCode("ABC12345", "u2")
         assertTrue(result.isRight)
         assertEquals(2, result.getOrNull()!!.members.size)
-        verify { webSocketBroadcaster.joinRoom("u2", "r1") }
+        verify { eventPublisher.publishEvent(RoomMemberJoined("u2", "r1")) }
     }
 
     @Test

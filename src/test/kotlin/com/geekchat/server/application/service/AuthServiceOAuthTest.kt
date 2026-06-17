@@ -1,19 +1,21 @@
 package com.geekchat.server.application.service
 
-import com.geekchat.server.application.port.out.OAuthClient
-import com.geekchat.server.application.port.out.OAuthProfile
-import com.geekchat.server.application.port.out.RefreshTokenRepository
-import com.geekchat.server.application.port.out.UserProviderRepository
-import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
-import com.geekchat.server.domain.model.AuthProvider
-import com.geekchat.server.domain.model.RefreshToken
-import com.geekchat.server.domain.model.User
-import com.geekchat.server.domain.model.UserProvider
-import com.geekchat.server.domain.model.UserStatus
-import com.geekchat.server.infrastructure.config.AppProperties
-import com.geekchat.server.infrastructure.security.JwtTokenProvider
+import com.geekchat.server.auth.application.port.out.OAuthClient
+import com.geekchat.server.auth.application.service.AuthService
+import com.geekchat.server.auth.application.service.OAuthCallbackResult
+import com.geekchat.server.auth.application.port.out.OAuthProfile
+import com.geekchat.server.auth.domain.repository.RefreshTokenRepository
+import com.geekchat.server.user.domain.repository.UserProviderRepository
+import com.geekchat.server.user.domain.repository.UserRepository
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
+import com.geekchat.server.user.domain.model.AuthProvider
+import com.geekchat.server.auth.domain.model.RefreshToken
+import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserProvider
+import com.geekchat.server.user.domain.model.UserStatus
+import com.geekchat.server.common.config.AppProperties
+import com.geekchat.server.auth.infrastructure.security.JwtTokenProvider
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -60,7 +62,7 @@ class AuthServiceOAuthTest {
     fun setUp() {
         authService = AuthService(
             userRepository, userProviderRepository, refreshTokenRepository,
-            jwtTokenProvider, appProperties, passwordEncoder, oauthClient,
+            jwtTokenProvider, appProperties.jwt.refreshTokenExpiryDays, passwordEncoder, oauthClient,
         )
     }
 

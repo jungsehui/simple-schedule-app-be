@@ -1,16 +1,20 @@
 package com.geekchat.server.application.service
 
-import com.geekchat.server.application.port.out.RefreshTokenRepository
-import com.geekchat.server.application.port.out.UserProviderRepository
-import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
-import com.geekchat.server.domain.model.AuthProvider
-import com.geekchat.server.domain.model.RefreshToken
-import com.geekchat.server.domain.model.User
-import com.geekchat.server.domain.model.UserProvider
-import com.geekchat.server.infrastructure.config.AppProperties
-import com.geekchat.server.infrastructure.security.JwtTokenProvider
+import com.geekchat.server.auth.application.port.out.OAuthProfile
+import com.geekchat.server.auth.application.service.AuthService
+import com.geekchat.server.auth.application.service.OAuthCallbackResult
+import com.geekchat.server.auth.application.service.SignupCommand
+import com.geekchat.server.auth.domain.repository.RefreshTokenRepository
+import com.geekchat.server.user.domain.repository.UserProviderRepository
+import com.geekchat.server.user.domain.repository.UserRepository
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
+import com.geekchat.server.user.domain.model.AuthProvider
+import com.geekchat.server.auth.domain.model.RefreshToken
+import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserProvider
+import com.geekchat.server.common.config.AppProperties
+import com.geekchat.server.auth.infrastructure.security.JwtTokenProvider
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -31,7 +35,7 @@ class AuthServiceTest {
     private val userProviderRepository = mockk<UserProviderRepository>()
     private val refreshTokenRepository = mockk<RefreshTokenRepository>()
     private val passwordEncoder = org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
-    private val oauthClient = mockk<com.geekchat.server.application.port.out.OAuthClient>()
+    private val oauthClient = mockk<com.geekchat.server.auth.application.port.out.OAuthClient>()
 
     private val appProperties = AppProperties(
         jwt = AppProperties.JwtProperties(
@@ -48,7 +52,7 @@ class AuthServiceTest {
     fun setUp() {
         authService = AuthService(
             userRepository, userProviderRepository, refreshTokenRepository,
-            jwtTokenProvider, appProperties, passwordEncoder, oauthClient,
+            jwtTokenProvider, appProperties.jwt.refreshTokenExpiryDays, passwordEncoder, oauthClient,
         )
     }
 
@@ -163,7 +167,7 @@ class AuthServiceTest {
         val tokenSlot = slot<RefreshToken>()
         every { refreshTokenRepository.save(capture(tokenSlot)) } answers { tokenSlot.captured }
 
-        val cmd = com.geekchat.server.application.service.SignupCommand(
+        val cmd = com.geekchat.server.auth.application.service.SignupCommand(
             username = "alice", password = "hunter2x", nickname = "Alice",
         )
         val result = authService.signup(cmd)
@@ -176,7 +180,7 @@ class AuthServiceTest {
 
     @Test
     fun `signup rejects weak password`() {
-        val cmd = com.geekchat.server.application.service.SignupCommand(
+        val cmd = com.geekchat.server.auth.application.service.SignupCommand(
             username = "alice", password = "short1", nickname = "Alice",
         )
         val result = authService.signup(cmd)
@@ -189,7 +193,7 @@ class AuthServiceTest {
     fun `signup rejects taken username`() {
         every { userRepository.existsByUsername("alice") } returns true
 
-        val cmd = com.geekchat.server.application.service.SignupCommand(
+        val cmd = com.geekchat.server.auth.application.service.SignupCommand(
             username = "alice", password = "hunter2x", nickname = "Alice",
         )
         val result = authService.signup(cmd)
@@ -226,7 +230,7 @@ class AuthServiceTest {
         val user = User(
             id = "u1", nickname = "deleted_user_xx", username = null,
             passwordHash = passwordEncoder.encode("hunter2x"),
-            status = com.geekchat.server.domain.model.UserStatus.WITHDRAWN,
+            status = com.geekchat.server.user.domain.model.UserStatus.WITHDRAWN,
         )
         every { userRepository.findByUsername("alice") } returns user
 
@@ -258,7 +262,7 @@ class AuthServiceTest {
         val result = authService.withdraw("u1")
 
         assertTrue(result.isRight)
-        assertEquals(com.geekchat.server.domain.model.UserStatus.WITHDRAWN, userSlot.captured.status)
+        assertEquals(com.geekchat.server.user.domain.model.UserStatus.WITHDRAWN, userSlot.captured.status)
         assertTrue(userSlot.captured.nickname.startsWith("deleted_user_"))
         assertEquals(null, userSlot.captured.email)
         verify { userProviderRepository.deleteAllByUserId("u1") }
@@ -269,7 +273,7 @@ class AuthServiceTest {
     fun `withdraw is idempotent for already-withdrawn user`() {
         val user = User(
             id = "u1", nickname = "deleted_user_xx",
-            status = com.geekchat.server.domain.model.UserStatus.WITHDRAWN,
+            status = com.geekchat.server.user.domain.model.UserStatus.WITHDRAWN,
         )
         every { userRepository.findById("u1") } returns user
 
@@ -281,7 +285,7 @@ class AuthServiceTest {
 
     @Test
     fun `oauthCallback existing provider returns LoggedIn`() {
-        val provider = com.geekchat.server.domain.model.UserProvider(
+        val provider = com.geekchat.server.user.domain.model.UserProvider(
             id = "p1", userId = "u1", provider = AuthProvider.GOOGLE, providerId = "g123",
         )
         val user = User(id = "u1", nickname = "Alice")
@@ -290,7 +294,7 @@ class AuthServiceTest {
         val tokenSlot = slot<RefreshToken>()
         every { refreshTokenRepository.save(capture(tokenSlot)) } answers { tokenSlot.captured }
 
-        val profile = com.geekchat.server.application.port.out.OAuthProfile(
+        val profile = com.geekchat.server.auth.application.port.out.OAuthProfile(
             provider = AuthProvider.GOOGLE,
             providerId = "g123",
             email = "alice@x.com",
@@ -300,7 +304,7 @@ class AuthServiceTest {
         val result = authService.oauthCallback(profile)
 
         assertTrue(result.isRight)
-        assertTrue(result.getOrNull() is com.geekchat.server.application.service.OAuthCallbackResult.LoggedIn)
+        assertTrue(result.getOrNull() is com.geekchat.server.auth.application.service.OAuthCallbackResult.LoggedIn)
     }
 
     @Test
@@ -308,7 +312,7 @@ class AuthServiceTest {
         every { userProviderRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, "g999") } returns null
         every { userProviderRepository.findByEmail(any()) } returns null
 
-        val profile = com.geekchat.server.application.port.out.OAuthProfile(
+        val profile = com.geekchat.server.auth.application.port.out.OAuthProfile(
             provider = AuthProvider.GOOGLE,
             providerId = "g999",
             email = "newbie@x.com",
@@ -318,7 +322,7 @@ class AuthServiceTest {
         val result = authService.oauthCallback(profile)
 
         assertTrue(result.isRight)
-        val signupReq = result.getOrNull() as com.geekchat.server.application.service.OAuthCallbackResult.SignupRequired
+        val signupReq = result.getOrNull() as com.geekchat.server.auth.application.service.OAuthCallbackResult.SignupRequired
         assertTrue(signupReq.signupToken.isNotBlank())
         assertEquals("Newbie", signupReq.suggestedNickname)
     }

@@ -1,4 +1,4 @@
-package com.geekchat.server.domain.error
+package com.geekchat.server.common.error
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

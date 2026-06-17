@@ -1,15 +1,16 @@
 package com.geekchat.server.application.service
 
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
-import com.geekchat.server.application.port.out.ChatRoomRepository
-import com.geekchat.server.application.port.out.MessageRepository
-import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.domain.error.ChatError
-import com.geekchat.server.domain.error.Either
-import com.geekchat.server.domain.model.ChatRoom
-import com.geekchat.server.domain.model.ChatRoomMember
-import com.geekchat.server.domain.model.ChatRoomType
-import com.geekchat.server.domain.model.Message
+import com.geekchat.server.chat.application.service.MessageService
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomRepository
+import com.geekchat.server.chat.domain.repository.MessageRepository
+import com.geekchat.server.user.domain.repository.UserRepository
+import com.geekchat.server.common.error.ChatError
+import com.geekchat.server.common.error.Either
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.model.ChatRoomType
+import com.geekchat.server.chat.domain.model.Message
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
