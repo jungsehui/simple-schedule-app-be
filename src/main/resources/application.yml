@@ -7,7 +7,8 @@ spring:
       enabled: true
 
   main:
-    lazy-initialization: true
+    # prod: eager init so bean-wiring errors fail at startup, not on first request.
+    lazy-initialization: false
 
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true

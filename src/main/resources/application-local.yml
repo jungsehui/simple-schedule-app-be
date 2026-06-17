@@ -4,6 +4,8 @@
 #   ./gradlew bootRun --args='--spring.profiles.active=local'
 # 자격증명은 docker-compose.dev.yml의 MYSQL_USER/MYSQL_PASSWORD와 일치 — env 설정 없이 즉시 실행.
 spring:
+  main:
+    lazy-initialization: true   # fast local restarts (dev convenience only; prod is eager)
   datasource:
     # docker-compose.dev.yml maps host 3310 → container 3306. DB_PORT 로 변경 가능.
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3310}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
