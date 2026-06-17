@@ -1,14 +1,14 @@
-package com.geekchat.server.application.service
+package com.geekchat.server.chat.application.service
 
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.room.domain.repository.ChatRoomRepository
-import com.geekchat.server.application.port.out.MessageRepository
-import com.geekchat.server.application.port.out.PaginationDirection
+import com.geekchat.server.chat.domain.repository.MessageRepository
+import com.geekchat.server.chat.domain.repository.PaginationDirection
 import com.geekchat.server.user.domain.repository.UserRepository
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.event.ChatEvent
-import com.geekchat.server.domain.model.Message
+import com.geekchat.server.chat.domain.model.Message
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.dao.DataIntegrityViolationException

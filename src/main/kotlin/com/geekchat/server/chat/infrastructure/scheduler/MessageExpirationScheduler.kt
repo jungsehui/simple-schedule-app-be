@@ -1,6 +1,6 @@
-package com.geekchat.server.infrastructure.scheduler
+package com.geekchat.server.chat.infrastructure.scheduler
 
-import com.geekchat.server.application.port.out.MessageRepository
+import com.geekchat.server.chat.domain.repository.MessageRepository
 import com.geekchat.server.domain.event.ChatEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher

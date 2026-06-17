@@ -1,4 +1,4 @@
-package com.geekchat.server.domain.model
+package com.geekchat.server.chat.domain.model
 
 enum class MessageType {
     TEXT,

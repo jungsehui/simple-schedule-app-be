@@ -3,7 +3,7 @@ package com.geekchat.server.infrastructure.scheduler
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.room.domain.repository.ChatRoomRepository
 import com.geekchat.server.room.infrastructure.scheduler.RoomExpirationScheduler
-import com.geekchat.server.application.port.out.MessageRepository
+import com.geekchat.server.chat.domain.repository.MessageRepository
 import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.room.domain.model.ChatRoom
 import com.geekchat.server.room.domain.model.ChatRoomType

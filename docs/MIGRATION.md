@@ -105,7 +105,8 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 - ✅ ChatError 매핑 + ErrorResponse → `common/presentation/web` (step 5 일부 선행, auth 차단 해소) — commit `c1c6dc7`
 - ✅ `auth` 모듈 (RefreshToken, OAuthClient, AuthService, Auth/DevAuthController, Jwt*, SecurityConfig, OAuthClientAdapter, RefreshToken 영속) — `TokenService` 포트 추출로 AuthService→infrastructure 결합 해소, `refreshTokenExpiryDays`는 `@Value` 주입. 131 green
 - ✅ `room` 모듈 (ChatRoom/ChatRoomMember/ChatRoomType/InviteLink, ChatRoom/InviteLink Repository, ChatRoom/InviteLink Service, Room/InviteLink Controller+Dto, RoomExpirationScheduler, room 영속) — `WebSocketBroadcaster.joinRoom` 직접 호출을 `RoomMemberJoined`(room/domain/event) 이벤트로 대체. **동기 `@EventListener`로 처리(타이밍 동일, sync→async 아님)** — 인메모리 세션 등록은 트랜잭션 커밋 순서 제약이 없으므로 안전. 131 green
-- ⬜ chat → websocket (각 green+커밋) → ChatEvent 분할 → `ModularityTests.verify()` 활성화
+- ✅ `chat` 모듈 (Message/MessageType, MessageRepository(+PaginationDirection), MessageService, MessageDto, MessageExpirationScheduler, Message 영속) — GET messages 엔드포인트는 RoomController에 유지(room→chat via MessageService/MessageResponse/PaginationDirection, 허용된 방향). 131 green
+- ⬜ websocket (green+커밋) → ChatEvent 분할 → `ModularityTests.verify()` 활성화
 
 검증 게이트: `ApplicationModules.verify()` 통과 + 전체 테스트 green + bootRun(local).
 

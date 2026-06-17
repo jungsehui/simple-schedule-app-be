@@ -1,6 +1,6 @@
-package com.geekchat.server.adapter.`in`.web.dto
+package com.geekchat.server.chat.presentation.web
 
-import com.geekchat.server.application.service.MessageWithSender
+import com.geekchat.server.chat.application.service.MessageWithSender
 
 data class MessageResponse(
     val id: String,

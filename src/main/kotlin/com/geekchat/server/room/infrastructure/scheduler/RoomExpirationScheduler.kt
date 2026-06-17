@@ -2,7 +2,7 @@ package com.geekchat.server.room.infrastructure.scheduler
 
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.room.domain.repository.ChatRoomRepository
-import com.geekchat.server.application.port.out.MessageRepository
+import com.geekchat.server.chat.domain.repository.MessageRepository
 import com.geekchat.server.domain.event.ChatEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher

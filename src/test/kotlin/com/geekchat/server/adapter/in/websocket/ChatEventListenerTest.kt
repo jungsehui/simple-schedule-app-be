@@ -2,7 +2,7 @@ package com.geekchat.server.adapter.`in`.websocket
 
 import com.geekchat.server.application.port.out.WebSocketBroadcaster
 import com.geekchat.server.domain.event.ChatEvent
-import com.geekchat.server.domain.model.MessageType
+import com.geekchat.server.chat.domain.model.MessageType
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify

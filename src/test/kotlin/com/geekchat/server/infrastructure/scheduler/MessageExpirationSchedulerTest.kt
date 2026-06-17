@@ -1,8 +1,9 @@
 package com.geekchat.server.infrastructure.scheduler
 
-import com.geekchat.server.application.port.out.MessageRepository
+import com.geekchat.server.chat.domain.repository.MessageRepository
+import com.geekchat.server.chat.infrastructure.scheduler.MessageExpirationScheduler
 import com.geekchat.server.domain.event.ChatEvent
-import com.geekchat.server.domain.model.Message
+import com.geekchat.server.chat.domain.model.Message
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk

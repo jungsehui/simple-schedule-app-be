@@ -1,12 +1,12 @@
-package com.geekchat.server.adapter.out.persistence.adapter
+package com.geekchat.server.chat.infrastructure.persistence.adapter
 
-import com.geekchat.server.adapter.out.persistence.entity.MessageJpaEntity
+import com.geekchat.server.chat.infrastructure.persistence.entity.MessageJpaEntity
 import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataMessageRepository
+import com.geekchat.server.chat.infrastructure.persistence.repository.SpringDataMessageRepository
 import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
-import com.geekchat.server.application.port.out.MessageRepository
-import com.geekchat.server.application.port.out.PaginationDirection
-import com.geekchat.server.domain.model.Message
+import com.geekchat.server.chat.domain.repository.MessageRepository
+import com.geekchat.server.chat.domain.repository.PaginationDirection
+import com.geekchat.server.chat.domain.model.Message
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional

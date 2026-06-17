@@ -1,6 +1,6 @@
 package com.geekchat.server.domain.event
 
-import com.geekchat.server.domain.model.MessageType
+import com.geekchat.server.chat.domain.model.MessageType
 import java.time.Instant
 
 sealed class ChatEvent {

@@ -1,10 +1,10 @@
-package com.geekchat.server.adapter.out.persistence.entity
+package com.geekchat.server.chat.infrastructure.persistence.entity
 import com.geekchat.server.user.infrastructure.persistence.entity.UserJpaEntity
 import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomJpaEntity
 import com.geekchat.server.common.infrastructure.persistence.entity.SoftDeletableJpaEntity
 
-import com.geekchat.server.domain.model.Message
-import com.geekchat.server.domain.model.MessageType
+import com.geekchat.server.chat.domain.model.Message
+import com.geekchat.server.chat.domain.model.MessageType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

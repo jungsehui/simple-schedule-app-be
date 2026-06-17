@@ -1,6 +1,6 @@
-package com.geekchat.server.application.port.out
+package com.geekchat.server.chat.domain.repository
 
-import com.geekchat.server.domain.model.Message
+import com.geekchat.server.chat.domain.model.Message
 import java.time.Instant
 
 interface MessageRepository {
