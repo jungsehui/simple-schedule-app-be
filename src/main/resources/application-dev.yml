@@ -1,0 +1,13 @@
+# dev 프로필 — JPA 개발 시맨틱(ddl update + show-sql)만.
+# 통합 테스트(@ActiveProfiles("test","dev"))와 공유되므로, datasource/secret 같은
+# 환경별 연결 정보는 여기 두지 않는다 (테스트의 H2 datasource / test secret을 덮어쓰면 안 됨).
+# 로컬에서 앱을 실행할 땐 자기완결 `local` 프로필 사용:
+#   ./gradlew bootRun --args='--spring.profiles.active=local'
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

@@ -1,0 +1,18 @@
+# test 프로필 — JVM 테스트(H2 MODE=MySQL). application.yml(기본) 위에 병합됨.
+# @ActiveProfiles("test")로 활성화.
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  main:
+    lazy-initialization: false
+
+app:
+  jwt:
+    # TEST ONLY — never used outside @ActiveProfiles("test")
+    secret: test-secret-key-must-be-at-least-32-characters-long-for-testing

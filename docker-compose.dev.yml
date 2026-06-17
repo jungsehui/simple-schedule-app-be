@@ -1,0 +1,40 @@
+# GeekChat v2 — LOCAL DEV dependencies only (NOT for production)
+# Production stack lives in docker-compose.yml (app + nginx + TLS).
+#
+# Usage:
+#   1. docker compose -f docker-compose.dev.yml up -d        # start MySQL
+#   2. ./gradlew bootRun --args='--spring.profiles.active=local'
+#   3. docker compose -f docker-compose.dev.yml down          # stop (data kept)
+#      docker compose -f docker-compose.dev.yml down -v       # stop + wipe data
+#
+# Matches the dev defaults in application.yml:
+#   DB_HOST=localhost DB_PORT=3306 DB_NAME=geekchat DB_USERNAME='' DB_PASSWORD=''
+#   (dev uses root with empty-ish creds; bootRun reads ${DB_*:default} fallbacks)
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: geekchat-dev-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_DATABASE: geekchat
+      # Local dev only — root with a simple password. Never used in prod.
+      MYSQL_ROOT_PASSWORD: devroot
+      MYSQL_USER: geekchat
+      MYSQL_PASSWORD: geekchat
+    ports:
+      - "3310:3306"   # host 3310 → container 3306. 3310 avoids colliding with other local MySQL instances. bootRun (host JVM) connects to localhost:3310.
+    volumes:
+      - geekchat-dev-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pdevroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  geekchat-dev-mysql-data:

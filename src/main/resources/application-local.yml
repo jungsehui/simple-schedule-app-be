@@ -1,0 +1,25 @@
+# local 프로필 — 로컬 머신에서 앱 실행용(자기완결). 통합 테스트는 이 프로필을 쓰지 않는다.
+# 실행:
+#   docker compose -f docker-compose.dev.yml up -d
+#   ./gradlew bootRun --args='--spring.profiles.active=local'
+# 자격증명은 docker-compose.dev.yml의 MYSQL_USER/MYSQL_PASSWORD와 일치 — env 설정 없이 즉시 실행.
+spring:
+  main:
+    lazy-initialization: true   # fast local restarts (dev convenience only; prod is eager)
+  datasource:
+    # docker-compose.dev.yml maps host 3310 → container 3306. DB_PORT 로 변경 가능.
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3310}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
+    username: ${DB_USERNAME:geekchat}
+    password: ${DB_PASSWORD:geekchat}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  jwt:
+    # local-only secret (>= 32 bytes). Override by exporting JWT_SECRET. Prod has no default.
+    secret: ${JWT_SECRET:dev-local-secret-key-must-be-at-least-32-chars-xx}

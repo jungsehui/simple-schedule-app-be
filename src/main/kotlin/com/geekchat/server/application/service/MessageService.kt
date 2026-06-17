@@ -100,7 +100,7 @@ class MessageService(
                 messageId = saved.id,
                 roomId = roomId,
                 senderId = senderId,
-                content = saved.content, // TODO: Remove content from log before production
+                content = saved.content, // carried to the new_message broadcast (never logged)
                 messageType = saved.type,
                 createdAt = saved.createdAt,
                 clientMessageId = clientMessageId,

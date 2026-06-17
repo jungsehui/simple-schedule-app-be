@@ -7,7 +7,8 @@ spring:
       enabled: true
 
   main:
-    lazy-initialization: true
+    # prod: eager init so bean-wiring errors fail at startup, not on first request.
+    lazy-initialization: false
 
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
@@ -50,7 +51,8 @@ server:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-32-characters-long}
+    # No default — prod MUST provide JWT_SECRET (>= 32 bytes) or the app fails to start.
+    secret: ${JWT_SECRET}
     access-token-expiry: 15m
     refresh-token-expiry-days: 14
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
@@ -62,36 +64,3 @@ app:
     naver:
       client-id: ${NAVER_CLIENT_ID:}
       client-secret: ${NAVER_CLIENT_SECRET:}
-
----
-spring:
-  config:
-    activate:
-      on-profile: dev
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
----
-spring:
-  config:
-    activate:
-      on-profile: test
-  datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-  main:
-    lazy-initialization: false
-
-app:
-  jwt:
-    secret: test-secret-key-must-be-at-least-32-characters-long-for-testing

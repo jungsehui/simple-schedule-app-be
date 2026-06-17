@@ -122,9 +122,11 @@ geek-chat-server-v2/
 ./gradlew test                       # 전체 테스트 (현재 91개)
 ./gradlew test --tests "*AuthServiceTest*"
 
-# 로컬 실행
-./gradlew bootRun --args='--spring.profiles.active=dev'
-# (dev 프로필은 MySQL 컨테이너 필요: docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=geekchat mysql:8.0)
+# 로컬 실행 (local 프로필 — 자기완결: datasource+secret 포함, env 불필요)
+docker compose -f docker-compose.dev.yml up -d          # MySQL (host 3310)
+./gradlew bootRun --args='--spring.profiles.active=local'
+# 주: dev 프로필은 통합 테스트(@ActiveProfiles "test","dev")와 공유하는 JPA 시맨틱 전용 —
+#     로컬 실행엔 local 사용. 3310 점유 시 docker-compose.dev.yml 포트 + DB_PORT 동시 변경.
 
 # Docker
 docker compose --env-file .env.docker up -d --build
