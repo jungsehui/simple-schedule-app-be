@@ -1,10 +1,10 @@
-package com.geekchat.server.adapter.out.persistence.adapter
+package com.geekchat.server.auth.infrastructure.persistence.adapter
 
-import com.geekchat.server.adapter.out.persistence.entity.RefreshTokenJpaEntity
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataRefreshTokenRepository
+import com.geekchat.server.auth.infrastructure.persistence.entity.RefreshTokenJpaEntity
+import com.geekchat.server.auth.infrastructure.persistence.repository.SpringDataRefreshTokenRepository
 import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
-import com.geekchat.server.application.port.out.RefreshTokenRepository
-import com.geekchat.server.domain.model.RefreshToken
+import com.geekchat.server.auth.domain.repository.RefreshTokenRepository
+import com.geekchat.server.auth.domain.model.RefreshToken
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 

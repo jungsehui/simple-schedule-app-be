@@ -1,20 +1,20 @@
-package com.geekchat.server.application.service
+package com.geekchat.server.auth.application.service
 
-import com.geekchat.server.application.port.out.OAuthClient
-import com.geekchat.server.application.port.out.OAuthProfile
-import com.geekchat.server.application.port.out.RefreshTokenRepository
+import com.geekchat.server.auth.application.port.out.OAuthClient
+import com.geekchat.server.auth.application.port.out.OAuthProfile
+import com.geekchat.server.auth.application.port.out.TokenService
+import com.geekchat.server.auth.domain.repository.RefreshTokenRepository
 import com.geekchat.server.user.domain.repository.UserProviderRepository
 import com.geekchat.server.user.domain.repository.UserRepository
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.user.domain.model.AuthProvider
-import com.geekchat.server.domain.model.RefreshToken
+import com.geekchat.server.auth.domain.model.RefreshToken
 import com.geekchat.server.user.domain.model.User
 import com.geekchat.server.user.domain.model.UserProvider
 import com.geekchat.server.user.domain.model.UserStatus
-import com.geekchat.server.infrastructure.config.AppProperties
-import com.geekchat.server.infrastructure.security.JwtTokenProvider
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -73,8 +73,9 @@ class AuthService(
     private val userRepository: UserRepository,
     private val userProviderRepository: UserProviderRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val appProperties: AppProperties,
+    private val tokenService: TokenService,
+    @param:Value("\${app.jwt.refresh-token-expiry-days:14}")
+    private val refreshTokenExpiryDays: Long,
     private val passwordEncoder: PasswordEncoder,
     private val oauthClient: OAuthClient,
 ) {
@@ -179,7 +180,7 @@ class AuthService(
             if (emailMatch != null) {
                 val existingUser = userRepository.findById(emailMatch.userId)
                 if (existingUser != null && existingUser.status == UserStatus.ACTIVE) {
-                    val linkToken = jwtTokenProvider.generateLinkToken(
+                    val linkToken = tokenService.generateLinkToken(
                         mapOf(
                             "sub" to existingUser.id,
                             "linkProvider" to profile.provider.name,
@@ -201,7 +202,7 @@ class AuthService(
         }
 
         // (c) brand new social identity → signup required (deferred user creation)
-        val signupToken = jwtTokenProvider.generateSignupToken(
+        val signupToken = tokenService.generateSignupToken(
             mapOf(
                 "signupProvider" to profile.provider.name,
                 "signupProviderId" to profile.providerId,
@@ -220,7 +221,7 @@ class AuthService(
 
     @Transactional
     fun linkProvider(linkToken: String, confirm: Boolean): Either<ChatError, LinkProviderResult> {
-        val claims = jwtTokenProvider.parseLinkToken(linkToken)
+        val claims = tokenService.parseLinkToken(linkToken)
         val payload = when (claims) {
             is Either.Left -> return Either.Left(claims.value)
             is Either.Right -> claims.value
@@ -237,7 +238,7 @@ class AuthService(
 
         if (!confirm) {
             // user said "no, create new account" → fall through to signup-required
-            val signupToken = jwtTokenProvider.generateSignupToken(
+            val signupToken = tokenService.generateSignupToken(
                 mapOf(
                     "signupProvider" to providerName,
                     "signupProviderId" to providerId,
@@ -284,7 +285,7 @@ class AuthService(
         if (nickname.isBlank() || nickname.length > User.MAX_NICKNAME_LENGTH) {
             return Either.Left(ChatError.NicknameRequired())
         }
-        val claims = jwtTokenProvider.parseSignupToken(signupToken)
+        val claims = tokenService.parseSignupToken(signupToken)
         val payload = when (claims) {
             is Either.Left -> return Either.Left(claims.value)
             is Either.Right -> claims.value
@@ -416,7 +417,7 @@ class AuthService(
     // ────────────── Private helpers ──────────────
 
     private fun issueTokenPair(userId: String): TokenPair {
-        val accessToken = jwtTokenProvider.generateAccessToken(userId)
+        val accessToken = tokenService.generateAccessToken(userId)
         val refreshTokenValue = UUID.randomUUID().toString()
 
         refreshTokenRepository.save(
@@ -424,7 +425,7 @@ class AuthService(
                 id = UUID.randomUUID().toString(),
                 userId = userId,
                 token = refreshTokenValue,
-                expiresAt = Instant.now().plus(appProperties.jwt.refreshTokenExpiryDays, ChronoUnit.DAYS),
+                expiresAt = Instant.now().plus(refreshTokenExpiryDays, ChronoUnit.DAYS),
             ),
         )
 

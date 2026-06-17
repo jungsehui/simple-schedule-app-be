@@ -1,4 +1,4 @@
-package com.geekchat.server.application.port.out
+package com.geekchat.server.auth.application.port.out
 
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either

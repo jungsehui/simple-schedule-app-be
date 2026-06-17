@@ -1,4 +1,4 @@
-package com.geekchat.server.domain.model
+package com.geekchat.server.auth.domain.model
 
 import java.time.Instant
 

@@ -1,6 +1,7 @@
-package com.geekchat.server.infrastructure.config
+package com.geekchat.server.auth.infrastructure.config
 
-import com.geekchat.server.infrastructure.security.JwtAuthenticationFilter
+import com.geekchat.server.auth.infrastructure.security.JwtAuthenticationFilter
+import com.geekchat.server.infrastructure.config.AppProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod

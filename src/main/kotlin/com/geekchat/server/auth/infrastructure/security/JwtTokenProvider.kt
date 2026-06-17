@@ -1,5 +1,6 @@
-package com.geekchat.server.infrastructure.security
+package com.geekchat.server.auth.infrastructure.security
 
+import com.geekchat.server.auth.application.port.out.TokenService
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.infrastructure.config.AppProperties
@@ -12,12 +13,12 @@ import java.util.Date
 @Component
 class JwtTokenProvider(
     private val appProperties: AppProperties,
-) {
+) : TokenService {
     private val key by lazy {
         Keys.hmacShaKeyFor(appProperties.jwt.secret.toByteArray())
     }
 
-    fun generateAccessToken(userId: String): String {
+    override fun generateAccessToken(userId: String): String {
         val now = Date()
         val expiry = Date(now.time + appProperties.jwt.accessTokenExpiry.toMillis())
 
@@ -47,11 +48,11 @@ class JwtTokenProvider(
     }
 
     /** Backwards-compatible alias used by older callers. */
-    fun generateLinkToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String =
+    override fun generateLinkToken(claims: Map<String, Any>, expiryMinutes: Long): String =
         generateClaimsToken(claims, expiryMinutes)
 
     /** Issues a 10-min "signup" token used for OAuth-completion flow (Deferred user creation). */
-    fun generateSignupToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String =
+    override fun generateSignupToken(claims: Map<String, Any>, expiryMinutes: Long): String =
         generateClaimsToken(claims, expiryMinutes)
 
     fun validateToken(token: String): Either<ChatError, String> {
@@ -69,7 +70,7 @@ class JwtTokenProvider(
         }
     }
 
-    fun parseLinkToken(token: String): Either<ChatError, Map<String, Any>> {
+    override fun parseLinkToken(token: String): Either<ChatError, Map<String, Any>> {
         return try {
             val claims = Jwts.parser()
                 .verifyWith(key)
@@ -84,7 +85,7 @@ class JwtTokenProvider(
         }
     }
 
-    fun parseSignupToken(token: String): Either<ChatError, Map<String, Any>> {
+    override fun parseSignupToken(token: String): Either<ChatError, Map<String, Any>> {
         return try {
             val claims = Jwts.parser()
                 .verifyWith(key)

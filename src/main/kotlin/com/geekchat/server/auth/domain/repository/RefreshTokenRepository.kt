@@ -1,6 +1,6 @@
-package com.geekchat.server.application.port.out
+package com.geekchat.server.auth.domain.repository
 
-import com.geekchat.server.domain.model.RefreshToken
+import com.geekchat.server.auth.domain.model.RefreshToken
 
 interface RefreshTokenRepository {
     fun findByToken(token: String): RefreshToken?

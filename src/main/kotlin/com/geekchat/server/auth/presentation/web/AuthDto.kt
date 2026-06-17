@@ -1,4 +1,4 @@
-package com.geekchat.server.adapter.`in`.web.dto
+package com.geekchat.server.auth.presentation.web
 
 import com.geekchat.server.user.domain.model.User
 import jakarta.validation.constraints.NotBlank

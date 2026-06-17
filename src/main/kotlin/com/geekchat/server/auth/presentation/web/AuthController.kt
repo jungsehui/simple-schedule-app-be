@@ -1,20 +1,11 @@
-package com.geekchat.server.adapter.`in`.web
+package com.geekchat.server.auth.presentation.web
 
-import com.geekchat.server.adapter.`in`.web.dto.CompleteOAuthSignupRequest
 import com.geekchat.server.common.presentation.web.ErrorResponse
-import com.geekchat.server.adapter.`in`.web.dto.LinkProviderRequest
-import com.geekchat.server.adapter.`in`.web.dto.LoginRequest
-import com.geekchat.server.adapter.`in`.web.dto.LogoutRequest
-import com.geekchat.server.adapter.`in`.web.dto.RefreshTokenRequest
-import com.geekchat.server.adapter.`in`.web.dto.SignupRequest
-import com.geekchat.server.adapter.`in`.web.dto.SignupTokenResponse
-import com.geekchat.server.adapter.`in`.web.dto.TokenPairResponse
-import com.geekchat.server.adapter.`in`.web.dto.UserMeResponse
 import com.geekchat.server.common.presentation.web.toResponseEntity
-import com.geekchat.server.application.service.AuthService
-import com.geekchat.server.application.service.LinkProviderResult
-import com.geekchat.server.application.service.OAuthCallbackResult
-import com.geekchat.server.application.service.SignupCommand
+import com.geekchat.server.auth.application.service.AuthService
+import com.geekchat.server.auth.application.service.LinkProviderResult
+import com.geekchat.server.auth.application.service.OAuthCallbackResult
+import com.geekchat.server.auth.application.service.SignupCommand
 import com.geekchat.server.user.domain.model.AuthProvider
 import com.geekchat.server.infrastructure.config.AppProperties
 import jakarta.validation.Valid

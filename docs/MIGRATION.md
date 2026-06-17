@@ -101,9 +101,15 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 ### 진행
 - ✅ 3.1 Modulith 2.1.0 추가 (Boot 4.1 호환 확인) + ModularityTests probe — commit `d5f34f4`
 - ✅ `common` 모듈 (Either, ChatError) — commit `d5f34f4`
-- ⬜ user → auth → room → chat → websocket (각 green+커밋) → ChatEvent 분할 → `ModularityTests.verify()` 활성화
+- ✅ `user` 모듈 + 공유 base 엔티티 → common — commit `08b8afa`
+- ✅ ChatError 매핑 + ErrorResponse → `common/presentation/web` (step 5 일부 선행, auth 차단 해소) — commit `c1c6dc7`
+- ✅ `auth` 모듈 (RefreshToken, OAuthClient, AuthService, Auth/DevAuthController, Jwt*, SecurityConfig, OAuthClientAdapter, RefreshToken 영속) — `TokenService` 포트 추출로 AuthService→infrastructure 결합 해소, `refreshTokenExpiryDays`는 `@Value` 주입. 131 green
+- ⬜ room → chat → websocket (각 green+커밋) → ChatEvent 분할 → `ModularityTests.verify()` 활성화
 
 검증 게이트: `ApplicationModules.verify()` 통과 + 전체 테스트 green + bootRun(local).
+
+### 문서화된 타협 (test 수정)
+- `AuthServiceTest`/`AuthServiceOAuthTest`: AuthService 생성자 인자 변경(plumbing) — `appProperties` → `appProperties.jwt.refreshTokenExpiryDays`(Long), `jwtTokenProvider`는 `TokenService` 구현체로 그대로 전달. 단언(assertion) 로직 무변경, 이동 파생 import 추가만.
 
 ## Phase 4 — 관리자 역할/권한 모델 (AI 게이팅 선결)
 

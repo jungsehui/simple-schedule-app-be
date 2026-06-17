@@ -6,7 +6,7 @@ import com.geekchat.server.application.port.out.ChatRoomMemberRepository
 import com.geekchat.server.application.service.MessageService
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.event.ChatEvent
-import com.geekchat.server.infrastructure.security.JwtTokenProvider
+import com.geekchat.server.auth.infrastructure.security.JwtTokenProvider
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component

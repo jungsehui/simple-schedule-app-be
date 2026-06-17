@@ -1,4 +1,4 @@
-package com.geekchat.server.infrastructure.security
+package com.geekchat.server.auth.infrastructure.security
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

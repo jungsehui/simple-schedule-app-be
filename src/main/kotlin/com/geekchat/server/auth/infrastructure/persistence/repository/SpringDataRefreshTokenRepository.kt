@@ -1,6 +1,6 @@
-package com.geekchat.server.adapter.out.persistence.repository
+package com.geekchat.server.auth.infrastructure.persistence.repository
 
-import com.geekchat.server.adapter.out.persistence.entity.RefreshTokenJpaEntity
+import com.geekchat.server.auth.infrastructure.persistence.entity.RefreshTokenJpaEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 

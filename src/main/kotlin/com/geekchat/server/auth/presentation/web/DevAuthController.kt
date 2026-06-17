@@ -1,9 +1,8 @@
-package com.geekchat.server.adapter.`in`.web
+package com.geekchat.server.auth.presentation.web
 
-import com.geekchat.server.adapter.`in`.web.dto.DevLoginResponse
 import com.geekchat.server.common.presentation.web.ErrorResponse
 import com.geekchat.server.common.presentation.web.toResponseEntity
-import com.geekchat.server.application.service.AuthService
+import com.geekchat.server.auth.application.service.AuthService
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,8 +1,8 @@
-package com.geekchat.server.adapter.out.oauth
+package com.geekchat.server.auth.infrastructure.oauth
 
 import tools.jackson.databind.JsonNode
-import com.geekchat.server.application.port.out.OAuthClient
-import com.geekchat.server.application.port.out.OAuthProfile
+import com.geekchat.server.auth.application.port.out.OAuthClient
+import com.geekchat.server.auth.application.port.out.OAuthProfile
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.user.domain.model.AuthProvider
