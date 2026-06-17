@@ -4,18 +4,17 @@ import org.junit.jupiter.api.Test
 import org.springframework.modulith.core.ApplicationModules
 
 /**
- * Phase 3 probe: confirm Spring Modulith resolves + runs on Spring Boot 4.1,
- * and surface what modules it currently detects from the flat layer layout.
- * Does NOT call verify() yet (the current layer-based packages are expected to
- * violate module rules — the restructuring into feature modules comes next).
+ * Verifies the Spring Modulith feature-module structure: each top-level package
+ * under com.geekchat.server (common, user, auth, room, chat, websocket) is an
+ * application module; modules may only reference each other's public API +
+ * declared allowed dependencies. Fails the build on any boundary violation.
  */
 class ModularityTests {
 
+    private val modules = ApplicationModules.of(GeekChatServerApplication::class.java)
+
     @Test
-    fun `print detected application modules`() {
-        val modules = ApplicationModules.of(GeekChatServerApplication::class.java)
-        println("=== DETECTED MODULES ===")
-        modules.forEach { println("MODULE: $it") }
-        println("=== END ===")
+    fun `verify module structure`() {
+        modules.verify()
     }
 }

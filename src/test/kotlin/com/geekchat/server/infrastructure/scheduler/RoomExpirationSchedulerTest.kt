@@ -4,7 +4,6 @@ import com.geekchat.server.room.domain.event.*
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.room.domain.repository.ChatRoomRepository
 import com.geekchat.server.room.infrastructure.scheduler.RoomExpirationScheduler
-import com.geekchat.server.chat.domain.repository.MessageRepository
 import com.geekchat.server.room.domain.model.ChatRoom
 import com.geekchat.server.room.domain.model.ChatRoomType
 import io.mockk.every
@@ -23,14 +22,13 @@ class RoomExpirationSchedulerTest {
 
     private val chatRoomRepository = mockk<ChatRoomRepository>()
     private val chatRoomMemberRepository = mockk<ChatRoomMemberRepository>()
-    private val messageRepository = mockk<MessageRepository>()
     private val eventPublisher = mockk<ApplicationEventPublisher> { every { publishEvent(any<Any>()) } returns Unit }
 
     private lateinit var scheduler: RoomExpirationScheduler
 
     @BeforeEach
     fun setUp() {
-        scheduler = RoomExpirationScheduler(chatRoomRepository, chatRoomMemberRepository, messageRepository, eventPublisher)
+        scheduler = RoomExpirationScheduler(chatRoomRepository, chatRoomMemberRepository, eventPublisher)
     }
 
     @Test
@@ -38,13 +36,11 @@ class RoomExpirationSchedulerTest {
         val expiredRoom = ChatRoom(id = "r1", type = ChatRoomType.GROUP, name = "Expired", expiresAt = Instant.now().minus(1, ChronoUnit.HOURS))
         every { chatRoomRepository.findExpiringRoomsSoon(any(), any()) } returns emptyList()
         every { chatRoomRepository.findExpiredRooms(any()) } returns listOf(expiredRoom)
-        every { messageRepository.softDeleteByRoomId(any(), any()) } just runs
         every { chatRoomMemberRepository.deleteAllByChatRoomId(any()) } just runs
         every { chatRoomRepository.softDelete(any(), any()) } just runs
 
         scheduler.processExpiringRooms()
 
-        verify { messageRepository.softDeleteByRoomId("r1", any()) }
         verify { chatRoomMemberRepository.deleteAllByChatRoomId("r1") }
         verify { chatRoomRepository.softDelete("r1", any()) }
     }
@@ -54,7 +50,6 @@ class RoomExpirationSchedulerTest {
         val expiredRoom = ChatRoom(id = "r1", type = ChatRoomType.GROUP, name = "Expired", expiresAt = Instant.now().minus(1, ChronoUnit.HOURS))
         every { chatRoomRepository.findExpiringRoomsSoon(any(), any()) } returns emptyList()
         every { chatRoomRepository.findExpiredRooms(any()) } returns listOf(expiredRoom)
-        every { messageRepository.softDeleteByRoomId(any(), any()) } just runs
         every { chatRoomMemberRepository.deleteAllByChatRoomId(any()) } just runs
         every { chatRoomRepository.softDelete(any(), any()) } just runs
 

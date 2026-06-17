@@ -3,7 +3,6 @@ import com.geekchat.server.room.domain.event.*
 
 import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.room.domain.repository.ChatRoomRepository
-import com.geekchat.server.chat.domain.repository.MessageRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
@@ -17,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap
 class RoomExpirationScheduler(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomMemberRepository: ChatRoomMemberRepository,
-    private val messageRepository: MessageRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -43,7 +41,8 @@ class RoomExpirationScheduler(
         // 2. Cleanup expired rooms
         val expiredRooms = chatRoomRepository.findExpiredRooms(now)
         for (room in expiredRooms) {
-            messageRepository.softDeleteByRoomId(room.id, now)
+            // Message cleanup is owned by the chat module, which reacts to RoomExpired
+            // (see chat.application.RoomExpiryMessageCleanup) — keeps room from depending on chat.
             chatRoomMemberRepository.deleteAllByChatRoomId(room.id)
             chatRoomRepository.softDelete(room.id, now)
 
