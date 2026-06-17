@@ -1,6 +1,6 @@
 package com.geekchat.server.adapter.`in`.websocket
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.geekchat.server.application.port.out.WebSocketBroadcaster
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
