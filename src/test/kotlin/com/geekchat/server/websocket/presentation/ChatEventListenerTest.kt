@@ -1,6 +1,6 @@
-package com.geekchat.server.adapter.`in`.websocket
+package com.geekchat.server.websocket.presentation
 
-import com.geekchat.server.application.port.out.WebSocketBroadcaster
+import com.geekchat.server.websocket.application.port.out.WebSocketBroadcaster
 import com.geekchat.server.domain.event.ChatEvent
 import com.geekchat.server.chat.domain.model.MessageType
 import io.mockk.mockk

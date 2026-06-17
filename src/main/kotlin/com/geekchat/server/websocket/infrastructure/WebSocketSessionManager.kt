@@ -1,4 +1,4 @@
-package com.geekchat.server.adapter.`in`.websocket
+package com.geekchat.server.websocket.infrastructure
 
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.WebSocketSession

@@ -1,4 +1,4 @@
-package com.geekchat.server.application.port.out
+package com.geekchat.server.websocket.application.port.out
 
 interface WebSocketBroadcaster {
     fun broadcastToRoom(roomId: String, message: Any, excludeUserId: String? = null)
