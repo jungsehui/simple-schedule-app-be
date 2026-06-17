@@ -1,4 +1,4 @@
-package com.geekchat.server.domain.model
+package com.geekchat.server.user.domain.model
 
 enum class UserStatus {
     ACTIVE,

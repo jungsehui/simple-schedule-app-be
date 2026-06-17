@@ -1,14 +1,14 @@
 package com.geekchat.server.application.service
 
 import com.geekchat.server.application.port.out.RefreshTokenRepository
-import com.geekchat.server.application.port.out.UserProviderRepository
-import com.geekchat.server.application.port.out.UserRepository
+import com.geekchat.server.user.domain.repository.UserProviderRepository
+import com.geekchat.server.user.domain.repository.UserRepository
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
-import com.geekchat.server.domain.model.AuthProvider
+import com.geekchat.server.user.domain.model.AuthProvider
 import com.geekchat.server.domain.model.RefreshToken
-import com.geekchat.server.domain.model.User
-import com.geekchat.server.domain.model.UserProvider
+import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserProvider
 import com.geekchat.server.infrastructure.config.AppProperties
 import com.geekchat.server.infrastructure.security.JwtTokenProvider
 import io.mockk.every
@@ -226,7 +226,7 @@ class AuthServiceTest {
         val user = User(
             id = "u1", nickname = "deleted_user_xx", username = null,
             passwordHash = passwordEncoder.encode("hunter2x"),
-            status = com.geekchat.server.domain.model.UserStatus.WITHDRAWN,
+            status = com.geekchat.server.user.domain.model.UserStatus.WITHDRAWN,
         )
         every { userRepository.findByUsername("alice") } returns user
 
@@ -258,7 +258,7 @@ class AuthServiceTest {
         val result = authService.withdraw("u1")
 
         assertTrue(result.isRight)
-        assertEquals(com.geekchat.server.domain.model.UserStatus.WITHDRAWN, userSlot.captured.status)
+        assertEquals(com.geekchat.server.user.domain.model.UserStatus.WITHDRAWN, userSlot.captured.status)
         assertTrue(userSlot.captured.nickname.startsWith("deleted_user_"))
         assertEquals(null, userSlot.captured.email)
         verify { userProviderRepository.deleteAllByUserId("u1") }
@@ -269,7 +269,7 @@ class AuthServiceTest {
     fun `withdraw is idempotent for already-withdrawn user`() {
         val user = User(
             id = "u1", nickname = "deleted_user_xx",
-            status = com.geekchat.server.domain.model.UserStatus.WITHDRAWN,
+            status = com.geekchat.server.user.domain.model.UserStatus.WITHDRAWN,
         )
         every { userRepository.findById("u1") } returns user
 
@@ -281,7 +281,7 @@ class AuthServiceTest {
 
     @Test
     fun `oauthCallback existing provider returns LoggedIn`() {
-        val provider = com.geekchat.server.domain.model.UserProvider(
+        val provider = com.geekchat.server.user.domain.model.UserProvider(
             id = "p1", userId = "u1", provider = AuthProvider.GOOGLE, providerId = "g123",
         )
         val user = User(id = "u1", nickname = "Alice")

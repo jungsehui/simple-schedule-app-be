@@ -1,6 +1,6 @@
 package com.geekchat.server.adapter.`in`.web.dto
 
-import com.geekchat.server.domain.model.User
+import com.geekchat.server.user.domain.model.User
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size

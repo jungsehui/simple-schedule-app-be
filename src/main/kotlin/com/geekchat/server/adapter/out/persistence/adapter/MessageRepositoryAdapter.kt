@@ -3,7 +3,7 @@ package com.geekchat.server.adapter.out.persistence.adapter
 import com.geekchat.server.adapter.out.persistence.entity.MessageJpaEntity
 import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomRepository
 import com.geekchat.server.adapter.out.persistence.repository.SpringDataMessageRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataUserRepository
+import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
 import com.geekchat.server.application.port.out.MessageRepository
 import com.geekchat.server.application.port.out.PaginationDirection
 import com.geekchat.server.domain.model.Message

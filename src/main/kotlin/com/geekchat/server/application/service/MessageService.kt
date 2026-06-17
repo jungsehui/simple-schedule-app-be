@@ -4,7 +4,7 @@ import com.geekchat.server.application.port.out.ChatRoomMemberRepository
 import com.geekchat.server.application.port.out.ChatRoomRepository
 import com.geekchat.server.application.port.out.MessageRepository
 import com.geekchat.server.application.port.out.PaginationDirection
-import com.geekchat.server.application.port.out.UserRepository
+import com.geekchat.server.user.domain.repository.UserRepository
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.event.ChatEvent

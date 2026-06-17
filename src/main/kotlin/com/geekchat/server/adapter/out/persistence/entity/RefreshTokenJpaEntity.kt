@@ -1,4 +1,6 @@
 package com.geekchat.server.adapter.out.persistence.entity
+import com.geekchat.server.user.infrastructure.persistence.entity.UserJpaEntity
+import com.geekchat.server.common.infrastructure.persistence.entity.BaseJpaEntity
 
 import com.geekchat.server.domain.model.RefreshToken
 import jakarta.persistence.Column

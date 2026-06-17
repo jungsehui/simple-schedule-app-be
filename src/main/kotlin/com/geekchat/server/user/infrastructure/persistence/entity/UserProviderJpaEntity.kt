@@ -1,7 +1,8 @@
-package com.geekchat.server.adapter.out.persistence.entity
+package com.geekchat.server.user.infrastructure.persistence.entity
+import com.geekchat.server.common.infrastructure.persistence.entity.BaseJpaEntity
 
-import com.geekchat.server.domain.model.AuthProvider
-import com.geekchat.server.domain.model.UserProvider
+import com.geekchat.server.user.domain.model.AuthProvider
+import com.geekchat.server.user.domain.model.UserProvider
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

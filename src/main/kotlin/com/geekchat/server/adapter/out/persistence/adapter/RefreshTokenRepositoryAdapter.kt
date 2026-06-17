@@ -2,7 +2,7 @@ package com.geekchat.server.adapter.out.persistence.adapter
 
 import com.geekchat.server.adapter.out.persistence.entity.RefreshTokenJpaEntity
 import com.geekchat.server.adapter.out.persistence.repository.SpringDataRefreshTokenRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataUserRepository
+import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
 import com.geekchat.server.application.port.out.RefreshTokenRepository
 import com.geekchat.server.domain.model.RefreshToken
 import org.springframework.stereotype.Repository

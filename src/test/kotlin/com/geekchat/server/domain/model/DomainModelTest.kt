@@ -1,4 +1,5 @@
 package com.geekchat.server.domain.model
+import com.geekchat.server.user.domain.model.User
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

@@ -1,4 +1,5 @@
 package com.geekchat.server.adapter.out.persistence.entity
+import com.geekchat.server.common.infrastructure.persistence.entity.SoftDeletableJpaEntity
 
 import com.geekchat.server.domain.model.ChatRoom
 import com.geekchat.server.domain.model.ChatRoomType

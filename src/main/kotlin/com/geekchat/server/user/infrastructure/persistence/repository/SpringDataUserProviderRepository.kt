@@ -1,7 +1,7 @@
-package com.geekchat.server.adapter.out.persistence.repository
+package com.geekchat.server.user.infrastructure.persistence.repository
 
-import com.geekchat.server.adapter.out.persistence.entity.UserProviderJpaEntity
-import com.geekchat.server.domain.model.AuthProvider
+import com.geekchat.server.user.infrastructure.persistence.entity.UserProviderJpaEntity
+import com.geekchat.server.user.domain.model.AuthProvider
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 

@@ -1,15 +1,15 @@
-package com.geekchat.server.adapter.out.persistence.adapter
+package com.geekchat.server.user.infrastructure.persistence.adapter
 
-import com.geekchat.server.adapter.out.persistence.entity.UserJpaEntity
-import com.geekchat.server.adapter.out.persistence.entity.UserProviderJpaEntity
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataUserProviderRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataUserRepository
-import com.geekchat.server.application.port.out.UserProviderRepository
-import com.geekchat.server.application.port.out.UserRepository
-import com.geekchat.server.domain.model.AuthProvider
-import com.geekchat.server.domain.model.User
-import com.geekchat.server.domain.model.UserProvider
-import com.geekchat.server.domain.model.UserStatus
+import com.geekchat.server.user.infrastructure.persistence.entity.UserJpaEntity
+import com.geekchat.server.user.infrastructure.persistence.entity.UserProviderJpaEntity
+import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserProviderRepository
+import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
+import com.geekchat.server.user.domain.repository.UserProviderRepository
+import com.geekchat.server.user.domain.repository.UserRepository
+import com.geekchat.server.user.domain.model.AuthProvider
+import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserProvider
+import com.geekchat.server.user.domain.model.UserStatus
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 

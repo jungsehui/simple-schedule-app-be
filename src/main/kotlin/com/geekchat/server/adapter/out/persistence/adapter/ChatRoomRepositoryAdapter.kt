@@ -4,7 +4,7 @@ import com.geekchat.server.adapter.out.persistence.entity.ChatRoomJpaEntity
 import com.geekchat.server.adapter.out.persistence.entity.ChatRoomMemberJpaEntity
 import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomMemberRepository
 import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataUserRepository
+import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
 import com.geekchat.server.application.port.out.ChatRoomMemberRepository
 import com.geekchat.server.application.port.out.ChatRoomRepository
 import com.geekchat.server.domain.model.ChatRoom

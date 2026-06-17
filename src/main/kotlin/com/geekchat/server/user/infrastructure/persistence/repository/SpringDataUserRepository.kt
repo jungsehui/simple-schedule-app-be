@@ -1,7 +1,7 @@
-package com.geekchat.server.adapter.out.persistence.repository
+package com.geekchat.server.user.infrastructure.persistence.repository
 
-import com.geekchat.server.adapter.out.persistence.entity.UserJpaEntity
-import com.geekchat.server.domain.model.UserStatus
+import com.geekchat.server.user.infrastructure.persistence.entity.UserJpaEntity
+import com.geekchat.server.user.domain.model.UserStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 

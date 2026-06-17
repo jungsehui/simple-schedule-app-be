@@ -1,7 +1,8 @@
-package com.geekchat.server.adapter.out.persistence.entity
+package com.geekchat.server.user.infrastructure.persistence.entity
+import com.geekchat.server.common.infrastructure.persistence.entity.SoftDeletableJpaEntity
 
-import com.geekchat.server.domain.model.User
-import com.geekchat.server.domain.model.UserStatus
+import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

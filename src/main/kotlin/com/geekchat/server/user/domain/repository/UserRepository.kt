@@ -1,8 +1,8 @@
-package com.geekchat.server.application.port.out
+package com.geekchat.server.user.domain.repository
 
-import com.geekchat.server.domain.model.AuthProvider
-import com.geekchat.server.domain.model.User
-import com.geekchat.server.domain.model.UserProvider
+import com.geekchat.server.user.domain.model.AuthProvider
+import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserProvider
 
 interface UserRepository {
     fun findById(id: String): User?
