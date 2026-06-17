@@ -1,6 +1,6 @@
 package com.geekchat.server.adapter.out.oauth
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import com.geekchat.server.application.port.out.OAuthClient
 import com.geekchat.server.application.port.out.OAuthProfile
 import com.geekchat.server.domain.error.ChatError

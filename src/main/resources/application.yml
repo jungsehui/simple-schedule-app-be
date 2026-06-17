@@ -37,8 +37,9 @@ spring:
         format_sql: false
 
   jackson:
-    serialization:
-      write-dates-as-timestamps: false
+    # Boot 4 defaults to Jackson 3; align mapper defaults with Jackson 2 (ISO-8601 dates,
+    # not numeric timestamps — replaces the removed serialization.write-dates-as-timestamps).
+    use-jackson2-defaults: true
 
 server:
   port: ${PORT:8080}

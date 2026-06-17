@@ -16,12 +16,13 @@
 
 | 라이브러리 | 타깃 | 비고 |
 |---|---|---|
-| Spring Boot | 4.1.x | Java 17+ (21 사용), Kotlin 2.2.x, Gradle 8.14+/9.x |
-| Spring Framework | 7.0.x | Boot가 관리 |
-| Spring Modulith | 2.1.0 | 양 Boot 호환 |
-| Spring HATEOAS | 3.1.x | starter로 BOM 관리 |
-| Spring AI | 2.0.0 | Boot 4 전용. 아티팩트 `spring-ai-starter-model-{anthropic,openai,ollama}` |
-| Kotlin | 2.2.x | Boot 4 baseline |
+| Spring Boot | **4.1.0** | Java 17+ (21 사용), Gradle ≥8.14 (8.14.5), Servlet 6.1/JakartaEE 11 |
+| Spring Framework | 7.0.8 | Boot가 관리 |
+| Kotlin | **2.3.21** | Boot 4.1.0 gradle.properties가 관리하는 버전(소스 확인). 연구의 2.2.x는 outdated |
+| Gradle | 8.14.5 | Boot 4.1 최소 8.14 |
+| Spring Modulith | 2.1.0 | 양 Boot 호환 (Phase 3) |
+| Spring HATEOAS | 3.1.x | starter로 BOM 관리 (Phase 7) |
+| Spring AI | 2.0.0 | Boot 4 전용. `spring-ai-starter-model-{anthropic,openai,ollama}` (Phase 5) |
 
 ---
 
@@ -56,13 +57,21 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 
 검증 게이트: 테스트 카운트 증가 + 전부 green.
 
-## Phase 2 — Spring Boot 3.4.1 → 4.1.x 업그레이드 (격리)
+## Phase 2 — Spring Boot 3.4.1 → 4.1.0 업그레이드 ✅ 완료
 
-- Kotlin 2.0.20 → 2.2.x, Boot 4.1, Framework 7, JakartaEE 11
-- 브레이킹 리뷰: `taskExecutor`→`applicationTaskExecutor`, boolean 프로퍼티 엄격화, 프로필 네이밍 규칙, actuator heapdump, jakarta API 변경
-- 의존성 BOM 충돌 점검 (`./gradlew dependencyInsight`)
+실제 적용 (Boot 4.1.0 / Kotlin 2.3.21 / Gradle 8.14.5):
+- 래퍼 8.12 → 8.14.5 (Boot 4 최소 8.14)
+- build.gradle: Boot 4.1.0, Kotlin 2.3.21
+- **브레이킹 1 — Framework 7**: `UriComponentsBuilder.fromHttpUrl` 제거 → `fromUriString` (`AuthController` OAuth authorize URL 2곳)
+- **브레이킹 2 — test slice 분리**: `@AutoConfigureMockMvc`가 `spring-boot-starter-webmvc-test`로 이동 → 의존성 추가 + import `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc` (통합테스트 3개)
+- **브레이킹 3 — Jackson 2 → 3 (가장 큼)**: Boot 4 기본이 Jackson 3(`tools.jackson`). 앱의 `ObjectMapper`/`JsonNode` 주입·사용을 J3로 이전:
+  - import `com.fasterxml.jackson.databind.{ObjectMapper,JsonNode}` → `tools.jackson.databind.*` (main 3 + test 4 파일)
+  - kotlin 모듈 `com.fasterxml.jackson.module` → `tools.jackson.module:jackson-module-kotlin`
+  - `application.yml`: 제거된 `serialization.write-dates-as-timestamps` → `spring.jackson.use-jackson2-defaults: true` (ISO 날짜 유지)
+  - `JsonNode.asText()`/`asLong()`/`asBoolean()`는 J3에도 그대로 존재 → 코드 변경 불필요. `jjwt-jackson`은 자체 J2 사용(격리, 무충돌)
+  - `spring-boot-jackson2`(compat) 시도는 dual-config 바인딩 충돌로 폐기
 
-검증 게이트: 컴파일 + 전체 테스트 green + bootRun(dev).
+검증: 컴파일 + **130 tests green** + bootRun(local) 실연.
 
 ## Phase 3 — Spring Modulith 패키지 기반 모듈화
 
@@ -110,11 +119,11 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 
 ## 진행 상태
 
-브랜치: `migration/modular-monolith` (로컬, 미push)
-
 - ✅ 코드베이스 매핑 (`.planning/codebase/` 8개 문서)
 - ✅ 타깃 스택 조사 + Boot 경로 결정 (Boot 4.1 + AI 2.0)
-- ✅ **Phase 0 완료** — 130 tests green, bootRun(local) 실연 검증됨
+- ✅ **Phase 0 완료** — PR #1 main 머지 (`f6ec672`), 130 tests green
+- ✅ **Phase 2 완료** — Boot 4.1.0 + Kotlin 2.3.21 + Jackson 3, 130 tests green (브랜치 `migration/phase2-boot4`)
+  - (Phase 1 characterization 보강은 Phase 0.6에서 충분히 커버되어 별도 진행 생략)
   - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
   - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`
   - ✅ 0.4a dev-login → `@Profile("dev","local")` DevAuthController (prod 부재) — commit `975480e`

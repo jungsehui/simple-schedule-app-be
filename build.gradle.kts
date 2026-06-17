@@ -1,9 +1,9 @@
 plugins {
-    id("org.springframework.boot") version "3.4.1"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
-    kotlin("jvm") version "2.0.20"
-    kotlin("plugin.spring") version "2.0.20"
-    kotlin("plugin.jpa") version "2.0.20"
+    kotlin("jvm") version "2.3.21"
+    kotlin("plugin.spring") version "2.3.21"
+    kotlin("plugin.jpa") version "2.3.21"
 }
 
 group = "com.geekchat"
@@ -28,7 +28,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Kotlin
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    // Jackson 3 (Boot 4 default) Kotlin module — group is tools.jackson.module in Jackson 3.
+    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // JWT
@@ -41,6 +42,8 @@ dependencies {
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // Boot 4 split web-slice test support out of starter-test; MockMvc (@AutoConfigureMockMvc) lives here now.
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.mockk:mockk:1.13.12")
     testRuntimeOnly("com.h2database:h2")

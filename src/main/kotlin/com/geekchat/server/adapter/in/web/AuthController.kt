@@ -77,7 +77,7 @@ class AuthController(
     @GetMapping("/google")
     fun googleStart(): ResponseEntity<Void> {
         val cfg = appProperties.oauth.google
-        val url = UriComponentsBuilder.fromHttpUrl("https://accounts.google.com/o/oauth2/v2/auth")
+        val url = UriComponentsBuilder.fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
             .queryParam("client_id", cfg.clientId)
             .queryParam("redirect_uri", appProperties.oauth.callbackUrl)
             .queryParam("response_type", "code")
@@ -90,7 +90,7 @@ class AuthController(
     @GetMapping("/naver")
     fun naverStart(): ResponseEntity<Void> {
         val cfg = appProperties.oauth.naver
-        val url = UriComponentsBuilder.fromHttpUrl("https://nid.naver.com/oauth2.0/authorize")
+        val url = UriComponentsBuilder.fromUriString("https://nid.naver.com/oauth2.0/authorize")
             .queryParam("client_id", cfg.clientId)
             .queryParam("redirect_uri", appProperties.oauth.callbackUrl)
             .queryParam("response_type", "code")
