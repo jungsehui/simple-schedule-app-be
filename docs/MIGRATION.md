@@ -120,10 +120,14 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
   - ✅ 0.4a dev-login → `@Profile("dev","local")` DevAuthController (prod 부재) — commit `975480e`
   - ✅ 0.4b JWT secret fail-fast (기본값 제거 + ≥32B 검증) — commit `975480e`
   - ✅ 0.7 GitHub Actions CI (`.github/workflows/ci.yml`) — commit `f7fd58b`
-  - ⬜ 0.3 bootRun 문서화 (README/CLAUDE.md)
-  - ⬜ 0.5 prod `lazy-initialization: false` + `@Async` 바운디드 executor
-  - ⬜ 0.6 characterization 테스트 (OAuth 상태머신 / WS 이벤트·브로드캐스트 / 스케줄러)
-  - ⬜ 0.4c content를 `ChatEvent.MessageSent`에서 제거 (0.6 선행 필요 — async 회귀 위험)
+  - ✅ 0.3 bootRun 문서화 (README 정정 + CLAUDE §7) — commit `5da108c`
+  - ✅ 0.5a prod `lazy-initialization: false` / local `true` — commit `5da108c`
+        · 0.5b: `@Async`는 VT 활성화로 이미 virtual-thread executor 사용 → 바운디드 풀 불필요.
+          WS send-path의 `synchronized` 카리어-핀닝은 perf phase로 이관
+  - ⏳ 0.6 characterization 테스트 (OAuth 상태머신 / WS 브로드캐스트 / 스케줄러) — 진행 중
+  - ✅ 0.4c **재분류**: `content`는 이벤트→broadcast 경로(클라이언트 전달용)이며 **로그에 절대 안 찍힘**
+        (`grep` 검증). "Remove content from log" TODO 2개는 오해 주석 → 정정. 이벤트/PII 디커플링은
+        Phase 3(ChatEvent 분할)로 이관 — Phase 0에서 제거 시 불필요한 DB 재조회만 늘고 보안 이득 0
 
 > 참고: 로컬 실행 프로필은 `dev`가 아닌 **`local`** (`dev`는 통합 테스트와 공유하는 JPA 시맨틱 전용).
 > 실행: `docker compose -f docker-compose.dev.yml up -d` → `./gradlew bootRun --args='--spring.profiles.active=local'`

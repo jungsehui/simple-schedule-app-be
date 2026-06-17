@@ -26,7 +26,7 @@ class ChatEventListener(
                     "id" to event.messageId,
                     "roomId" to event.roomId,
                     "senderId" to event.senderId,
-                    "content" to event.content, // TODO: Remove content from log before production
+                    "content" to event.content, // message body — delivered to room members (never logged)
                     "type" to event.messageType.name,
                     "createdAt" to event.createdAt.toString(),
                     "expiresAt" to event.expiresAt?.toString(),
