@@ -2,6 +2,7 @@ package com.geekchat.server.adapter.`in`.websocket
 
 import com.geekchat.server.application.port.out.WebSocketBroadcaster
 import com.geekchat.server.domain.event.ChatEvent
+import com.geekchat.server.room.domain.event.RoomMemberJoined
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
@@ -14,6 +15,17 @@ class ChatEventListener(
     private val broadcaster: WebSocketBroadcaster,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    /**
+     * Register the user's live sessions with the room on join. Synchronous (plain
+     * @EventListener, runs inline at the publish point) so timing matches the former
+     * direct ChatRoomService/InviteLinkService -> broadcaster.joinRoom call. This is
+     * in-memory session bookkeeping with no transaction-commit ordering constraint.
+     */
+    @EventListener
+    fun onRoomMemberJoined(event: RoomMemberJoined) {
+        broadcaster.joinRoom(event.userId, event.roomId)
+    }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

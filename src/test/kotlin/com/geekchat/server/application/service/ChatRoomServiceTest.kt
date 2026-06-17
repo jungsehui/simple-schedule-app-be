@@ -1,14 +1,15 @@
 package com.geekchat.server.application.service
 
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
-import com.geekchat.server.application.port.out.ChatRoomRepository
+import com.geekchat.server.room.application.service.ChatRoomService
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomRepository
 import com.geekchat.server.user.domain.repository.UserRepository
-import com.geekchat.server.application.port.out.WebSocketBroadcaster
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
-import com.geekchat.server.domain.model.ChatRoom
-import com.geekchat.server.domain.model.ChatRoomMember
-import com.geekchat.server.domain.model.ChatRoomType
+import com.geekchat.server.room.domain.event.RoomMemberJoined
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.model.ChatRoomType
 import com.geekchat.server.user.domain.model.User
 import io.mockk.every
 import io.mockk.just
@@ -19,20 +20,21 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 
 class ChatRoomServiceTest {
 
     private val chatRoomRepository = mockk<ChatRoomRepository>()
     private val chatRoomMemberRepository = mockk<ChatRoomMemberRepository>()
     private val userRepository = mockk<UserRepository>()
-    private val webSocketBroadcaster = mockk<WebSocketBroadcaster>()
+    private val eventPublisher = mockk<ApplicationEventPublisher>()
 
     private lateinit var service: ChatRoomService
 
     @BeforeEach
     fun setUp() {
-        every { webSocketBroadcaster.joinRoom(any(), any()) } just runs
-        service = ChatRoomService(chatRoomRepository, chatRoomMemberRepository, userRepository, webSocketBroadcaster)
+        every { eventPublisher.publishEvent(any<RoomMemberJoined>()) } just runs
+        service = ChatRoomService(chatRoomRepository, chatRoomMemberRepository, userRepository, eventPublisher)
     }
 
     @Test

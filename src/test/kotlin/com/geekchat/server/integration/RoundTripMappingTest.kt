@@ -1,14 +1,14 @@
 package com.geekchat.server.integration
 
-import com.geekchat.server.adapter.out.persistence.entity.ChatRoomJpaEntity
-import com.geekchat.server.adapter.out.persistence.entity.ChatRoomMemberJpaEntity
+import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomJpaEntity
+import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomMemberJpaEntity
 import com.geekchat.server.adapter.out.persistence.entity.MessageJpaEntity
 import com.geekchat.server.user.infrastructure.persistence.entity.UserJpaEntity
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomMemberRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomRepository
+import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomMemberRepository
+import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomRepository
 import com.geekchat.server.adapter.out.persistence.repository.SpringDataMessageRepository
 import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
-import com.geekchat.server.domain.model.ChatRoomType
+import com.geekchat.server.room.domain.model.ChatRoomType
 import com.geekchat.server.domain.model.MessageType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

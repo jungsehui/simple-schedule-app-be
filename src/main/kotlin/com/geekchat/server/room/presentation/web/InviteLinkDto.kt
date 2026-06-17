@@ -1,6 +1,6 @@
-package com.geekchat.server.adapter.`in`.web.dto
+package com.geekchat.server.room.presentation.web
 
-import com.geekchat.server.domain.model.InviteLink
+import com.geekchat.server.room.domain.model.InviteLink
 
 data class CreateInviteLinkRequest(
     val ttlHours: Long? = 24,

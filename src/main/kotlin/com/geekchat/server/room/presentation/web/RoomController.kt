@@ -1,13 +1,9 @@
-package com.geekchat.server.adapter.`in`.web
+package com.geekchat.server.room.presentation.web
 
-import com.geekchat.server.adapter.`in`.web.dto.CreateRoomRequest
-import com.geekchat.server.adapter.`in`.web.dto.CreateRoomResponse
 import com.geekchat.server.adapter.`in`.web.dto.MessageResponse
-import com.geekchat.server.adapter.`in`.web.dto.MuteRoomRequest
-import com.geekchat.server.adapter.`in`.web.dto.RoomListResponse
 import com.geekchat.server.common.presentation.web.toResponseEntity
 import com.geekchat.server.application.port.out.PaginationDirection
-import com.geekchat.server.application.service.ChatRoomService
+import com.geekchat.server.room.application.service.ChatRoomService
 import com.geekchat.server.application.service.MessageService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity

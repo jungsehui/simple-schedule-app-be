@@ -1,7 +1,7 @@
-package com.geekchat.server.adapter.`in`.web.dto
+package com.geekchat.server.room.presentation.web
 
-import com.geekchat.server.application.service.MemberInfo
-import com.geekchat.server.application.service.RoomWithMembers
+import com.geekchat.server.room.application.service.MemberInfo
+import com.geekchat.server.room.application.service.RoomWithMembers
 import jakarta.validation.constraints.NotEmpty
 
 // --- Requests ---

@@ -1,5 +1,9 @@
 package com.geekchat.server.domain.model
 import com.geekchat.server.auth.domain.model.RefreshToken
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.model.ChatRoomType
+import com.geekchat.server.room.domain.model.InviteLink
 import com.geekchat.server.user.domain.model.User
 
 import org.junit.jupiter.api.Assertions.assertEquals

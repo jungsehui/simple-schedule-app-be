@@ -1,7 +1,7 @@
 package com.geekchat.server.application.service
 
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
-import com.geekchat.server.application.port.out.ChatRoomRepository
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomRepository
 import com.geekchat.server.application.port.out.MessageRepository
 import com.geekchat.server.application.port.out.PaginationDirection
 import com.geekchat.server.user.domain.repository.UserRepository

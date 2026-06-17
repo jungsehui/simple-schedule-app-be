@@ -2,7 +2,7 @@ package com.geekchat.server.adapter.`in`.websocket
 
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
 import com.geekchat.server.application.service.MessageService
 import com.geekchat.server.common.error.Either
 import com.geekchat.server.domain.event.ChatEvent

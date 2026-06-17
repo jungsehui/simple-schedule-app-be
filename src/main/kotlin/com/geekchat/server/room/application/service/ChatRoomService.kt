@@ -1,15 +1,16 @@
-package com.geekchat.server.application.service
+package com.geekchat.server.room.application.service
 
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
-import com.geekchat.server.application.port.out.ChatRoomRepository
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomRepository
 import com.geekchat.server.user.domain.repository.UserRepository
-import com.geekchat.server.application.port.out.WebSocketBroadcaster
 import com.geekchat.server.common.error.ChatError
 import com.geekchat.server.common.error.Either
-import com.geekchat.server.domain.model.ChatRoom
-import com.geekchat.server.domain.model.ChatRoomMember
-import com.geekchat.server.domain.model.ChatRoomType
+import com.geekchat.server.room.domain.event.RoomMemberJoined
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.model.ChatRoomType
 import com.geekchat.server.user.domain.model.User
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -32,7 +33,7 @@ class ChatRoomService(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomMemberRepository: ChatRoomMemberRepository,
     private val userRepository: UserRepository,
-    private val webSocketBroadcaster: WebSocketBroadcaster,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     @Transactional
     fun setRoomMuted(userId: String, roomId: String, muted: Boolean): Either<ChatError, Unit> {
@@ -149,7 +150,7 @@ class ChatRoomService(
     }
 
     private fun joinRoomForUsers(roomId: String, userIds: List<String>) {
-        userIds.forEach { userId -> webSocketBroadcaster.joinRoom(userId, roomId) }
+        userIds.forEach { userId -> eventPublisher.publishEvent(RoomMemberJoined(userId = userId, roomId = roomId)) }
     }
 
     private fun loadRoomWithMembers(room: ChatRoom): Either<ChatError, RoomWithMembers> {

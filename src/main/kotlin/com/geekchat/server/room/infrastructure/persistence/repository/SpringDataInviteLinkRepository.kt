@@ -1,6 +1,6 @@
-package com.geekchat.server.adapter.out.persistence.repository
+package com.geekchat.server.room.infrastructure.persistence.repository
 
-import com.geekchat.server.adapter.out.persistence.entity.InviteLinkJpaEntity
+import com.geekchat.server.room.infrastructure.persistence.entity.InviteLinkJpaEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface SpringDataInviteLinkRepository : JpaRepository<InviteLinkJpaEntity, String> {

@@ -1,6 +1,6 @@
-package com.geekchat.server.adapter.out.persistence.repository
+package com.geekchat.server.room.infrastructure.persistence.repository
 
-import com.geekchat.server.adapter.out.persistence.entity.ChatRoomMemberJpaEntity
+import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomMemberJpaEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface SpringDataChatRoomMemberRepository : JpaRepository<ChatRoomMemberJpaEntity, String> {

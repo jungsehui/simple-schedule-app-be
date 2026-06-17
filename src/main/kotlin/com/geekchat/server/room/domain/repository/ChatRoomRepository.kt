@@ -1,7 +1,7 @@
-package com.geekchat.server.application.port.out
+package com.geekchat.server.room.domain.repository
 
-import com.geekchat.server.domain.model.ChatRoom
-import com.geekchat.server.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
 import java.time.Instant
 
 interface ChatRoomRepository {

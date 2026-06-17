@@ -1,14 +1,14 @@
-package com.geekchat.server.adapter.out.persistence.adapter
+package com.geekchat.server.room.infrastructure.persistence.adapter
 
-import com.geekchat.server.adapter.out.persistence.entity.ChatRoomJpaEntity
-import com.geekchat.server.adapter.out.persistence.entity.ChatRoomMemberJpaEntity
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomMemberRepository
-import com.geekchat.server.adapter.out.persistence.repository.SpringDataChatRoomRepository
+import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomJpaEntity
+import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomMemberJpaEntity
+import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomMemberRepository
+import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomRepository
 import com.geekchat.server.user.infrastructure.persistence.repository.SpringDataUserRepository
-import com.geekchat.server.application.port.out.ChatRoomMemberRepository
-import com.geekchat.server.application.port.out.ChatRoomRepository
-import com.geekchat.server.domain.model.ChatRoom
-import com.geekchat.server.domain.model.ChatRoomMember
+import com.geekchat.server.room.domain.repository.ChatRoomMemberRepository
+import com.geekchat.server.room.domain.repository.ChatRoomRepository
+import com.geekchat.server.room.domain.model.ChatRoom
+import com.geekchat.server.room.domain.model.ChatRoomMember
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
