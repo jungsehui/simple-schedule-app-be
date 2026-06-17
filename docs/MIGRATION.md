@@ -114,7 +114,7 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 
 - ✅ 코드베이스 매핑 (`.planning/codebase/` 8개 문서)
 - ✅ 타깃 스택 조사 + Boot 경로 결정 (Boot 4.1 + AI 2.0)
-- ⏳ **Phase 0 진행 중** — 112 tests green, bootRun(local) 검증됨
+- ✅ **Phase 0 완료** — 130 tests green, bootRun(local) 실연 검증됨
   - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
   - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`
   - ✅ 0.4a dev-login → `@Profile("dev","local")` DevAuthController (prod 부재) — commit `975480e`
@@ -124,7 +124,8 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
   - ✅ 0.5a prod `lazy-initialization: false` / local `true` — commit `5da108c`
         · 0.5b: `@Async`는 VT 활성화로 이미 virtual-thread executor 사용 → 바운디드 풀 불필요.
           WS send-path의 `synchronized` 카리어-핀닝은 perf phase로 이관
-  - ⏳ 0.6 characterization 테스트 (OAuth 상태머신 / WS 브로드캐스트 / 스케줄러) — 진행 중
+  - ✅ 0.6 characterization 테스트 — AuthServiceOAuthTest(8) + ChatEventListenerTest(10),
+        스케줄러 테스트 audit=적정(이벤트 발행+선택 검증됨) — commit `d554128`
   - ✅ 0.4c **재분류**: `content`는 이벤트→broadcast 경로(클라이언트 전달용)이며 **로그에 절대 안 찍힘**
         (`grep` 검증). "Remove content from log" TODO 2개는 오해 주석 → 정정. 이벤트/PII 디커플링은
         Phase 3(ChatEvent 분할)로 이관 — Phase 0에서 제거 시 불필요한 DB 재조회만 늘고 보안 이득 0
