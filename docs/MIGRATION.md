@@ -73,17 +73,37 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 
 검증: 컴파일 + **130 tests green** + bootRun(local) 실연.
 
-## Phase 3 — Spring Modulith 패키지 기반 모듈화
+## Phase 3 — Spring Modulith 패키지 기반 모듈화 (진행 중)
 
-- 3.1 `spring-modulith-starter-core` + `-jpa` + `-test` 추가, `ModularityTests.verify()` → 현 위반 표면화
-- 3.2 flat 레이어 → 기능 모듈: `auth` `chat` `room` `user` `presence` (+ `ai` Phase 5)
-- 3.3 결합 위반 해소:
-  - `AuthService→infrastructure` → `TokenService` 포트 추출
-  - `ChatRoomService→WebSocketBroadcaster.joinRoom` → `RoomMemberJoined` 이벤트 (⚠️ sync→async)
-  - 공유 `ChatEvent` sealed class → 모듈별 이벤트 분리
-- 3.4 Event Publication Registry (JPA), `@ApplicationModuleListener`
+**확정 구조 (사용자 승인)**: 최상위 = 기능 모듈, 내부 = 레이어. 각 모듈이 linkareer `activity` 서비스처럼
+`domain/{model,event,repository(포트)} · application/{dto,port/{in,out},service} · infrastructure/{config,persistence/{entity,repository,adapter,mapper},security,oauth,scheduler} · presentation/{web}` 구조. `adapter/adapter` 중첩 제거.
 
-검증 게이트: `ModularityTests.verify()` 통과 + 전체 테스트 green + Phase 0/1 테스트로 async 회귀 없음 확인.
+**모듈**: `common`(범용) · `user` · `auth`(→user) · `room` · `chat`(→room) · `websocket`. Modulith는 최상위 하위 패키지를 모듈로 인식.
+
+**MSA 노트**: 모듈러 모놀리스 = 인-프로세스. auth→user는 네트워크 아님(공개 API 직접 호출/이벤트). 경계 규율 지키면 후일 MSA 추출 시 이벤트→브로커 externalize, named interface→API 계약으로 전환.
+
+### 모듈 배정 맵 (72 main 파일)
+| 모듈 | 파일 |
+|---|---|
+| **common** ✅ | error/{Either,ChatError}. (예정: config/AppProperties, persistence/entity/{Base,SoftDeletable}JpaEntity, presentation/web/{HealthController,ChatErrorMapping}) |
+| **user** | model/{User,UserProvider,UserStatus,AuthProvider}, repository/{UserRepository,UserProviderRepository}, service/UserService, web/{UserController,UserDto}, persistence/{User,UserProvider}{JpaEntity,SpringData,Adapter} |
+| **auth** (→user) | model/RefreshToken, repository/RefreshTokenRepository, port/out/OAuthClient, service/AuthService, web/{AuthController,DevAuthController,AuthDto}, security/{JwtTokenProvider,JwtAuthenticationFilter}, config/SecurityConfig, oauth/OAuthClientAdapter, persistence/RefreshToken* |
+| **room** | model/{ChatRoom,ChatRoomMember,ChatRoomType,InviteLink}, repository/{ChatRoomRepository,InviteLinkRepository}, service/{ChatRoomService,InviteLinkService}, web/{RoomController,InviteLinkController,RoomDto,InviteLinkDto}, scheduler/RoomExpirationScheduler, persistence/{ChatRoom,ChatRoomMember,InviteLink}* |
+| **chat** (→room) | model/{Message,MessageType}, repository/MessageRepository, service/MessageService, web/MessageDto, scheduler/MessageExpirationScheduler, persistence/Message* |
+| **websocket** | port/out/WebSocketBroadcaster, {ChatWebSocketHandler,ChatEventListener,WebSocketBroadcasterAdapter,WebSocketSessionManager}, config/WebSocketConfig |
+| **이벤트 분할** | `ChatEvent` → chat(MessageSent/Read/Burned/Expired) · room(RoomExpiring/Expired) · presence(UserConnected/Disconnected). websocket이 `@ApplicationModuleListener`로 구독 |
+
+### 결합 위반 3종 (이동 중 해소)
+- `AuthService→infrastructure(JwtTokenProvider,AppProperties)` → `TokenService` 포트 추출
+- `ChatRoomService→WebSocketBroadcaster.joinRoom` → `RoomMemberJoined` 이벤트 (⚠️ sync→async, Phase 0.6 WS 테스트가 회귀 감지)
+- 공유 `ChatEvent` → 모듈별 분리
+
+### 진행
+- ✅ 3.1 Modulith 2.1.0 추가 (Boot 4.1 호환 확인) + ModularityTests probe — commit `d5f34f4`
+- ✅ `common` 모듈 (Either, ChatError) — commit `d5f34f4`
+- ⬜ user → auth → room → chat → websocket (각 green+커밋) → ChatEvent 분할 → `ModularityTests.verify()` 활성화
+
+검증 게이트: `ApplicationModules.verify()` 통과 + 전체 테스트 green + bootRun(local).
 
 ## Phase 4 — 관리자 역할/권한 모델 (AI 게이팅 선결)
 
