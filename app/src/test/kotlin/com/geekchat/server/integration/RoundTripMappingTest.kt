@@ -3,6 +3,7 @@ package com.geekchat.server.integration
 import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomJpaEntity
 import com.geekchat.server.room.infrastructure.persistence.entity.ChatRoomMemberJpaEntity
 import com.geekchat.server.chat.infrastructure.persistence.entity.MessageJpaEntity
+import com.geekchat.server.user.domain.model.UserRole
 import com.geekchat.server.user.infrastructure.persistence.entity.UserJpaEntity
 import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomMemberRepository
 import com.geekchat.server.room.infrastructure.persistence.repository.SpringDataChatRoomRepository
@@ -38,6 +39,7 @@ class RoundTripMappingTest {
             username = "alice_123",
             email = "alice@test.com",
             profileImageUrl = "https://img.test/alice.jpg",
+            role = UserRole.ADMIN,
         )
         val saved = userRepo.saveAndFlush(entity)
         val loaded = userRepo.findById(saved.id).get()
@@ -48,6 +50,7 @@ class RoundTripMappingTest {
         assertEquals("alice_123", domain.username)
         assertEquals("alice@test.com", domain.email)
         assertEquals("https://img.test/alice.jpg", domain.profileImageUrl)
+        assertEquals(UserRole.ADMIN, domain.role)
         assertNotNull(domain.createdAt)
         assertNotNull(domain.updatedAt)
         assertNull(domain.deletedAt)

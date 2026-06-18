@@ -2,6 +2,7 @@ package com.geekchat.server.user.infrastructure.persistence.entity
 import com.geekchat.server.common.infrastructure.persistence.entity.SoftDeletableJpaEntity
 
 import com.geekchat.server.user.domain.model.User
+import com.geekchat.server.user.domain.model.UserRole
 import com.geekchat.server.user.domain.model.UserStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -47,6 +48,10 @@ class UserJpaEntity(
     @Column(nullable = false, length = 20)
     var status: UserStatus = UserStatus.ACTIVE,
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    var role: UserRole = UserRole.USER,
+
     createdAt: Instant = Instant.now(),
     updatedAt: Instant = Instant.now(),
     deletedAt: Instant? = null,
@@ -60,6 +65,7 @@ class UserJpaEntity(
         profileImageUrl = profileImageUrl,
         passwordHash = passwordHash,
         status = status,
+        role = role,
         createdAt = createdAt,
         updatedAt = updatedAt,
         deletedAt = deletedAt,
@@ -74,6 +80,7 @@ class UserJpaEntity(
             profileImageUrl = user.profileImageUrl,
             passwordHash = user.passwordHash,
             status = user.status,
+            role = user.role,
             createdAt = user.createdAt,
             updatedAt = user.updatedAt,
             deletedAt = user.deletedAt,

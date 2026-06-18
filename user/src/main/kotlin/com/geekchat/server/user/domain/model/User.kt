@@ -10,6 +10,7 @@ data class User(
     val profileImageUrl: String? = null,
     val passwordHash: String? = null,
     val status: UserStatus = UserStatus.ACTIVE,
+    val role: UserRole = UserRole.USER,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
     val deletedAt: Instant? = null,
@@ -35,6 +36,11 @@ data class User(
 
     fun withPassword(hash: String): User =
         copy(passwordHash = hash, updatedAt = Instant.now())
+
+    fun withRole(role: UserRole): User =
+        copy(role = role, updatedAt = Instant.now())
+
+    fun isAdmin(): Boolean = role == UserRole.ADMIN
 
     fun hasPassword(): Boolean = passwordHash != null
 

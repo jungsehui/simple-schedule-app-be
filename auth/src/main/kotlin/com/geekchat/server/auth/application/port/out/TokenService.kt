@@ -11,7 +11,7 @@ import com.geekchat.server.common.error.Either
  * (hexagonal boundary). Implemented in production by the infrastructure JwtTokenProvider.
  */
 interface TokenService {
-    fun generateAccessToken(userId: String): String
+    fun generateAccessToken(userId: String, role: String): String
     fun generateLinkToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String
     fun generateSignupToken(claims: Map<String, Any>, expiryMinutes: Long = 10): String
     fun parseLinkToken(token: String): Either<ChatError, Map<String, Any>>
