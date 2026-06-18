@@ -51,7 +51,7 @@ class ChatWebSocketHandler(
             session.close(CloseStatus.POLICY_VIOLATION)
             return
         }
-        val userId = tokenResult.getOrNull()!!
+        val userId = tokenResult.getOrNull()!!.userId
 
         when (sessionManager.register(userId, session)) {
             WebSocketSessionManager.RegistrationResult.RateLimited -> {

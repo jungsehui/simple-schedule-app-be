@@ -12,6 +12,7 @@ import com.geekchat.server.user.domain.model.AuthProvider
 import com.geekchat.server.auth.domain.model.RefreshToken
 import com.geekchat.server.user.domain.model.User
 import com.geekchat.server.user.domain.model.UserProvider
+import com.geekchat.server.user.domain.model.UserRole
 import com.geekchat.server.user.domain.model.UserStatus
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -110,7 +111,7 @@ class AuthService(
             ),
         )
         log.info("user_signup userId={} username={}", saved.id, saved.username)
-        return Either.Right(issueTokenPair(saved.id))
+        return Either.Right(issueTokenPair(saved.id, saved.role))
     }
 
     @Transactional
@@ -128,7 +129,7 @@ class AuthService(
         }
 
         log.info("user_login userId={}", user.id)
-        return Either.Right(issueTokenPair(user.id))
+        return Either.Right(issueTokenPair(user.id, user.role))
     }
 
     @Transactional
@@ -170,7 +171,7 @@ class AuthService(
             if (user.status == UserStatus.WITHDRAWN) {
                 return Either.Left(ChatError.AccountWithdrawn())
             }
-            return Either.Right(OAuthCallbackResult.LoggedIn(issueTokenPair(user.id)))
+            return Either.Right(OAuthCallbackResult.LoggedIn(issueTokenPair(user.id, user.role)))
         }
 
         // (b) email matches another provider → linking required
@@ -277,7 +278,7 @@ class AuthService(
             ),
         )
         log.info("provider_linked userId={} provider={}", user.id, provider)
-        return Either.Right(LinkProviderResult.LoggedIn(issueTokenPair(user.id)))
+        return Either.Right(LinkProviderResult.LoggedIn(issueTokenPair(user.id, user.role)))
     }
 
     @Transactional
@@ -303,7 +304,7 @@ class AuthService(
         if (already != null) {
             val existing = userRepository.findById(already.userId)
                 ?: return Either.Left(ChatError.UserNotFound(already.userId))
-            return Either.Right(issueTokenPair(existing.id))
+            return Either.Right(issueTokenPair(existing.id, existing.role))
         }
 
         val newUser = userRepository.save(
@@ -325,20 +326,20 @@ class AuthService(
             ),
         )
         log.info("oauth_signup_completed userId={} provider={}", newUser.id, provider)
-        return Either.Right(issueTokenPair(newUser.id))
+        return Either.Right(issueTokenPair(newUser.id, newUser.role))
     }
 
     // ────────────── Existing methods (unchanged) ──────────────
 
     @Transactional
-    fun devLogin(name: String): Either<ChatError, DevLoginResult> {
+    fun devLogin(name: String, admin: Boolean = false): Either<ChatError, DevLoginResult> {
         val providerId = "dev-$name"
 
         val existingProvider = userProviderRepository.findByProviderAndProviderId(
             AuthProvider.GOOGLE, providerId,
         )
 
-        val user = if (existingProvider != null) {
+        val baseUser = if (existingProvider != null) {
             userRepository.findById(existingProvider.userId)
                 ?: return Either.Left(ChatError.UserNotFound(existingProvider.userId))
         } else {
@@ -346,6 +347,7 @@ class AuthService(
                 User(
                     id = UUID.randomUUID().toString(),
                     nickname = name,
+                    role = if (admin) UserRole.ADMIN else UserRole.USER,
                 ),
             )
             userProviderRepository.save(
@@ -359,17 +361,24 @@ class AuthService(
             newUser
         }
 
-        if (user.status == UserStatus.WITHDRAWN) {
+        if (baseUser.status == UserStatus.WITHDRAWN) {
             return Either.Left(ChatError.AccountWithdrawn())
         }
 
-        val tokenPair = issueTokenPair(user.id)
+        // Dev-only admin promotion so the AI-chat gate (Phase 5) can be exercised locally.
+        val user = if (admin && !baseUser.isAdmin()) {
+            userRepository.save(baseUser.withRole(UserRole.ADMIN))
+        } else {
+            baseUser
+        }
+
+        val tokenPair = issueTokenPair(user.id, user.role)
 
         return Either.Right(
             DevLoginResult(
                 accessToken = tokenPair.accessToken,
                 refreshToken = tokenPair.refreshToken,
-                message = "Logged in as $name",
+                message = "Logged in as $name" + if (user.isAdmin()) " (admin)" else "",
             ),
         )
     }
@@ -397,7 +406,7 @@ class AuthService(
 
         refreshTokenRepository.deleteByToken(token)
 
-        return Either.Right(issueTokenPair(storedToken.userId))
+        return Either.Right(issueTokenPair(storedToken.userId, user?.role ?: UserRole.USER))
     }
 
     fun getCurrentUser(userId: String): Either<ChatError, User> {
@@ -416,8 +425,8 @@ class AuthService(
 
     // ────────────── Private helpers ──────────────
 
-    private fun issueTokenPair(userId: String): TokenPair {
-        val accessToken = tokenService.generateAccessToken(userId)
+    private fun issueTokenPair(userId: String, role: UserRole): TokenPair {
+        val accessToken = tokenService.generateAccessToken(userId, role.name)
         val refreshTokenValue = UUID.randomUUID().toString()
 
         refreshTokenRepository.save(

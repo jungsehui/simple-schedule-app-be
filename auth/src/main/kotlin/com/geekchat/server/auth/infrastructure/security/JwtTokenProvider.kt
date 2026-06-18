@@ -10,6 +10,9 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Component
 import java.util.Date
 
+/** Identity extracted from a validated access token: subject + role claim. */
+data class AuthenticatedUser(val userId: String, val role: String)
+
 @Component
 class JwtTokenProvider(
     private val appProperties: AppProperties,
@@ -18,12 +21,13 @@ class JwtTokenProvider(
         Keys.hmacShaKeyFor(appProperties.jwt.secret.toByteArray())
     }
 
-    override fun generateAccessToken(userId: String): String {
+    override fun generateAccessToken(userId: String, role: String): String {
         val now = Date()
         val expiry = Date(now.time + appProperties.jwt.accessTokenExpiry.toMillis())
 
         return Jwts.builder()
             .subject(userId)
+            .claim("role", role)
             .issuedAt(now)
             .expiration(expiry)
             .signWith(key)
@@ -55,14 +59,15 @@ class JwtTokenProvider(
     override fun generateSignupToken(claims: Map<String, Any>, expiryMinutes: Long): String =
         generateClaimsToken(claims, expiryMinutes)
 
-    fun validateToken(token: String): Either<ChatError, String> {
+    fun validateToken(token: String): Either<ChatError, AuthenticatedUser> {
         return try {
             val claims = Jwts.parser()
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .payload
-            Either.Right(claims.subject)
+            val role = claims["role"] as? String ?: "USER" // tokens issued before role claim → USER
+            Either.Right(AuthenticatedUser(userId = claims.subject, role = role))
         } catch (e: ExpiredJwtException) {
             Either.Left(ChatError.TokenExpired())
         } catch (_: Exception) {

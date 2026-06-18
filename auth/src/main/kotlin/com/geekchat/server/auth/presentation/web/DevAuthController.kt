@@ -23,13 +23,16 @@ class DevAuthController(
     private val authService: AuthService,
 ) {
     @GetMapping("/dev-login")
-    fun devLogin(@RequestParam name: String?): ResponseEntity<*> {
+    fun devLogin(
+        @RequestParam name: String?,
+        @RequestParam(defaultValue = "false") admin: Boolean,
+    ): ResponseEntity<*> {
         if (name.isNullOrBlank()) {
             return ResponseEntity.badRequest().body(
                 ErrorResponse(statusCode = 400, message = "name query parameter is required"),
             )
         }
-        return authService.devLogin(name).fold(
+        return authService.devLogin(name, admin).fold(
             onLeft = { it.toResponseEntity() },
             onRight = { result ->
                 ResponseEntity.ok(
