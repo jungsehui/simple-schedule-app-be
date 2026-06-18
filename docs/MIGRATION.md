@@ -137,9 +137,16 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 
 검증 게이트: 비-admin 차단 + provider 교체(config만)로 동작 + AI 응답 영속.
 
-## Phase 6 — [선택] Gradle 물리 멀티모듈 분리
+## Phase 6 — Gradle 물리 멀티모듈 분리 ✅ 완료 (PR #4, main `e821945`)
 
-Modulith 체감 후 사용자 결정. `domain`/`application`/`adapter-persistence`/`adapter-web`/`app` 서브프로젝트, `libs.versions.toml`, `build-logic` convention plugin. `app`만 bootJar, 나머지 plain jar.
+사용자 결정: **레이어별이 아닌 기능별** 서브프로젝트(Phase 3 Modulith 모듈과 1:1).
+- 서브프로젝트: `:common :user :auth :room :chat :websocket :app`
+- `build-logic` composite build + precompiled 컨벤션 플러그인: `geekchat.kotlin-library`(plain jar) · `geekchat.spring-boot-app`(bootJar)
+- 의존 그래프(project): user→common · auth→common,user · room→common,user · chat→common,user,room · websocket→common,auth,room,chat · app→전부
+- **`:app`만 bootJar** — 6개 모듈 jar를 `BOOT-INF/lib/*-0.0.1-SNAPSHOT.jar` nested로 번들
+- 모듈별 Spring starter 분배(web/security/data-jpa/validation/websocket/jjwt/spring-tx)
+- 검증: 132 tests green · bootJar nested 확인 · `:app:bootRun`(local) `/health` ok · CI green
+- 후속: 전체 테스트가 `:app`에 집중 → 모듈별 src/test 재배치; starter `api` vs `implementation` 정밀화
 
 ## Phase 7 — Spring HATEOAS (표현 계층, 최저위험)
 
@@ -156,7 +163,10 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 - ✅ 코드베이스 매핑 (`.planning/codebase/` 8개 문서)
 - ✅ 타깃 스택 조사 + Boot 경로 결정 (Boot 4.1 + AI 2.0)
 - ✅ **Phase 0 완료** — PR #1 main 머지 (`f6ec672`), 130 tests green
-- ✅ **Phase 2 완료** — Boot 4.1.0 + Kotlin 2.3.21 + Jackson 3, 130 tests green (브랜치 `migration/phase2-boot4`)
+- ✅ **Phase 2 완료** — Boot 4.1.0 + Kotlin 2.3.21 + Jackson 3 (PR #2 main 머지)
+- ✅ **Phase 3 완료** — Spring Modulith 6개 기능 모듈 + `verify()` green (PR #3 `208a8eb`)
+- ✅ **Phase 6 완료** — Gradle 멀티모듈(기능별 7 서브프로젝트) + nested-jar bootJar (PR #4 `e821945`), 132 tests green
+- ⬜ 남음: Phase 4(관리자 역할) → Phase 5(Spring AI) → Phase 7(HATEOAS) → Phase 8(CD)
   - (Phase 1 characterization 보강은 Phase 0.6에서 충분히 커버되어 별도 진행 생략)
   - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
   - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`
