@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
     id("geekchat.spring-boot-app")
 }
@@ -19,4 +21,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     runtimeOnly("com.mysql:mysql-connector-j")
+}
+
+// Local dev convenience: `./gradlew :app:bootRun` (and IDE bootRun) default to the
+// self-contained `local` profile (MySQL on 3310 + dev secret) so it runs without remembering
+// a profile arg. Production runs the bootJar with JWT_SECRET + profile set via env, not bootRun.
+// Override locally with: ./gradlew :app:bootRun --args='--spring.profiles.active=dev'
+tasks.named<BootRun>("bootRun") {
+    args("--spring.profiles.active=local")
 }
