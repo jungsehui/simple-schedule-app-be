@@ -119,23 +119,26 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 - `AuthServiceTest`/`AuthServiceOAuthTest`: AuthService 생성자 인자 변경(plumbing) — `appProperties` → `appProperties.jwt.refreshTokenExpiryDays`(Long), `jwtTokenProvider`는 `TokenService` 구현체로 그대로 전달. 단언(assertion) 로직 무변경, 이동 파생 import 추가만.
 - `ChatRoomServiceTest`/`InviteLinkServiceTest`: `WebSocketBroadcaster` mock → `ApplicationEventPublisher` mock + 생성자 인자 교체(plumbing). `InviteLinkServiceTest`의 단언 1개만 의미 변환 — `verify { webSocketBroadcaster.joinRoom("u2","r1") }` → `verify { eventPublisher.publishEvent(RoomMemberJoined("u2","r1")) }` (결합 해소가 broadcaster seam을 제거하므로 동일 의도의 최소 번역). `ChatRoomServiceTest`는 joinRoom 단언 없음 → 순수 plumbing.
 
-## Phase 4 — 관리자 역할/권한 모델 (AI 게이팅 선결)
+## Phase 4 — 관리자 역할/권한 모델 (AI 게이팅 선결) ✅ 완료 (PR #5, main `9758d5c`)
 
-- `User.role: UserRole(USER/ADMIN)` 도메인 + DB 컬럼 + 매핑
-- `JwtAuthenticationFilter`가 GrantedAuthority 부여, `@PreAuthorize("hasRole('ADMIN')")`
-- 비로그인/일반/소셜 = 사람:사람 채팅만, ADMIN = AI 채팅 가능
+- `User.role: UserRole(USER/ADMIN)` 도메인 + DB 컬럼 + 매핑 (`withRole`/`isAdmin`)
+- JWT에 role claim 포함 → `JwtAuthenticationFilter`가 `ROLE_<role>` authority 부여, `@EnableMethodSecurity` + `@PreAuthorize("hasRole('ADMIN')")`
+- 비로그인/일반/소셜 = 사람:사람 채팅만, ADMIN = AI 채팅 가능. `DevAuthController` dev-login에 `admin` 파라미터
+- 검증: `AdminGatingIntegrationTest` (권한별 접근) green
 
-검증 게이트: 권한별 접근 통합 테스트.
+## Phase 5 — Spring AI 2.0 (관리자 게이팅 + 모델 교체 가능) ✅ 완료 (branch `migration/phase5-spring-ai`)
 
-## Phase 5 — Spring AI 2.0 (관리자 게이팅 + 모델 교체 가능)
+구현된 범위 (사용자 결정: **여러 provider 동시 wiring + config 선택**):
+- **`:ai` Gradle 기능 모듈** (Phase 6 패턴) — `geekchat.kotlin-library`, `:common`에만 의존, `@ApplicationModule(type=OPEN)`
+- 모듈 내 헥사고날: `application/port/out/AiChatPort` + `infrastructure/SpringAiChatAdapter` + `application/service/AiChatService` + `presentation/web/AiController`
+- provider 3종 starter 동시 wiring(anthropic+openai+ollama) — 활성 provider는 `spring.ai.model.chat`(`AI_CHAT_PROVIDER`, 기본 anthropic) config로 선택. 코드 변경 없이 교체
+- **키 없이도 부팅**: `SpringAiChatAdapter`가 `ObjectProvider<ChatModel>`로 호출 시점 해석. provider 미구성(키 없음)이면 anthropic 자동구성이 백오프 → ChatModel 없음 → "not configured" 응답. 휴먼 채팅 무영향
+  - 주의: `@ConditionalOnBean(ChatModel)`을 component-scan 빈에 쓰면 스캔 시점에 자동구성 ChatModel이 미등록 → 조건 항상 false 버그. ObjectProvider 지연 해석으로 회피
+- 게이트: `@PreAuthorize("hasRole('ADMIN')")` (Phase 4 role). `POST /api/ai/chat`
+- 빌드: spring-ai BOM을 `:ai`+`:app` 양쪽 import (io.spring.dependency-management 버전은 project 경계로 전파 안 됨) · 라이브러리 모듈에 `junit-platform-launcher` 추가(engine/launcher 정렬)
+- 검증: 139 tests green (`AiChatGatingTest` admin 200 / 일반 403 / 익명 401 + `SpringAiChatAdapterTest` fallback) · `:app:bootRun`(local) `/health` ok + `/api/ai/chat` 토큰 없이 401
 
-- `AiChatPort` (application/port/out) + `SpringAiChatAdapter` (adapter/out/ai) — `OAuthClient` 포트 패턴 답습
-- `ChatClient`/`ChatModel` 주입, provider는 config (`spring.ai.{anthropic,openai,ollama}`), provider별 프로필
-- `MessageType.AI` + system user, `AiResponseHandler` `@ApplicationModuleListener`
-- 게이트: `@PreAuthorize("hasRole('ADMIN')")` + feature flag (`AiFeatureProperties`)
-- 스트리밍: SSE 또는 WS 브로드캐스트 브리지
-
-검증 게이트: 비-admin 차단 + provider 교체(config만)로 동작 + AI 응답 영속.
+미구현(후속/선택): `MessageType.AI` 영속 + system user · 스트리밍(SSE/WS 브리지) · 별도 feature flag(현재 "ChatModel 존재 = 활성"으로 대체). AI 응답은 REST 동기 반환.
 
 ## Phase 6 — Gradle 물리 멀티모듈 분리 ✅ 완료 (PR #4, main `e821945`)
 
@@ -166,7 +169,9 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 - ✅ **Phase 2 완료** — Boot 4.1.0 + Kotlin 2.3.21 + Jackson 3 (PR #2 main 머지)
 - ✅ **Phase 3 완료** — Spring Modulith 6개 기능 모듈 + `verify()` green (PR #3 `208a8eb`)
 - ✅ **Phase 6 완료** — Gradle 멀티모듈(기능별 7 서브프로젝트) + nested-jar bootJar (PR #4 `e821945`), 132 tests green
-- ⬜ 남음: Phase 4(관리자 역할) → Phase 5(Spring AI) → Phase 7(HATEOAS) → Phase 8(CD)
+- ✅ **Phase 4 완료** — 관리자 role + JWT authority + `@PreAuthorize` 게이팅 (PR #5 `9758d5c`)
+- ✅ **Phase 5 완료** — `:ai` 모듈 + Spring AI 2.0 (provider 3종 config 선택, admin 게이팅, 키 없이 부팅), 139 tests green
+- ⬜ 남음: Phase 7(HATEOAS) → Phase 8(CD)
   - (Phase 1 characterization 보강은 Phase 0.6에서 충분히 커버되어 별도 진행 생략)
   - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
   - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`

@@ -41,6 +41,20 @@ spring:
     # not numeric timestamps — replaces the removed serialization.write-dates-as-timestamps).
     use-jackson2-defaults: true
 
+  ai:
+    # Admin-only AI chat (Phase 5). Provider-agnostic via Spring AI ChatClient — swap the active
+    # provider with `spring.ai.model.chat` (anthropic | openai | ollama). With no API key the
+    # provider auto-config backs off and a fallback reports "not configured", so the app still
+    # boots for regular human-to-human chat without an AI key.
+    model:
+      chat: ${AI_CHAT_PROVIDER:anthropic}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+
 server:
   port: ${PORT:8080}
   tomcat:
