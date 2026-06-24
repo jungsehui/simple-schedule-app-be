@@ -36,6 +36,10 @@ Spring MVC + Virtual Threads(Java 21)로 비동기 프레임워크 없이 다수
 ```bash
 # Prerequisites: Java 21, Docker
 
+# 0. (최초 1회) git 훅 활성화 — push 전에 `./gradlew build`(컴파일+테스트+조립)를 자동 실행해
+#    깨진 코드가 origin/CI에 올라가는 것을 차단한다. (긴급 우회: git push --no-verify)
+./gradlew installGitHooks
+
 # 1. 로컬 의존성(MySQL) 기동 — host 3310
 docker compose -f docker-compose.dev.yml up -d
 

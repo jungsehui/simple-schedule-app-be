@@ -1,0 +1,21 @@
+#!/bin/sh
+# Pre-push gate — run the same checks GitHub CI runs, locally, BEFORE anything reaches origin.
+#
+# CI (.github/workflows/ci.yml) runs `./gradlew test`. We run `./gradlew build`, a strict superset
+# (compile every module + run all tests + assemble the bootJar), so "green here" implies "green in CI".
+# A failure aborts the push, so locally-broken code (compile errors, failing tests, dependency/BOM
+# resolution issues, etc.) can never become a red CI run.
+#
+# Activate once per clone:  ./gradlew installGitHooks      (sets git core.hooksPath to .githooks)
+# Emergency bypass:         git push --no-verify            (CI still gates the PR — use sparingly)
+
+echo "[pre-push] running ./gradlew build (compile + test + assemble) — mirrors + exceeds CI ..."
+if ! ./gradlew build --no-daemon --console=plain; then
+  echo "" >&2
+  echo "[pre-push] BUILD FAILED — push aborted. Fix the failures above before pushing." >&2
+  echo "[pre-push] (intentional bypass: git push --no-verify)" >&2
+  exit 1
+fi
+
+echo "[pre-push] build green — proceeding with push."
+exit 0
