@@ -142,6 +142,7 @@ OAuth 후 닉네임 입력 완료.
   ]
   ```
   `lastMessageAt` DESC 정렬.
+  > HATEOAS(Phase 7): 목록은 plain 최상위 배열 유지 — `_embedded`/per-element `_links` 없음(프론트 배열 계약 보존).
 
 ### 3.2 [ROOM] POST /api/rooms
 - **Auth**: 필요
@@ -160,6 +161,7 @@ OAuth 후 닉네임 입력 완료.
     "members": [{"userId": "uuid", "nickname": "..."}]
   }
   ```
+  > HATEOAS(Phase 7, additive): 위 필드에 더해 `_links`가 추가된다 — `self`(`/api/rooms/{id}`), `mute`, `invite-link`. 기존 필드는 그대로. `POST /api/invite/{code}/join`(4.2) 응답도 동일하게 래핑.
 - **Errors**: 404 (UserNotFound), 400 (RoomFull)
 
 ### 3.3 [MESSAGE] GET /api/rooms/{id}/messages?cursor=X&limit=50&direction=backward

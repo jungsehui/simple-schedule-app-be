@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class InviteLinkController(
     private val inviteLinkService: InviteLinkService,
+    private val assembler: RoomModelAssembler,
 ) {
     @PostMapping("/api/rooms/{roomId}/invite-link")
     fun createInviteLink(
@@ -37,7 +38,7 @@ class InviteLinkController(
     ): ResponseEntity<*> {
         return inviteLinkService.joinByInviteCode(code, userId).fold(
             onLeft = { it.toResponseEntity() },
-            onRight = { room -> ResponseEntity.ok(CreateRoomResponse.from(room)) },
+            onRight = { room -> ResponseEntity.ok(assembler.toModel(CreateRoomResponse.from(room))) },
         )
     }
 }

@@ -10,4 +10,5 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security") // @AuthenticationPrincipal
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-hateoas") // Phase 7: EntityModel + link assembler
 }
