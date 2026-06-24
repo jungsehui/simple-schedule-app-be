@@ -34,6 +34,11 @@ dependencies {
     "testImplementation"("org.springframework.boot:spring-boot-starter-test")
     "testImplementation"("io.mockk:mockk:1.13.12")
     "testRuntimeOnly"("com.h2database:h2")
+    // Library modules run JUnit Platform without the Spring Boot plugin. Supply a launcher aligned
+    // with the boot-managed junit-platform version (via junit-bom) so it matches the engine on the
+    // test classpath; otherwise Gradle's older bundled launcher is used and mismatches the engine
+    // ("OutputDirectoryCreator not available; unaligned junit-platform-engine/launcher").
+    "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> { useJUnitPlatform() }

@@ -4,6 +4,16 @@ plugins {
     id("geekchat.spring-boot-app")
 }
 
+// :ai manages the Spring AI starter versions via its own BOM, but io.spring.dependency-management
+// versions do NOT propagate across the project(":ai") boundary — so the transitive spring-ai
+// starters arrive here without a version. Import the same BOM so :app's runtime/test classpath can
+// resolve them. (See ai/build.gradle.kts.)
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.ai:spring-ai-bom:2.0.0")
+    }
+}
+
 dependencies {
     // Aggregate all feature modules — their library jars are bundled as nested jars in the bootJar.
     implementation(project(":common"))
@@ -12,6 +22,7 @@ dependencies {
     implementation(project(":room"))
     implementation(project(":chat"))
     implementation(project(":websocket"))
+    implementation(project(":ai"))
 
     // Runtime stack for the running application (also reach app via transitive module deps).
     implementation("org.springframework.boot:spring-boot-starter-web")

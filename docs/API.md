@@ -207,9 +207,18 @@ OAuth 후 닉네임 입력 완료.
 - **Response 200**: 방 객체 (POST /api/rooms 응답과 동일)
 - **Errors**: 404 (InviteLinkNotFound), 410 (InviteLinkExpired, InviteLinkMaxUsesReached), 409 (AlreadyRoomMember), 400 (RoomFull)
 
-## 5. Health
+## 5. AI (관리자 전용)
 
-### 5.1 GET /health
+### 5.1 [ADMIN] POST /api/ai/chat
+- **Auth**: 필요 + **ADMIN role** (`@PreAuthorize("hasRole('ADMIN')")`). 일반 사용자 403, 익명 401
+- **Request**: `{ "message": "이 방 요약해줘" }`
+- **Response 200**: `{ "reply": "..." }`
+- provider는 서버 config `spring.ai.model.chat`(`AI_CHAT_PROVIDER`, 기본 `anthropic`)로 선택 — `anthropic` | `openai` | `ollama`. 코드 변경 없이 교체
+- AI provider 키 미설정 시: `reply`에 "AI chat is not configured..." 안내 반환 (앱은 정상 동작, 사람:사람 채팅 무영향)
+
+## 6. Health
+
+### 6.1 GET /health
 - **Auth**: 없음
 - **Response 200**:
   ```json
@@ -217,7 +226,7 @@ OAuth 후 닉네임 입력 완료.
   ```
   DB 끊긴 경우 `status: "degraded"`, `db: "disconnected"`.
 
-## 6. HTTP Status 매핑 (ChatError → HTTP)
+## 7. HTTP Status 매핑 (ChatError → HTTP)
 
 | ChatError | HTTP |
 |---|---|
@@ -230,7 +239,7 @@ OAuth 후 닉네임 입력 완료.
 | OAuthExchangeFailed / OAuthProfileMissingId | 502 |
 | Internal | 500 |
 
-## 7. curl 예제
+## 8. curl 예제
 
 ```bash
 # Signup

@@ -23,5 +23,6 @@ include(
     ":room",
     ":chat",
     ":websocket",
+    ":ai",
     ":app",
 )
