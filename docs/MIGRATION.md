@@ -151,9 +151,17 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 - 검증: 132 tests green · bootJar nested 확인 · `:app:bootRun`(local) `/health` ok · CI green
 - 후속: 전체 테스트가 `:app`에 집중 → 모듈별 src/test 재배치; starter `api` vs `implementation` 정밀화
 
-## Phase 7 — Spring HATEOAS (표현 계층, 최저위험)
+## Phase 7 — Spring HATEOAS (표현 계층) ✅ 완료 (branch `migration/phase7-hateoas`)
 
-DTO를 `EntityModel`/`CollectionModel`로 래핑, `RepresentationModelAssembler`로 링크 중앙화. 서비스 변경 없음.
+`spring-boot-starter-hateoas`(HATEOAS 3.1.1, Boot 4.1 BOM 관리) 추가. 서비스/도메인 무변경, 표현 계층만.
+
+구현 범위 (**계약 보존 우선** — 프론트 JSON 계약을 깨지 않음):
+- `RoomModelAssembler`(:room)로 링크 중앙화 — 단일 room 응답을 `EntityModel`로 래핑. 필드는 `@JsonUnwrapped`로 최상위 유지 + `_links`만 추가(순수 additive). 링크: `self`(/api/rooms/{id}) · `mute` · `invite-link` — 모두 :room 컨트롤러(RoomController/InviteLinkController), 모듈 경계 준수.
+- 적용: `POST /api/rooms`(생성) + `POST /api/invite/{code}/join`(초대 참여) — 둘 다 단일 room.
+- **컬렉션(GET /api/rooms)은 plain 배열 유지**: `CollectionModel`은 배열→`_embedded` 객체로 바꿔 기존 계약/테스트(`$[0].id`)를 깬다. 또한 HAL 메시지 컨버터가 `RepresentationModel` 타입 한정이라 bare `List<EntityModel>`은 `_links`를 렌더하지 않음(실측). → 컬렉션 per-element 링크는 의도적으로 보류.
+- 검증: 141 tests green. `RoomHateoasTest`(생성 응답 `_links` self/mute/invite-link + 필드 보존 / 리스트 `_embedded` 없음) → Boot 4.1 + Jackson 3 HAL 직렬화 실증.
+
+부수 수정 (test 인프라): `application-dev.yml`의 `ddl-auto: update` override 제거. `@ActiveProfiles("test","dev")`에서 dev의 update가 test의 create-drop을 덮어쓰는데, H2+MySQLDialect에서 update가 스키마를 안정 생성 못 해 "다른 테스트가 먼저 mem:testdb를 채워주길 기대"하는 실행-순서 의존 결함이 잠복해 있었다(새 테스트 클래스 추가로 표면화). 제거 후 모든 통합 컨텍스트가 create-drop으로 자체 스키마 생성 → 순서 독립.
 
 ## Phase 8 — 배포 자동화 / CD
 
@@ -170,8 +178,9 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 - ✅ **Phase 3 완료** — Spring Modulith 6개 기능 모듈 + `verify()` green (PR #3 `208a8eb`)
 - ✅ **Phase 6 완료** — Gradle 멀티모듈(기능별 7 서브프로젝트) + nested-jar bootJar (PR #4 `e821945`), 132 tests green
 - ✅ **Phase 4 완료** — 관리자 role + JWT authority + `@PreAuthorize` 게이팅 (PR #5 `9758d5c`)
-- ✅ **Phase 5 완료** — `:ai` 모듈 + Spring AI 2.0 (provider 3종 config 선택, admin 게이팅, 키 없이 부팅), 139 tests green
-- ⬜ 남음: Phase 7(HATEOAS) → Phase 8(CD)
+- ✅ **Phase 5 완료** — `:ai` 모듈 + Spring AI 2.0 (provider 3종 config 선택, admin 게이팅, 키 없이 부팅), 139 tests green (PR #6 `aef03f7`)
+- ✅ **Phase 7 완료** — Spring HATEOAS 3.1.1, 단일 room 응답 `EntityModel` additive 래핑 + 링크 중앙화, 141 tests green
+- ⬜ 남음: Phase 8(CD) — 인프라 의존(VPN 내부 호스트, self-hosted runner 필요)
   - (Phase 1 characterization 보강은 Phase 0.6에서 충분히 커버되어 별도 진행 생략)
   - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
   - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`

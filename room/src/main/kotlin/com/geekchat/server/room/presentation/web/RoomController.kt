@@ -17,12 +17,16 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/rooms")
 class RoomController(
     private val chatRoomService: ChatRoomService,
+    private val assembler: RoomModelAssembler,
 ) {
     @GetMapping
     fun getRooms(@AuthenticationPrincipal userId: String): ResponseEntity<*> {
         return chatRoomService.getRoomsForUser(userId).fold(
             onLeft = { it.toResponseEntity() },
             onRight = { rooms ->
+                // Collection stays a plain top-level array to preserve the existing contract
+                // (CollectionModel would wrap it in `_embedded`). Hypermedia links are added to the
+                // single-room responses (create / join by invite) — see RoomModelAssembler.
                 ResponseEntity.ok(rooms.map { RoomListResponse.from(it) })
             },
         )
@@ -35,7 +39,7 @@ class RoomController(
     ): ResponseEntity<*> {
         return chatRoomService.createRoom(userId, request.memberIds, request.name, request.ttlHours).fold(
             onLeft = { it.toResponseEntity() },
-            onRight = { room -> ResponseEntity.ok(CreateRoomResponse.from(room)) },
+            onRight = { room -> ResponseEntity.ok(assembler.toModel(CreateRoomResponse.from(room))) },
         )
     }
 
