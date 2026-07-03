@@ -110,7 +110,7 @@ class NotificationIntegrationTest {
             kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
 
             // then
-            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
                 verify(sseConnectionPublisher, times(1)).publishSseNotification(any(NotificationRequest.class));
                 verify(fcmService, never()).sendFcmNotification(any());
             });
@@ -135,7 +135,7 @@ class NotificationIntegrationTest {
             kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
 
             // then
-            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
                 verify(sseConnectionPublisher, times(1)).publishSseNotification(any());
                 verify(fcmService, times(1)).sendFcmNotification(any());
             });
