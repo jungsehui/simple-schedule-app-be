@@ -28,12 +28,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Duration;
 import java.util.List;
 
-import static com.example.simplescheduleapp.support.ApplicationWithKafkaTest.PORT;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -42,13 +42,13 @@ import static org.mockito.Mockito.*;
 @DisplayName("알림 시스템 통합 테스트")
 @SuppressWarnings("NonAsciiCharacters")
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@EmbeddedKafka(
-        topics = {KafkaTopics.COURSE_EVENT_TOPIC},
-        brokerProperties = {
-                "listeners=PLAINTEXT://localhost:" + PORT
-        },
-        ports = {PORT}
-)
+// 고정 포트(49092) 대신 랜덤 포트로 브로커를 띄우고, 앱의 bootstrap-servers를 그 브로커로 덮어쓴다.
+// (고정 포트는 다른 EmbeddedKafka 컨텍스트/잔존 브로커와 충돌해 CI에서 TopicExistsException 유발)
+@EmbeddedKafka(topics = {KafkaTopics.COURSE_EVENT_TOPIC}, partitions = 1)
+@TestPropertySource(properties = {
+        "spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}"
+})
 @SpringBootTest(classes = NotificationApplication.class)
 class NotificationIntegrationTest {
 
