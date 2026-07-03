@@ -41,6 +41,11 @@ token:
   secretKey: ${TOKEN_SECRETKEY}
   accessTokenExpirationMillis: ${TOKEN_ACCESSTOKENEXPIRATIONMILLIS:86400000}
 
+# 서버 간 /internal API 공유 시크릿 (notification과 동일 값). 미설정 시 가드 비활성(fail-open)
+internal:
+  api:
+    key: ${INTERNAL_API_KEY:}
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
 

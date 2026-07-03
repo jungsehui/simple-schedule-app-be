@@ -54,6 +54,8 @@ cors:
 
 client:
   course-server-internal-url: ${CLIENT_COURSE_SERVER_INTERNAL_URL}
+  # course의 /internal API 호출 시 실어 보낼 공유 시크릿 (course와 동일 값)
+  internal-api-key: ${INTERNAL_API_KEY:}
 
 logging:
   level:

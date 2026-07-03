@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("client")
 public record ClientProperties(
-        String courseServerInternalUrl
+        String courseServerInternalUrl,
+        String internalApiKey
 ) {
 }
