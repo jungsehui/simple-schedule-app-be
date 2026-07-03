@@ -1,7 +1,8 @@
 package com.example.simplescheduleapp.notification;
 
 import com.example.simplescheduleapp.NotificationApplication;
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
@@ -95,7 +96,10 @@ class NotificationIntegrationTest {
         @Test
         void SSE_연결_상태이면_SSE로_알림을_성공적으로_전송한다() {
             // given
-            KafkaDomainEventMessage message = new KafkaDomainEventMessage(1L, "sse-success-uuid", LECTURE_ID);
+            // 실제 컨슈머가 역직렬화하는 타입(KafkaLectureEventMessage)으로 발행한다.
+            // courseClient mock으로 수강생을 조회하는 LectureUpdatedStrategy를 타도록 LECTURE_UPDATED 사용.
+            KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                    "sse-success-uuid", LectureEventType.LECTURE_UPDATED, LECTURE_ID, null, 10L, "테스트 강의", "강의가 수정되었습니다");
 
             given(redisClientManager.isClientConnected(TARGET_MEMBER_ID)).willReturn(true);
             List<Long> studentIds = List.of(TARGET_MEMBER_ID);
@@ -115,7 +119,8 @@ class NotificationIntegrationTest {
         @Test
         void SSE_전송_실패_시_FCM으로_대체_전송을_시도하고_성공한다() {
             // given
-            KafkaDomainEventMessage message = new KafkaDomainEventMessage(2L, "fcm-fallback-uuid", LECTURE_ID);
+            KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                    "fcm-fallback-uuid", LectureEventType.LECTURE_UPDATED, LECTURE_ID, null, 10L, "테스트 강의", "강의가 수정되었습니다");
 
             given(redisClientManager.isClientConnected(TARGET_MEMBER_ID)).willReturn(true);
             List<Long> studentIds = List.of(TARGET_MEMBER_ID);
@@ -141,7 +146,8 @@ class NotificationIntegrationTest {
             // given
             FcmToken fcmToken = new FcmToken(TARGET_MEMBER_ID, "test-token");
             given(fcmTokenRepository.getByMemberId(TARGET_MEMBER_ID)).willReturn(fcmToken);
-            KafkaDomainEventMessage message = new KafkaDomainEventMessage(3L, "total-fail-uuid", LECTURE_ID);
+            KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                    "total-fail-uuid", LectureEventType.LECTURE_UPDATED, LECTURE_ID, null, 10L, "테스트 강의", "강의가 수정되었습니다");
 
             // 1. SSE 미연결 상태 Mocking
             given(redisClientManager.isClientConnected(TARGET_MEMBER_ID)).willReturn(false);

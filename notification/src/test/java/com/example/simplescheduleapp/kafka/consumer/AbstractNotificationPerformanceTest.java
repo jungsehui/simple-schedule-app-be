@@ -1,7 +1,8 @@
 package com.example.simplescheduleapp.kafka.consumer;
 
 import com.example.simplescheduleapp.NotificationApplication;
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.client.CourseClient;
@@ -71,8 +72,10 @@ public abstract class AbstractNotificationPerformanceTest {
     }
 
     protected void produceMessage() {
-        TestDomainEvent testEvent = new TestDomainEvent(1L);
-        KafkaDomainEventMessage message = KafkaDomainEventMessage.from(testEvent);
+        // 실제 컨슈머가 역직렬화하는 타입으로 발행. LECTURE_UPDATED는 courseClient로 수강생을 조회해
+        // NUM_STUDENTS 명 전원에게 브로드캐스트하므로 성능 시나리오(500명 팬아웃)와 일치한다.
+        KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                "perf-test-uuid", LectureEventType.LECTURE_UPDATED, 1L, null, 1L, "강의 제목", "강의가 수정되었습니다");
         kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
     }
 }
