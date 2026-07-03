@@ -12,9 +12,10 @@ spring:
     active: local
 
   datasource:
-    url: jdbc:mysql://localhost:3307/notification_db
-    username: root
-    password: 1234
+    # 로컬 기본값은 docker-compose.yml과 일치. 환경변수로 덮어쓰기 가능 (운영은 application-prod.yml)
+    url: ${DB_URL:jdbc:mysql://localhost:3307/notification_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:

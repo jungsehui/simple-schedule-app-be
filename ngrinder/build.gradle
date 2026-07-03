@@ -38,3 +38,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// 부하 테스트 스크립트 전용 모듈 — 실행 가능한 main class가 없어 bootJar을 끈다
+// (루트 build.gradle이 전 서브프로젝트에 boot 플러그인을 적용해 ./gradlew build 전체가 깨지던 문제)
+tasks.named('bootJar') {
+    enabled = false
+}
+
+tasks.named('jar') {
+    enabled = true
+}
