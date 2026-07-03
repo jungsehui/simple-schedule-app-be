@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.student.domain;
 
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -20,5 +21,10 @@ public class Student extends Member {
     public Student(String username, String password, String name, int age, String phoneNumber, String school) {
         super(username, password, name, age, phoneNumber);
         this.school = school;
+    }
+
+    @Override
+    public Role getRole() {
+        return Role.STUDENT;
     }
 }

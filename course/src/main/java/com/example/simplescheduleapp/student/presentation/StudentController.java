@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.student.presentation;
 
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
@@ -30,8 +31,8 @@ public class StudentController {
     ) {
         StudentSignUpCommand command = request.toCommand();
         Long id = studentService.signUpStudent(command);
-        Token token = tokenService.createToken(id);
-        return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
+        Token token = tokenService.createToken(id, Role.STUDENT);
+        return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.STUDENT.name()));
     }
 
     @PostMapping("/lectures/{lectureId}/enrollments")

@@ -4,6 +4,7 @@ import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.member.domain.Member;
 import com.example.simplescheduleapp.member.domain.MemberRepository;
 import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
+import com.example.simplescheduleapp.student.domain.Student;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +30,8 @@ class MemberServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockMember = new Member("jungsehui", "Password123!", "정세희", 25, "01023423452");
+        // Member는 추상 타입이므로 구체 서브타입(Student)으로 생성 — login/password 동작은 동일하게 상속
+        mockMember = new Student("jungsehui", "Password123!", "정세희", 25, "01023423452", "테스트고등학교");
     }
 
     @Test
