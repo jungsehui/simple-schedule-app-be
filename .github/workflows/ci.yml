@@ -1,5 +1,6 @@
 # CI: 모든 PR과 main/develop 푸시에서 빌드 + 테스트 검증
-# - 테스트는 H2 / @EmbeddedKafka 기반이라 외부 서비스 없이 실행 가능
+# - Kafka는 @EmbeddedKafka(in-JVM)로 제공, DB는 H2, FCM은 @Profile("!test")로 제외
+# - Redisson/Redis는 컨텍스트 기동에 필요하므로 redis 서비스 컨테이너로 제공
 # - playground / ngrinder 모듈은 부하 테스트 전용이므로 CI 대상에서 제외
 name: CI
 
@@ -20,6 +21,19 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      redis:
+        image: redis:7.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_REDIS_HOST: localhost
+      TEST_REDIS_PORT: 6379
     steps:
       - name: Checkout
         uses: actions/checkout@v4
