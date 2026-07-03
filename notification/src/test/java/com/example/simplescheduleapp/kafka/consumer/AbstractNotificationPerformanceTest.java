@@ -8,6 +8,7 @@ import com.example.simplescheduleapp.notification.application.NotificationDispat
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -33,6 +34,9 @@ import static org.mockito.BDDMockito.given;
         },
         ports = {PORT}
 )
+// 처리량/타이밍(Thread.sleep, 500명 팬아웃)을 측정하는 성능 테스트 — 정확성 검증이 아니므로
+// CI 기본 test 태스크에서는 제외(@Tag("slow")). 고정 포트 EmbeddedKafka 경합도 함께 회피.
+@Tag("slow")
 @SpringBootTest(classes = NotificationApplication.class)
 public abstract class AbstractNotificationPerformanceTest {
 

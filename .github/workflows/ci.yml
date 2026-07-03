@@ -50,8 +50,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 순차 실행: course와 notification이 동시에 돌면 둘 다 EmbeddedKafka 고정 포트(49092)를
+      # 잡아 충돌하므로 --parallel을 쓰지 않는다. @Tag("slow")(성능/데드락 타이밍 테스트)는 제외됨.
       - name: Build & Test
-        run: ./gradlew :common:build :course:build :notification:build --parallel
+        run: ./gradlew :common:build :course:build :notification:build
 
       - name: Upload test reports on failure
         if: failure()

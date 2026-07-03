@@ -48,8 +48,14 @@ subprojects {
 	}
 
 	// 테스트 태스크 공통 설정
+	// @Tag("slow") (성능/데드락 타이밍 테스트)는 기본 test/CI에서 제외.
+	// 실행하려면: ./gradlew test -PincludeSlow  또는  ./gradlew :notification:test --tests '*Performance*'
 	tasks.named('test') {
-		useJUnitPlatform()
+		useJUnitPlatform {
+			if (!project.hasProperty('includeSlow')) {
+				excludeTags 'slow'
+			}
+		}
 	}
 }
 

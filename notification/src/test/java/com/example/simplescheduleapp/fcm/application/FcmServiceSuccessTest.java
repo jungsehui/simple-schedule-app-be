@@ -62,8 +62,8 @@ class FcmServiceSuccessTest extends ApplicationTest {
         // when
         fcmService.addFcmToken(1L, token);
 
-        // then
-        assertThat(fcmTokenRepository.findByMemberId(1L)).isPresent();
+        // then: 리포지토리는 Mock이므로 실제 조회가 아니라 저장이 호출됐는지(상호작용) 검증한다
+        verify(fcmTokenRepository).save(any(FcmToken.class));
     }
 
     @Test
