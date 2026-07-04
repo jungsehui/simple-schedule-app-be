@@ -1,0 +1,4 @@
+#
+#Sat Jul 04 14:12:40 KST 2026
+no\ classes\ that\ reside\ in\ a\ package\ '..common.auth..'\ should\ depend\ on\ classes\ that\ reside\ in\ any\ package\ ['..common.kafka..',\ '..common.event..'],\ because\ \uC778\uC99D\uACFC\ \uBA54\uC2DC\uC9D5\uC740\ \uB3C5\uB9BD\ \uAD00\uC2EC\uC0AC\ \u2014\ common\ \uBD84\uB9AC(ADR-0002)\uC758\ \uC804\uC81C=c4ef224e-4260-4a35-a95e-aa331bf5321d
+no\ classes\ that\ reside\ in\ any\ package\ ['..common.domain..',\ '..common.event..']\ should\ depend\ on\ classes\ that\ reside\ in\ any\ package\ ['org.springframework..',\ 'jakarta.persistence..',\ 'org.hibernate..',\ 'com.google.firebase..',\ 'org.redisson..',\ 'org.apache.kafka..',\ 'io.jsonwebtoken..',\ 'com.fasterxml.jackson..'],\ because\ \uACF5\uC720\ \uCEE4\uB110\uC758\ \uB3C4\uBA54\uC778\u00B7\uC774\uBCA4\uD2B8\ \uCD94\uC0C1\uD654\uB294\ \uC21C\uC218\ \uC790\uBC14\uC5EC\uC57C\ \uD55C\uB2E4=0256ddfd-233b-4b28-a62e-68431e2006a3
