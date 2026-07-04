@@ -42,7 +42,24 @@
 3. 진행도 확인: `wc -l */src/test/archunit-violations/*` (라인 수 = 남은 부채).
 4. 스토어 기준선(2026-07-04 설치 시점): course 177 / common 54 / notification 38 (레이어 방향 위반은 course·notification 모두 0 — 이미 준수).
 
-## 5. 본보기 (Stage 1 pilot — notification)
+## 5. 리포지토리 포트화 패턴 (Stage 2)
+
+도메인 패키지의 `interface XxxRepository extends JpaRepository`는 Spring Data(외부 기술)가
+도메인에 침투한 형태다. 아래 3분할로 분리한다 (본보기: `member`):
+
+```
+{context}/domain/XxxRepository                 # 포트: 순수 인터페이스 (save/findXxx + getXxx 도메인예외 규약)
+{context}/infrastructure/persistence/
+    ├── XxxJpaRepository extends JpaRepository  # Spring Data (findByXxx 파생쿼리)
+    └── XxxRepositoryAdapter implements XxxRepository  # @Repository, JPA에 위임
+```
+
+- application/domain은 **포트에만** 의존 — 사용처 코드 변경 없음(같은 메서드 시그니처).
+- `getById`/`getByUsername`처럼 "없으면 도메인 예외" 규약은 포트의 `default` 메서드로(순수 자바).
+- 애그리거트마다 반복. 남은 대상: course 도메인 리포지토리 10개 + `MemberRegister<T, R extends JpaRepository>`
+  제네릭 베이스(student/tutor/parent 등록이 공유 — 별도 소단위로 진행).
+
+## 6. 본보기 (Stage 1 pilot — notification)
 
 - `EnrolledStudentsPort`(application/port/out) ← `CourseClient`(HTTP 어댑터)가 구현.
   전략(`LectureUpdatedStrategy`)은 포트에만 의존한다 — course 서버 통신 수단이 바뀌어도 전략은 불변.
