@@ -2,7 +2,8 @@ package com.example.simplescheduleapp.notification.client;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
-import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
+import com.example.simplescheduleapp.notification.application.port.out.EnrolledStudentsPort;
+import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -11,13 +12,15 @@ import org.springframework.web.client.RestClient;
 
 import java.util.function.Predicate;
 
+// EnrolledStudentsPort의 HTTP 어댑터 — course 서버 통신 상세는 이 클래스에 캡슐화된다 (ADR-0002 Stage 1)
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class CourseClient {
+public class CourseClient implements EnrolledStudentsPort {
 
     private final RestClient courseClient;
 
+    @Override
     public GetEnrolledStudentInfosResponse getEnrolledStudentInfosByLectureId(Long lectureId) {
         log.info("Try to get student infos from course server. lecture ID: {}", lectureId);
         GetEnrolledStudentInfosResponse body = courseClient.get()
