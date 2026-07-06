@@ -6,7 +6,7 @@ import com.example.simplescheduleapp.parent.domain.ParentRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ParentRegister extends MemberRegister<Parent, ParentRepository> {
+public class ParentRegister extends MemberRegister<Parent> {
 
     public ParentRegister(ParentRepository parentRepository) {
         super(parentRepository);

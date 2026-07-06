@@ -6,7 +6,7 @@ import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TutorRegister extends MemberRegister<Tutor, TutorRepository> {
+public class TutorRegister extends MemberRegister<Tutor> {
 
     public TutorRegister(TutorRepository memberRepository) {
         super(memberRepository);
