@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.parent.domain;
 
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -20,5 +21,10 @@ public class Parent extends Member {
     public Parent(String username, String password, String name, int age, String phoneNumber, int childrenNumber) {
         super(username, password, name, age, phoneNumber);
         this.childrenNumber = childrenNumber;
+    }
+
+    @Override
+    public Role getRole() {
+        return Role.PARENT;
     }
 }

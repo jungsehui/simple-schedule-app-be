@@ -1,7 +1,8 @@
 package com.example.simplescheduleapp.kafka.infra.deadletter;
 
 import com.example.simplescheduleapp.NotificationApplication;
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.deadletter.DeadLetterRecorder;
 import com.example.simplescheduleapp.common.kafka.deadletter.DeadLetterRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -31,7 +32,9 @@ class DeadLetterRecorderTest extends ApplicationTest {
         // given
         String testTopic = "TEST_TOPIC";
         String testUuid = "test-uuid";
-        ConsumerRecord record = new ConsumerRecord(testTopic, 1, 1L, "", new KafkaDomainEventMessage(1L, testUuid, 1L));
+        KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                testUuid, LectureEventType.LECTURE_UPDATED, 1L, 1L, 1L, "테스트 강의", "테스트 상세");
+        ConsumerRecord record = new ConsumerRecord(testTopic, 1, 1L, "", message);
 
         // when
         deadLetterRecorder.accept(record, new RuntimeException("Exception"));

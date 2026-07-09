@@ -1,6 +1,5 @@
 package com.example.simplescheduleapp.common.kafka.consumer.idempotency;
 
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaMessageConsumeHistory;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaMessageProcessConsumeHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,15 +14,13 @@ public class ConsumeHistoryIdempotencyService implements IdempotencyService {
     private final KafkaMessageProcessConsumeHistoryRepository kafkaMessageProcessConsumeHistoryRepository;
 
     @Override
-    public boolean isDuplicated(KafkaDomainEventMessage data) {
-        String uuid = data.uuid();
+    public boolean isDuplicated(String uuid) {
         Optional<KafkaMessageConsumeHistory> optionalHistory = kafkaMessageProcessConsumeHistoryRepository.findByUuid(uuid);
         return optionalHistory.isPresent();
     }
 
     @Override
-    public void saveProcessed(KafkaDomainEventMessage data, String topic) {
-        String uuid = data.uuid();
+    public void saveProcessed(String uuid, String topic) {
         KafkaMessageConsumeHistory kafkaMessageConsumeHistory = new KafkaMessageConsumeHistory(uuid, topic);
         kafkaMessageProcessConsumeHistoryRepository.save(kafkaMessageConsumeHistory);
     }

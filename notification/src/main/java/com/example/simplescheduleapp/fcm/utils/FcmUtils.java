@@ -2,11 +2,9 @@ package com.example.simplescheduleapp.fcm.utils;
 
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import com.google.firebase.messaging.SendResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j

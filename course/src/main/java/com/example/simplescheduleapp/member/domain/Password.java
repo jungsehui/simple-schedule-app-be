@@ -47,7 +47,7 @@ public class Password {
             return hexString.toString();
 
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 암호화 중 오류 발생", e);
+            throw new RuntimeException(ALGORITHM + " 암호화 중 오류 발생", e);
         }
     }
 }

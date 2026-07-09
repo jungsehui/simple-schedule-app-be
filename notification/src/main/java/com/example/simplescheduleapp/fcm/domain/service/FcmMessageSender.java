@@ -6,15 +6,19 @@ import com.google.api.core.ApiFuture;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
 public class FcmMessageSender {
+
+    private final FirebaseMessaging firebaseMessaging;
 
     public ApiFuture<String> sendFcmNotificationAsync(FcmToken fcmToken, String title, String body) {
         Notification notification = FcmUtils.createNotification(title, body);
         Message toSend = FcmUtils.buildMessage(fcmToken.getFcmToken(), notification);
 
-        return FirebaseMessaging.getInstance().sendAsync(toSend);
+        return firebaseMessaging.sendAsync(toSend);
     }
 }

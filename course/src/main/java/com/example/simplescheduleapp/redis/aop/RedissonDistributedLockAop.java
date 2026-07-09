@@ -1,6 +1,8 @@
 package com.example.simplescheduleapp.redis.aop;
 
 import com.example.simplescheduleapp.common.aop.AopForTransaction;
+import com.example.simplescheduleapp.common.exception.ApplicationException;
+import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
 import com.example.simplescheduleapp.redis.lock.RedissonDistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,25 +38,27 @@ public class RedissonDistributedLockAop {
                 signature.getParameterNames(),
                 distributedLock.key()
         );
-        RLock lock = redissonClient.getLock(key);
+
+        RLock fairLock = redissonClient.getFairLock(key);
 
         try {
-            boolean available = lock.tryLock(
+            boolean available = fairLock.tryLock(
                     distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit()
             );
+
             if (!available) {
                 log.warn("Redisson Lock 획득 실패. key: {}", key);
-                throw new IllegalStateException("Lock을 획득할 수 없습니다 ..");
+                throw new ApplicationException(InternalServerExceptionCode.UNKNOWN_EXCEPTION);
             }
 
             return aopForTransaction.proceed(joinPoint);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new InterruptedException("락 대기 중 인터럽트 발생. e: {}".formatted(e));
+            throw new InterruptedException("락 대기 중 인터럽트 발생. message: %s".formatted(e.getMessage()));
         } finally {
             try {
-                if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
+                if (fairLock.isLocked() && fairLock.isHeldByCurrentThread()) {
+                    fairLock.unlock();
                 }
             } catch (IllegalMonitorStateException e) {
                 log.info("Redisson Lock Already UnLock. serviceName: {}, key: {}", method.getName(), key);

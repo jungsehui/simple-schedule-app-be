@@ -12,19 +12,20 @@ spring:
     active: local
 
   datasource:
-    url: jdbc:mysql://localhost:3307/notification_db
-    username: root
-    password: 1234
+    # 로컬 기본값은 docker-compose.yml과 일치. 환경변수로 덮어쓰기 가능 (운영은 application-prod.yml)
+    url: ${DB_URL:jdbc:mysql://localhost:3307/notification_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
-      maximum-pool-size: 200          # 최대 커넥션 수
-      connection-timeout: 3000        # 커넥션을 가져올 때 대기할 최대 시간 (밀리초)
-      max-lifetime: 1800000
+      maximum-pool-size: 21
+      connection-timeout: 30000 # 30초
+      max-lifetime: 600000      # 600000 (10분)
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -50,8 +51,8 @@ logging:
     org:
       springframework:
         data:
-          jpa: DEBUG
-      hibernate: DEBUG
+          jpa: INFO
+      hibernate: INFO
 
 fcm:
   key:

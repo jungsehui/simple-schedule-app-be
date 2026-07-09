@@ -1,19 +1,24 @@
 package com.example.simplescheduleapp.lecture.application;
 
-import com.example.simplescheduleapp.lecture.application.command.LectureCreateCommand;
-import com.example.simplescheduleapp.lecture.application.command.LectureUpdateCommand;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.lecture.domain.LectureRepository;
+import com.example.simplescheduleapp.lecture.general.application.LectureService;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureCreateCommand;
+import com.example.simplescheduleapp.lecture.general.application.command.LectureUpdateCommand;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.LectureRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// 각 테스트를 트랜잭션으로 격리해 롤백(ApplicationTest는 @Transactional이 없고 ddl-auto:create라
+// 테스트 간 member.username 유니크 제약이 남아 두 번째 테스트가 실패하던 문제 방지)
+@Transactional
 class LectureServiceTest extends ApplicationTest {
 
     @Autowired

@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.schedule.domain;
 
 import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
 @SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE schedule_id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type")
 @Table(name = "schedule")

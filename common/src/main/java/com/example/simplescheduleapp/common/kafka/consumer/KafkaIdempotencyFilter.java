@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.common.kafka.consumer;
 
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.consumer.idempotency.IdempotencyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,31 +11,29 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class KafkaIdempotencyFilter implements RecordFilterStrategy<String, KafkaDomainEventMessage> {
+public class KafkaIdempotencyFilter implements RecordFilterStrategy<String, KafkaLectureEventMessage> {
 
     private final IdempotencyService idempotencyService;
 
     // true 반환 시 처리하지 않음
     @Override
-    public boolean filter(ConsumerRecord<String, KafkaDomainEventMessage> consumerRecord) {
-        KafkaDomainEventMessage data = consumerRecord.value();
+    public boolean filter(ConsumerRecord<String, KafkaLectureEventMessage> consumerRecord) {
+        KafkaLectureEventMessage data = consumerRecord.value();
 
-        String uuid = data.uuid();
+        String uuid = data.uuid(); // 메시지에 포함된 UUID 사용
         String topic = consumerRecord.topic();
         long offset = consumerRecord.offset();
 
         log.info("Try to filter already processed event record. uuid: {}, topic: {}, offset: {}", uuid, topic, offset);
 
-        boolean duplicated = idempotencyService.isDuplicated(data);
-        if (duplicated) {
-            // 중복 consume 인 경우, 처리하지 않음
-            log.info("Skip duplicated record. uuid: {}, topic: {}, offset: {}", uuid, topic, offset);
-            return true;
+        // 중복 consume 인 경우, 처리하지 않음
+        if (idempotencyService.isDuplicated(uuid)) {
+            log.info("Skip duplicated record. uuid: {}, topic: {}", uuid, topic);
+            return true; // true면 필터링 (로직 수행 안 함)
         }
 
         // 최초 consume 인 경우, DB 저장 후 처리
-        log.info("Try to attempt consume first time. uuid: {}, topic: {}, offset: {}", uuid, topic, offset);
-        idempotencyService.saveProcessed(data, topic);
-        return false;
+        idempotencyService.saveProcessed(uuid, topic);
+        return false; // false면 통과 (로직 수행)
     }
 }

@@ -1,11 +1,12 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.lecture.domain.Lecture;
-import com.example.simplescheduleapp.lecture.domain.LectureEnrollment;
-import com.example.simplescheduleapp.lecture.domain.LectureEnrollmentRepository;
-import com.example.simplescheduleapp.lecture.domain.LectureRepository;
-import com.example.simplescheduleapp.lecture.exception.LectureEnrollmentExceptionCode;
+import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.general.domain.Lecture;
+import com.example.simplescheduleapp.lecture.general.domain.LectureEnrollment;
+import com.example.simplescheduleapp.lecture.general.domain.LectureEnrollmentRepository;
+import com.example.simplescheduleapp.lecture.general.domain.LectureRepository;
+import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,7 @@
 package com.example.simplescheduleapp.common.exception;
 
+import com.example.simplescheduleapp.common.exception.response.ExceptionResponse;
+import com.example.simplescheduleapp.common.exception.response.MethodArgumentExceptionResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,23 +21,36 @@ public class CommonExceptionHandler {
     @ExceptionHandler(value = ApplicationException.class)
     public ResponseEntity<ExceptionResponse> handleApplicationException(ApplicationException exception) {
         ExceptionCode code = exception.getCode();
-        log.info("ApplicationException occurred !! code: {} message: {}", code.getCode(), code.getMessage());
+        if (code.getHttpStatus().is5xxServerError()) {
+            log.error("ApplicationException occurred. code: {}, message: {}", code.getCode(), code.getMessage(), exception);
+        } else {
+            log.warn("ApplicationException occurred. code: {}, message: {}", code.getCode(), code.getMessage());
+        }
         return ResponseEntity
                 .status(code.getHttpStatus())
                 .body(ExceptionResponse.from(code));
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+    public ResponseEntity<MethodArgumentExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         BindingResult bindingResult = exception.getBindingResult();
 
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
+        log.warn("MethodArgumentNotValidException occurred: {}", errors);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(errors);
+                .body(MethodArgumentExceptionResponse.from(InternalServerExceptionCode.INVALID_INPUT_VALUE, errors));
+    }
+
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ExceptionResponse> handleException(Exception exception) {
+        log.error("Unhandled exception occurred.", exception);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ExceptionResponse.from(InternalServerExceptionCode.UNKNOWN_EXCEPTION));
     }
 }

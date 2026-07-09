@@ -29,6 +29,8 @@ public class KafkaProducerConfig {
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configs.put(ProducerConfig.ACKS_CONFIG, "all");
+        configs.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         return configs;
     }
 }

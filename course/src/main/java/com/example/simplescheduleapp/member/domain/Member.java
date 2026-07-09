@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.member.domain;
 
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
@@ -13,14 +14,14 @@ import org.hibernate.annotations.SQLRestriction;
 import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
 @SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE member SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLDelete(sql = "UPDATE member SET deleted_date = CURRENT_TIMESTAMP WHERE member_id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "role")
 @Table(name = "member")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class Member extends SoftDeletedDomain {
+public abstract class Member extends SoftDeletedDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,4 +57,7 @@ public class Member extends SoftDeletedDomain {
             throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_PASSWORD);
         }
     }
+
+    /** 구체 서브타입(Student/Tutor/Parent)이 자신의 역할을 반환한다. discriminator와 대응. */
+    public abstract Role getRole();
 }

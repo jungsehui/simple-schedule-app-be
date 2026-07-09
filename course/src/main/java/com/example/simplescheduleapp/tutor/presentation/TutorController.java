@@ -1,10 +1,11 @@
 package com.example.simplescheduleapp.tutor.presentation;
 
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
-import com.example.simplescheduleapp.lecture.application.LectureEnrollmentService;
-import com.example.simplescheduleapp.lecture.application.command.PendingAcceptCommand;
-import com.example.simplescheduleapp.lecture.application.command.PendingRejectCommand;
+import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
+import com.example.simplescheduleapp.lecture.general.application.command.PendingAcceptCommand;
+import com.example.simplescheduleapp.lecture.general.application.command.PendingRejectCommand;
 import com.example.simplescheduleapp.tutor.presentation.request.PendingAcceptRequest;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
 import com.example.simplescheduleapp.tutor.application.TutorService;
@@ -33,8 +34,8 @@ public class TutorController {
     ) {
         TutorSignUpCommand command = request.toCommand();
         Long id = tutorService.signUpTutor(command);
-        Token token = tokenService.createToken(id);
-        return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
+        Token token = tokenService.createToken(id, Role.TUTOR);
+        return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.TUTOR.name()));
     }
 
     @PostMapping("/enrollments/accept")

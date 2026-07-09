@@ -15,33 +15,20 @@ java {
 }
 
 dependencies {
+	// Common 모듈 의존
 	implementation project(':common')
 	testImplementation(testFixtures(project(':common')))
 
-	implementation project(':course')
-
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Redis, Firebase, Retry, AOP
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-	implementation 'org.springframework.kafka:spring-kafka'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
-
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
-
 	implementation 'org.springframework.retry:spring-retry'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
-	runtimeOnly 'com.h2database:h2'
+	// DB 드라이버
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.h2database:h2'
 
+	// Configuration Processor (Lombok과 별개로 설정 파일 자동완성용)
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

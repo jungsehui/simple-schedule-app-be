@@ -2,11 +2,12 @@ package com.example.simplescheduleapp.consultation.domain;
 
 import com.example.simplescheduleapp.parent.domain.Parent;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Table(name = "consultation_attendee")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 public class ConsultationAttendee {

@@ -13,6 +13,7 @@ import java.util.Date;
 public class TokenService {
 
     private static final String MEMBER_ID_CLAIM = "memberId";
+    private static final String ROLE_CLAIM = "role";
 
     private final SecretKey secretKey;
     private final long accessTokenExpirationMillis;
@@ -22,9 +23,10 @@ public class TokenService {
         this.accessTokenExpirationMillis = tokenProperty.accessTokenExpirationMillis();
     }
 
-    public Token createToken(Long memberId) {
+    public Token createToken(Long memberId, Role role) {
         String accessToken = Jwts.builder()
                 .claim(MEMBER_ID_CLAIM, memberId)
+                .claim(ROLE_CLAIM, role.name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpirationMillis))
                 .signWith(secretKey, Jwts.SIG.HS512)
@@ -34,19 +36,27 @@ public class TokenService {
     }
 
     public Long extractMemberId(String token) {
+        return parseClaims(token).get(MEMBER_ID_CLAIM, Long.class);
+    }
+
+    public Role extractRole(String token) {
+        String role = parseClaims(token).get(ROLE_CLAIM, String.class);
+        return role == null ? null : Role.valueOf(role);
+    }
+
+    private Claims parseClaims(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload()
-                    .get(MEMBER_ID_CLAIM, Long.class);
+                    .getPayload();
         } catch (ExpiredJwtException e) {
             throw new ApplicationException(TokenExceptionCode.EXPIRED_TOKEN);
         } catch (MalformedJwtException e) {
             throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
         } catch (Exception e) {
-            throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
+            throw new ApplicationException(TokenExceptionCode.UNKNOWN_TOKEN);
         }
     }
 }

@@ -31,16 +31,30 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) {
+        boolean required = isRequired(parameter);
         HttpServletRequest httpServletRequest = (HttpServletRequest) webRequest.getNativeRequest();
-        String token = extractToken(httpServletRequest);
-        return tokenService.extractMemberId(token);
-    }
 
-    private String extractToken(HttpServletRequest httpServletRequest) {
         String bearerToken = httpServletRequest.getHeader("Authorization");
         if (bearerToken == null) {
+            if (!required) {
+                return null; // optional-auth: 토큰 없음 → null 주입 (엔드포인트가 파라미터로 폴백)
+            }
             throw new ApplicationException(TokenExceptionCode.REQUIRED_BEARER_TOKEN);
         }
-        return bearerTokenExtractor.extract(bearerToken);
+
+        try {
+            String token = bearerTokenExtractor.extract(bearerToken);
+            return tokenService.extractMemberId(token);
+        } catch (ApplicationException e) {
+            if (!required) {
+                return null; // optional-auth: 유효하지 않은 토큰 → null 주입
+            }
+            throw e;
+        }
+    }
+
+    private boolean isRequired(MethodParameter parameter) {
+        Auth auth = parameter.getParameterAnnotation(Auth.class);
+        return auth == null || auth.required();
     }
 }

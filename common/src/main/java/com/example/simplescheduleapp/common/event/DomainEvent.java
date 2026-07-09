@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.common.event;
 
 import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,22 +31,22 @@ public abstract class DomainEvent extends SoftDeletedDomain {
     private String uuid;
 
     @Enumerated(EnumType.STRING)
-    private EventState state;
+    private EventStatus status;
 
     @Column(nullable = false)
-    private Long targetDomainId; // 강의 ID 등
+    private Long targetDomainId; // 강의 ID 등의 Aggregate Root(이벤트 주체)에 대한 정보를 담을 것
 
     private String failReason;
 
     protected DomainEvent(Long targetDomainId) {
         this.uuid = UUID.randomUUID().toString();
-        this.state = EventState.INIT;
+        this.status = EventStatus.INIT;
         this.targetDomainId = targetDomainId;
     }
 
-    protected DomainEvent(String uuid, EventState state, Long targetDomainId) {
+    protected DomainEvent(String uuid, EventStatus status, Long targetDomainId) {
         this.uuid = uuid;
-        this.state = state;
+        this.status = status;
         this.targetDomainId = targetDomainId;
     }
 
@@ -54,11 +55,11 @@ public abstract class DomainEvent extends SoftDeletedDomain {
     }
 
     public void produceSuccess() {
-        this.state = EventState.PRODUCE_SUCCESS;
+        this.status = EventStatus.PRODUCE_SUCCESS;
     }
 
     public void produceFail(Throwable e) {
-        this.state = EventState.PRODUCE_FAIL;
+        this.status = EventStatus.PRODUCE_FAIL;
         this.failReason = e.getMessage();
     }
 
