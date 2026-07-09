@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.parent.presentation;
 
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
 import com.example.simplescheduleapp.member.presentation.response.LoginResponse;
@@ -26,7 +27,7 @@ public class ParentController {
     ) {
         ParentSignUpCommand command = request.toCommand();
         Long id = parentService.signUpParent(command);
-        Token token = tokenService.createToken(id);
-        return ResponseEntity.ok(new LoginResponse(id, token.accessToken()));
+        Token token = tokenService.createToken(id, Role.PARENT);
+        return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.PARENT.name()));
     }
 }

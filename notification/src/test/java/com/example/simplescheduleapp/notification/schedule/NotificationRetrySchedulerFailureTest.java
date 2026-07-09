@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -19,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+// 커넥션 풀 고갈을 Thread.sleep 타이밍으로 유도하는 데드락 재현 테스트 — 환경 의존적이라
+// CI 기본 test 태스크에서 제외(@Tag("slow")).
+@Tag("slow")
 @Slf4j
 @DisplayName("Fcm 전송 커넥션 풀 데드락 테스트")
 @SuppressWarnings("NonAsciiCharacters")

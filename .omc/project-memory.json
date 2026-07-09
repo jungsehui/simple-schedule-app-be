@@ -1,0 +1,169 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1782996796467,
+  "projectRoot": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Java/Kotlin",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "build.gradle"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "gradle",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1782996796457,
+      "keyFiles": []
+    },
+    "common": {
+      "path": "common",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1782996796457,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "course": {
+      "path": "course",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1782996796457,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "gradle": {
+      "path": "gradle",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1782996796457,
+      "keyFiles": []
+    },
+    "ngrinder": {
+      "path": "ngrinder",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1782996796458,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "notification": {
+      "path": "notification",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1782996796458,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "playground": {
+      "path": "playground",
+      "purpose": null,
+      "fileCount": 12,
+      "lastAccessed": 1782996796458,
+      "keyFiles": [
+        "MacOsPerformanceMetric.bash",
+        "build.gradle",
+        "docker-compose-influxdb.yml",
+        "docker-compose-ngrinder.yml",
+        "docker-compose-single-thread.yml"
+      ]
+    },
+    "common/build": {
+      "path": "common/build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1782996796458,
+      "keyFiles": [
+        "resolvedMainClassName"
+      ]
+    },
+    "common/src": {
+      "path": "common/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1782996796459,
+      "keyFiles": []
+    },
+    "course/build": {
+      "path": "course/build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1782996796459,
+      "keyFiles": [
+        "resolvedMainClassName"
+      ]
+    },
+    "course/src": {
+      "path": "course/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1782996796459,
+      "keyFiles": []
+    },
+    "ngrinder/src": {
+      "path": "ngrinder/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1782996796459,
+      "keyFiles": []
+    },
+    "notification/build": {
+      "path": "notification/build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1782996796459,
+      "keyFiles": []
+    },
+    "notification/src": {
+      "path": "notification/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1782996796459,
+      "keyFiles": []
+    },
+    "playground/build": {
+      "path": "playground/build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1782996796460,
+      "keyFiles": [
+        "resolvedMainClassName"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

@@ -22,12 +22,15 @@ public class DeadLetterRecorder implements ConsumerRecordRecoverer {
         String topic = consumerRecord.topic();
         Long offset = consumerRecord.offset();
 
+        // 원인 예외의 메시지는 cause가 null일 수 있으므로 아래 저장부와 동일하게 널 가드한다.
+        String failReason = e.getCause() == null ? e.getMessage() : e.getCause().getMessage();
+
         log.info("Record deadLetter. uuid: {}, topic: {}, offset: {}. e: {}, cause: {}, message: {}",
-                        uuid, topic, offset, e.getClass(), e.getCause(), e.getCause().getMessage());
+                        uuid, topic, offset, e.getClass(), e.getCause(), failReason);
 
         DeadLetter deadLetter = new DeadLetter(
                 uuid,
-                e.getCause() == null ? e.getMessage() : e.getCause().getMessage(),
+                failReason,
                 false
         );
 

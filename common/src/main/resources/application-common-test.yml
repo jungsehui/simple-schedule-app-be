@@ -5,6 +5,12 @@ spring:
     consumer:
       bootstrap-servers: "localhost:49092"
 
+  # RedissonConfig가 컨텍스트 기동 시 요구 (CI에서는 redis 서비스 컨테이너로 제공)
+  data:
+    redis:
+      host: ${TEST_REDIS_HOST:localhost}
+      port: ${TEST_REDIS_PORT:6379}
+
   flyway:
     enabled: false
     baseline-on-migrate: false

@@ -1,0 +1,168 @@
+# 운영 배포용 compose (서버 사양: vCPU 4 / RAM 8GB 기준 메모리 상한 설정)
+# 사용법: /opt/ssa 에서
+#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml --env-file .env up -d
+# 외부 노출은 nginx(80/443)만. DB/Redis/Kafka는 내부 네트워크 전용.
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ssa-nginx
+    restart: always
+    ports:
+      - "80:80"
+      # TLS 도입 시: - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - course
+      - notification
+    networks: [app_network]
+    mem_limit: 128m
+
+  course:
+    image: ghcr.io/${GHCR_OWNER}/ssa-course:${IMAGE_TAG:-latest}
+    container_name: ssa-course
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://course_db:3306/course_db
+      SPRING_DATASOURCE_USERNAME: ${COURSE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${COURSE_DB_PASSWORD}
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TOKEN_SECRETKEY: ${JWT_SECRET}
+      TOKEN_ACCESSTOKENEXPIRATIONMILLIS: ${JWT_ACCESS_EXPIRATION_MS:-86400000}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+    depends_on:
+      course_db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks: [app_network]
+    mem_limit: 1536m
+
+  notification:
+    image: ghcr.io/${GHCR_OWNER}/ssa-notification:${IMAGE_TAG:-latest}
+    container_name: ssa-notification
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://notification_db:3306/notification_db
+      SPRING_DATASOURCE_USERNAME: ${NOTIFICATION_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TOKEN_SECRETKEY: ${JWT_SECRET}
+      TOKEN_ACCESSTOKENEXPIRATIONMILLIS: ${JWT_ACCESS_EXPIRATION_MS:-86400000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      CLIENT_COURSE_SERVER_INTERNAL_URL: http://course:8080/internal
+      CLIENT_INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      FCM_KEY_JSON: /app/config/fcm-service-account.json
+    volumes:
+      # FCM 서비스 계정 JSON은 서버에만 두고 마운트 (이미지/저장소에 포함 금지)
+      - ./secrets/fcm-service-account.json:/app/config/fcm-service-account.json:ro
+    depends_on:
+      notification_db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks: [app_network]
+    mem_limit: 1024m
+
+  course_db:
+    image: mysql:8.0
+    container_name: ssa-course-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: course_db
+      MYSQL_USER: ${COURSE_DB_USER}
+      MYSQL_PASSWORD: ${COURSE_DB_PASSWORD}
+    volumes:
+      - course_mysql_data:/var/lib/mysql
+    networks: [app_network]
+    mem_limit: 1024m
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification_db:
+    image: mysql:8.0
+    container_name: ssa-notification-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: notification_db
+      MYSQL_USER: ${NOTIFICATION_DB_USER}
+      MYSQL_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+    volumes:
+      - notification_mysql_data:/var/lib/mysql
+    networks: [app_network]
+    mem_limit: 1024m
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2
+    container_name: ssa-redis
+    restart: always
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis_data:/data
+    networks: [app_network]
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: ssa-zookeeper
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
+    networks: [app_network]
+    mem_limit: 512m
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: ssa-kafka
+    restart: always
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    networks: [app_network]
+    mem_limit: 1024m
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  course_mysql_data:
+  notification_mysql_data:
+  redis_data:

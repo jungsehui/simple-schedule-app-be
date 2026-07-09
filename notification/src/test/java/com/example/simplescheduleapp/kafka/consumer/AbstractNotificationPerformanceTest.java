@@ -1,12 +1,14 @@
 package com.example.simplescheduleapp.kafka.consumer;
 
 import com.example.simplescheduleapp.NotificationApplication;
-import com.example.simplescheduleapp.common.kafka.KafkaDomainEventMessage;
+import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.client.CourseClient;
 import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,6 +34,9 @@ import static org.mockito.BDDMockito.given;
         },
         ports = {PORT}
 )
+// 처리량/타이밍(Thread.sleep, 500명 팬아웃)을 측정하는 성능 테스트 — 정확성 검증이 아니므로
+// CI 기본 test 태스크에서는 제외(@Tag("slow")). 고정 포트 EmbeddedKafka 경합도 함께 회피.
+@Tag("slow")
 @SpringBootTest(classes = NotificationApplication.class)
 public abstract class AbstractNotificationPerformanceTest {
 
@@ -71,8 +76,10 @@ public abstract class AbstractNotificationPerformanceTest {
     }
 
     protected void produceMessage() {
-        TestDomainEvent testEvent = new TestDomainEvent(1L);
-        KafkaDomainEventMessage message = KafkaDomainEventMessage.from(testEvent);
+        // 실제 컨슈머가 역직렬화하는 타입으로 발행. LECTURE_UPDATED는 courseClient로 수강생을 조회해
+        // NUM_STUDENTS 명 전원에게 브로드캐스트하므로 성능 시나리오(500명 팬아웃)와 일치한다.
+        KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                "perf-test-uuid", LectureEventType.LECTURE_UPDATED, 1L, null, 1L, "강의 제목", "강의가 수정되었습니다");
         kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
     }
 }

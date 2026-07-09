@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.lecture.application;
 
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.general.application.command.PendingAcceptCommand;
@@ -92,6 +93,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         ConsumerRecord<String, String> record = records.iterator().next();
         KafkaLectureEventMessage message = objectMapper.readValue(record.value(), KafkaLectureEventMessage.class);
 
+        assertThat(message.type()).isEqualTo(LectureEventType.ENROLLMENT_ACCEPTED);
         assertThat(message.tutorId()).isEqualTo(tutorId);
         assertThat(message.studentId()).isEqualTo(studentId);
         assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
@@ -136,6 +138,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         ConsumerRecord<String, String> record = records.iterator().next();
         KafkaLectureEventMessage message = objectMapper.readValue(record.value(), KafkaLectureEventMessage.class);
 
+        assertThat(message.type()).isEqualTo(LectureEventType.ENROLLMENT_REJECTED);
         assertThat(message.tutorId()).isEqualTo(tutorId);
         assertThat(message.studentId()).isEqualTo(studentId);
         assertThat(message.lectureTitle()).isEqualTo(lectureTitle);

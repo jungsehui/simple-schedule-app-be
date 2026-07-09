@@ -1,5 +1,9 @@
 ### User ###
-ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
+# FCM 서비스 계정 키 — 파일명이 바뀌어도 커밋되지 않도록 glob으로 차단
+*firebase-adminsdk*.json
+**/src/main/resources/*firebase-adminsdk*.json
+# jqwik(Fixture Monkey 의존) 테스트 실행 아티팩트
+.jqwik-database
 HELP.md
 STUDY.md
 .gradle

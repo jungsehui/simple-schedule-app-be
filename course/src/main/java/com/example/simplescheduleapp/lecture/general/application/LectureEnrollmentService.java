@@ -47,8 +47,8 @@ public class LectureEnrollmentService {
 
     public List<LectureEnrollment> getLectureEnrollments(Long lectureId) {
         List<LectureEnrollment> lectureEnrollments = lectureEnrollmentRepository.getAllByLectureId(lectureId);
-        if (lectureEnrollments == null) {
-            return List.of();
+        if (lectureEnrollments == null || lectureEnrollments.isEmpty()) {
+            throw new ApplicationException(LectureEnrollmentExceptionCode.LECTURE_ENROLLMENT_NOT_FOUND);
         }
         return lectureEnrollments;
     }
