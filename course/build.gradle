@@ -19,8 +19,8 @@ dependencies {
 	implementation project(':common')
 	testImplementation(testFixtures(project(':common')))
 
-	// Redisson
-	implementation 'org.redisson:redisson-spring-boot-starter:3.29.0'
+	// Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 	// DB 드라이버
 	runtimeOnly 'com.mysql:mysql-connector-j'

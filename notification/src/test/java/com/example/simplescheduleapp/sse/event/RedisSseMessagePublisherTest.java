@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.sse.event;
 
+import com.example.simplescheduleapp.common.messaging.MessagePublisher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.redis.topic.RedisChannels;
@@ -7,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -17,15 +17,15 @@ import static org.mockito.Mockito.verify;
 
 class RedisSseMessagePublisherTest {
 
-    private StringRedisTemplate stringRedisTemplate;
+    private MessagePublisher messagePublisher;
     private ObjectMapper objectMapper;
     private RedisSseMessagePublisher publisher;
 
     @BeforeEach
     void setUp() {
-        stringRedisTemplate = mock(StringRedisTemplate.class);
+        messagePublisher = mock(MessagePublisher.class);
         objectMapper = new ObjectMapper();
-        publisher = new RedisSseMessagePublisher(stringRedisTemplate, objectMapper);
+        publisher = new RedisSseMessagePublisher(messagePublisher, objectMapper);
     }
 
     @Test
@@ -41,19 +41,17 @@ class RedisSseMessagePublisherTest {
         publisher.publish(event);
 
         // then
-        verify(stringRedisTemplate).convertAndSend(eq(RedisChannels.SSE_NOTIFICATION), argThat((String json) -> {
+        verify(messagePublisher).publish(eq(RedisChannels.SSE_NOTIFICATION), argThat((String json) -> {
             try {
-                // JSON 문자열을 다시 NotificationRequest 객체로 변환
                 NotificationRequest deserializedEvent = objectMapper.readValue(json, NotificationRequest.class);
 
-                // 객체의 각 필드가 기대하는 값과 일치하는지 확인
                 assertEquals(senderMemberId, deserializedEvent.senderId());
                 assertEquals(targetMemberId, deserializedEvent.targetId());
                 assertEquals(title, deserializedEvent.title());
                 assertEquals(body, deserializedEvent.body());
-                return true; // 모든 검증이 통과하면 true 반환
+                return true;
             } catch (JsonProcessingException e) {
-                return false; // 파싱 실패 시 false 반환
+                return false;
             }
         }));
     }

@@ -15,6 +15,7 @@ public enum LectureExceptionCode implements ExceptionCode {
     ALREADY_REQUESTED(HttpStatus.BAD_REQUEST, "L5", "이미 수강 요청한 강의입니다."),
     CAPACITY_UNDER_ZERO(HttpStatus.BAD_REQUEST, "L6", "수강 인원은 1보다 작을 수 없습니다."),
     CAPACITY_INFO_NOT_FOUND(HttpStatus.BAD_REQUEST, "L7", "수강 인원 정보가 없습니다."),
+    CAPACITY_BELOW_ENROLLED(HttpStatus.BAD_REQUEST, "L8", "정원은 현재 수강 인원보다 적을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

@@ -5,7 +5,7 @@ import com.example.simplescheduleapp.lecture.special.application.command.Special
 import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
 import com.example.simplescheduleapp.lecture.special.presentation.request.SpecialLectureCreateRequest;
 import com.example.simplescheduleapp.lecture.special.presentation.response.SpecialLectureCreateResponse;
-import com.example.simplescheduleapp.redis.lock.RedissonDistributedLock;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ public class SpecialLectureController {
     @PostMapping("/special-lectures")
     public ResponseEntity<SpecialLectureCreateResponse> createSpecialLecture(
             @RequestParam Long tutorId,
-            @RequestBody SpecialLectureCreateRequest request
+            @Valid @RequestBody SpecialLectureCreateRequest request
     ) {
         SpecialLectureCreateCommand command = request.toCommand(tutorId);
         SpecialLecture savedSpecialLecture = specialLectureService.createSpecialLecture(command);

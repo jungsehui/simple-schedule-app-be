@@ -1,12 +1,11 @@
 package com.example.simplescheduleapp.sse.cache;
 
+import com.example.simplescheduleapp.common.redis.presence.PresenceManager;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
 
@@ -20,17 +19,12 @@ class RedisClientManagerTest {
     private RedisClientManager redisClientManager;
 
     @Mock
-    private RedisTemplate<String, String> redisTemplate;
-
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+    private PresenceManager presenceManager;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        redisClientManager = new RedisClientManager(redisTemplate);
-
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        redisClientManager = new RedisClientManager(presenceManager);
     }
 
     @Test
@@ -39,7 +33,7 @@ class RedisClientManagerTest {
 
         redisClientManager.subscribeClient(memberId);
 
-        verify(valueOperations).set(eq("online:1"), eq("true"), eq(Duration.ofSeconds(30)));
+        verify(presenceManager).markOnline(eq("online:1"), eq(Duration.ofSeconds(30)));
     }
 
     @Test
@@ -48,13 +42,13 @@ class RedisClientManagerTest {
 
         redisClientManager.unsubscribeClient(memberId);
 
-        verify(redisTemplate).delete("online:2");
+        verify(presenceManager).markOffline("online:2");
     }
 
     @Test
     void isClientConnected_호출_시_redis에_key_존재하면_true_반환() {
         Long memberId = 3L;
-        when(redisTemplate.hasKey("online:3")).thenReturn(true);
+        when(presenceManager.isOnline("online:3")).thenReturn(true);
 
         boolean result = redisClientManager.isClientConnected(memberId);
 
@@ -64,7 +58,7 @@ class RedisClientManagerTest {
     @Test
     void isClientConnected_호출_시_key_없으면_false_반환() {
         Long memberId = 4L;
-        when(redisTemplate.hasKey("online:4")).thenReturn(false);
+        when(presenceManager.isOnline("online:4")).thenReturn(false);
 
         boolean result = redisClientManager.isClientConnected(memberId);
 
@@ -77,6 +71,6 @@ class RedisClientManagerTest {
 
         redisClientManager.refreshConnection(memberId);
 
-        verify(valueOperations).set(eq("online:5"), eq("true"), eq(Duration.ofSeconds(30)));
+        verify(presenceManager).refreshTtl(eq("online:5"), eq(Duration.ofSeconds(30)));
     }
 }

@@ -26,6 +26,9 @@ public class SpecialLecture extends Schedule {
     @Column(nullable = false)
     private int capacity;
 
+    // 낙관적 락(@Version)은 부모 엔티티 Schedule에 정의되어 있다.
+    // JPA 제약상 엔티티 계층(@Inheritance)에서 @Version은 root entity에만 둘 수 있다.
+
     public SpecialLecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
         super(title, startTime, endTime, memo);
         this.tutor = tutor;
