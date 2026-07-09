@@ -147,5 +147,7 @@ Field <com.example.simplescheduleapp.schedule.domain.Schedule.id> is annotated w
 Field <com.example.simplescheduleapp.schedule.domain.Schedule.memo> is annotated with <jakarta.persistence.Column> in (Schedule.java:0)
 Field <com.example.simplescheduleapp.schedule.domain.Schedule.startTime> is annotated with <jakarta.persistence.Column> in (Schedule.java:0)
 Field <com.example.simplescheduleapp.schedule.domain.Schedule.title> is annotated with <jakarta.persistence.Column> in (Schedule.java:0)
+Field <com.example.simplescheduleapp.schedule.domain.Schedule.version> is annotated with <jakarta.persistence.Column> in (Schedule.java:0)
+Field <com.example.simplescheduleapp.schedule.domain.Schedule.version> is annotated with <jakarta.persistence.Version> in (Schedule.java:0)
 Field <com.example.simplescheduleapp.student.domain.Student.school> is annotated with <jakarta.persistence.Column> in (Student.java:0)
 Field <com.example.simplescheduleapp.tutor.domain.Tutor.careerPeriod> is annotated with <jakarta.persistence.Column> in (Tutor.java:0)
