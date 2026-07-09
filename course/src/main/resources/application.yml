@@ -53,5 +53,24 @@ logging:
           jpa: INFO
       hibernate: INFO
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
 cors:
   allowed-origins: http://localhost:3000
+
+# 동시성 제어 4단계 방어 구조 Feature Toggle
+# 부하 테스트 시 시나리오 비교용 — 환경변수로 시나리오 전환
+# 사용법: DEFENSE_DISTRIBUTED_LOCK=true DEFENSE_OPTIMISTIC_LOCK_HANDLING=true ./gradlew :course:bootRun
+# - 시나리오 A: DEFENSE_DISTRIBUTED_LOCK=false DEFENSE_OPTIMISTIC_LOCK_HANDLING=false (baseline)
+# - 시나리오 B: DEFENSE_DISTRIBUTED_LOCK=true  DEFENSE_OPTIMISTIC_LOCK_HANDLING=false (분산 락)
+# - 시나리오 C: DEFENSE_DISTRIBUTED_LOCK=true  DEFENSE_OPTIMISTIC_LOCK_HANDLING=true  (전체 4단계, 권장)
+defense:
+  distributed-lock: ${DEFENSE_DISTRIBUTED_LOCK:true}
+  optimistic-lock-handling: ${DEFENSE_OPTIMISTIC_LOCK_HANDLING:true}
