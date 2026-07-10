@@ -1,5 +1,7 @@
 package com.example.simplescheduleapp.tutor.presentation;
 
+import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
@@ -38,20 +40,25 @@ public class TutorController {
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.TUTOR.name()));
     }
 
+    // Phase 3a 듀얼리드: 토큰이 있으면 서비스에서 튜터 소유권을 검증하고, 없으면 기존 동작 유지 (3b에서 강제)
+    @RequireRole(Role.TUTOR)
     @PostMapping("/enrollments/accept")
     public ResponseEntity<LectureEnrollmentAcceptedResponse> acceptEnrollment(
+            @Auth(required = false) Long memberId,
             @RequestBody PendingAcceptRequest request
     ) {
-        PendingAcceptCommand command = request.toCommand();
+        PendingAcceptCommand command = request.toCommand(memberId);
         Long lectureEnrollmentId = lectureEnrollmentService.acceptEnrollment(command);
         return ResponseEntity.ok(new LectureEnrollmentAcceptedResponse(lectureEnrollmentId));
     }
 
+    @RequireRole(Role.TUTOR)
     @PostMapping("/enrollments/reject")
     public ResponseEntity<Void> rejectEnrollment(
+            @Auth(required = false) Long memberId,
             @RequestBody PendingRejectRequest request
     ) {
-        PendingRejectCommand command = request.toCommand();
+        PendingRejectCommand command = request.toCommand(memberId);
         lectureEnrollmentService.rejectEnrollment(command);
         return ResponseEntity.ok().build();
     }

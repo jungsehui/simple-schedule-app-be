@@ -1,5 +1,8 @@
 package com.example.simplescheduleapp.student.presentation;
 
+import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.AuthIdentities;
+import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
@@ -35,32 +38,39 @@ public class StudentController {
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.STUDENT.name()));
     }
 
+    // Phase 3a 듀얼리드: 토큰 식별자 우선, studentId 파라미터는 레거시 폴백 (3b에서 제거 예정)
+    @RequireRole(Role.STUDENT)
     @PostMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<LectureEnrollmentResponse> requestLectureEnrollment(
-            @RequestParam Long studentId,
+            @Auth(required = false) Long memberId,
+            @RequestParam(required = false) Long studentId,
             @PathVariable Long lectureId
     ) {
-        LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(studentId, lectureId);
+        LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(AuthIdentities.resolve(memberId, studentId), lectureId);
         Long pendingId = lectureEnrollmentService.requestEnrollment(command);
         return ResponseEntity.ok(new LectureEnrollmentResponse(pendingId, lectureId));
     }
 
+    @RequireRole(Role.STUDENT)
     @DeleteMapping("/lectures/{lectureId}/pending-enrollments")
     public ResponseEntity<Void> cancelPendingEnrollment(
-            @RequestParam Long studentId,
+            @Auth(required = false) Long memberId,
+            @RequestParam(required = false) Long studentId,
             @PathVariable Long lectureId
     ) {
-        PendingLectureEnrollmentCancelCommand command = PendingLectureEnrollmentCancelCommand.of(studentId, lectureId);
+        PendingLectureEnrollmentCancelCommand command = PendingLectureEnrollmentCancelCommand.of(AuthIdentities.resolve(memberId, studentId), lectureId);
         lectureEnrollmentService.cancelPendingLectureEnrollment(command);
         return ResponseEntity.noContent().build();
     }
 
+    @RequireRole(Role.STUDENT)
     @DeleteMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<Void> cancelEnrollment(
-            @RequestParam Long studentId,
+            @Auth(required = false) Long memberId,
+            @RequestParam(required = false) Long studentId,
             @PathVariable Long lectureId
     ) {
-        LectureEnrollmentCancelCommand command = LectureEnrollmentCancelCommand.of(studentId, lectureId);
+        LectureEnrollmentCancelCommand command = LectureEnrollmentCancelCommand.of(AuthIdentities.resolve(memberId, studentId), lectureId);
         lectureEnrollmentService.cancelLectureEnrollment(command);
         return ResponseEntity.noContent().build();
     }

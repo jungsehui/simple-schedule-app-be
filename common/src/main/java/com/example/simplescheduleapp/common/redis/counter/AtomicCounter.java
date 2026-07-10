@@ -34,4 +34,23 @@ public interface AtomicCounter {
     Long decrement(String key);
 
     Long increment(String key);
+
+    /**
+     * 키가 존재하고 값이 양수일 때만 원자적으로 1 감소시킨다 (check-and-decrement).
+     * <p>
+     * 단순 DECR과 달리 부재 키를 음수로 생성하지 않으므로,
+     * 키 만료/미초기화 상태를 정원 초과로 오분류하지 않는다.
+     *
+     * @return 감소된 값. 키가 없으면 -2, 남은 수량이 0 이하면 -1 (감소 없음)
+     */
+    Long decrementIfPositive(String key);
+
+    /**
+     * 키가 존재할 때만 원자적으로 1 증가시킨다.
+     * <p>
+     * 단순 INCR과 달리 만료·부재 키를 TTL 없는 키로 부활시키지 않는다 (보상 경로용).
+     *
+     * @return 증가된 값. 키가 없으면 -2
+     */
+    Long incrementIfExists(String key);
 }

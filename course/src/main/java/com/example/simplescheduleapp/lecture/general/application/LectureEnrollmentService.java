@@ -10,12 +10,16 @@ import com.example.simplescheduleapp.lecture.general.domain.*;
 import com.example.simplescheduleapp.lecture.general.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.schedule.domain.service.ScheduleConflictValidator;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,7 @@ import java.util.Objects;
 public class LectureEnrollmentService {
 
     private final PendingLectureEnrollmentService pendingLectureEnrollmentService;
+    private final ScheduleConflictValidator scheduleConflictValidator;
 
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
@@ -59,6 +64,7 @@ public class LectureEnrollmentService {
         pendingLectureEnrollmentRepository.delete(pending);
     }
 
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     @Transactional
     public void cancelLectureEnrollment(LectureEnrollmentCancelCommand command) {
         LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
@@ -69,12 +75,15 @@ public class LectureEnrollmentService {
         eventPublisher.publishEvent(new LectureEnrollmentCanceledEvent(lecture, command.studentId()));
     }
 
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     @Transactional
     public Long acceptEnrollment(PendingAcceptCommand command) {
         try {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+            validateTutorOwnership(command.memberId(), lecture);
             Student student = studentRepository.getById(pending.getStudentId());
+            scheduleConflictValidator.validateNoStudentConflict(student.getId(), lecture.getStartTime(), lecture.getEndTime(), null);
             pending.accept();
             pendingLectureEnrollmentRepository.delete(pending);
             LectureEnrollment lectureEnrollment = lecture.enroll(student);
@@ -91,10 +100,21 @@ public class LectureEnrollmentService {
     public void rejectEnrollment(PendingRejectCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+        validateTutorOwnership(command.memberId(), lecture);
         Student student = studentRepository.getById(pending.getStudentId());
         pending.reject();
         pendingLectureEnrollmentRepository.delete(pending);
         eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
+    }
+
+    // Phase 3a: 토큰을 제시한 요청만 소유권 검증(memberId null = 무토큰 레거시 → 통과). 3b에서 필수로 전환.
+    private void validateTutorOwnership(Long memberId, Lecture lecture) {
+        if (memberId == null) {
+            return;
+        }
+        if (!lecture.getTutor().getId().equals(memberId)) {
+            throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
+        }
     }
 
     public List<Long> findStudentIdsByLectureId(Long lectureId) {

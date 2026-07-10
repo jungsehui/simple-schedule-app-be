@@ -13,6 +13,8 @@ public enum TokenExceptionCode implements ExceptionCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "T3", "인증되지 않았습니다."),
     REQUIRED_BEARER_TOKEN(HttpStatus.UNAUTHORIZED, "T4", "Bearer 토큰 정보가 없습니다."),
     UNKNOWN_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "T5", "예기치 못한 토큰 예외가 발생했습니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "T6", "해당 리소스에 대한 접근 권한이 없습니다."),
+    IDENTITY_REQUIRED(HttpStatus.UNAUTHORIZED, "T7", "인증 토큰 또는 회원 식별자 파라미터가 필요합니다."),
     ;
 
     private final HttpStatus httpStatus;
