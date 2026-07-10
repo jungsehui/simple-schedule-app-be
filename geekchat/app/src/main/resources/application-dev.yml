@@ -1,0 +1,13 @@
+# dev 프로필 — JPA 개발 시맨틱(show-sql)만. 통합 테스트(@ActiveProfiles("test","dev"))와 공유된다.
+# ddl-auto는 의도적으로 두지 않는다: dev가 test와 함께 활성화되는 통합 테스트에서 test 프로필의
+# H2 create-drop이 그대로 적용되어 각 컨텍스트가 자기 스키마를 생성하게 한다.
+# (dev가 ddl-auto=update로 덮어쓰면 H2+MySQLDialect에서 스키마가 안정적으로 생성되지 않아, 다른
+#  테스트가 먼저 mem:testdb를 채워주길 기대하는 실행-순서 의존 결함이 있었다 — Phase 7에서 발견/수정.)
+# datasource/secret 같은 환경별 연결 정보도 두지 않는다(테스트 H2 datasource/secret 보존).
+# 로컬 실행은 자기완결 `local` 프로필 사용: ./gradlew bootRun --args='--spring.profiles.active=local'
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

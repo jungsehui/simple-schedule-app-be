@@ -15,6 +15,13 @@
 name: Deploy
 
 on:
+  # main 병합 시 자동 배포 (문서만 바뀐 커밋은 스킵)
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.planning/**'
   workflow_dispatch:
     inputs:
       environment:
@@ -36,24 +43,41 @@ jobs:
     timeout-minutes: 40
     strategy:
       matrix:
-        module: [ course, notification ]
+        include:
+          # SSA 모듈: 러너에서 bootJar 빌드 후 도커라이즈
+          - module: course
+            context: .
+            dockerfile: course/Dockerfile
+            gradle_task: ':course:bootJar'
+          - module: notification
+            context: .
+            dockerfile: notification/Dockerfile
+            gradle_task: ':notification:bootJar'
+          # GeekChat: 멀티스테이지 Dockerfile이 컨테이너 안에서 자체 Gradle 빌드 수행
+          - module: geekchat
+            context: geekchat
+            dockerfile: geekchat/Dockerfile
+            gradle_task: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
+        if: matrix.gradle_task != ''
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Setup Gradle
+        if: matrix.gradle_task != ''
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build bootJar
+        if: matrix.gradle_task != ''
         run: |
           chmod +x gradlew
-          ./gradlew :${{ matrix.module }}:bootJar
+          ./gradlew ${{ matrix.gradle_task }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -65,8 +89,8 @@ jobs:
       - name: Build & Push image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ${{ matrix.module }}/Dockerfile
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/ssa-${{ matrix.module }}:${{ github.sha }}
@@ -75,7 +99,8 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    # push(main) 이벤트에는 inputs가 없으므로 prod로 fallback
+    environment: ${{ inputs.environment || 'prod' }}
     timeout-minutes: 15
     steps:
       - name: Checkout (deploy 번들용)

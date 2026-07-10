@@ -1,10 +1,17 @@
 # SSA Backend — HANDOFF
 
-> 마지막 갱신: 2026-07-10 (2차) · 브랜치 `develop` (전 작업 브랜치 통합 완료 상태)
-> 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` (develop) · inner repo `simple-schedule-app-be/ssa` (main)
+> 마지막 갱신: 2026-07-11 · 브랜치 `integration/geekchat-monorepo` (PR #17)
+> 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` · inner repo `simple-schedule-app-be/ssa` (main)
 
-## 1. 지금 상태 한 줄 요약
-원격 29개 브랜치 전수 조사 → **유효 작업 전부 develop에 통합 완료**. develop = `73e6c6e`, 3모듈 clean 빌드·테스트 green, CI green. 열린 PR 없음. 미통합 잔여 작업 없음(스킵 3건은 사유 확정).
+## 0. 최신: GeekChat 모노레포 + Supabase PG + 자동 배포 (PR #17)
+- **GeekChat 편입**: geek-chat/server-v2 → `geekchat/` (subtree, 히스토리 보존). 한 레포 · 두 Gradle 빌드(Kotlin/Boot4 vs Java/Boot3.4). `common` 모듈명 충돌은 빌드 분리로 회피.
+- **DB**: MySQL 컨테이너 제거 → **Supabase PostgreSQL 단일 외부 DB**, 스키마 격리(`ssa_course`/`ssa_notification`/`geekchat`). course prod PG 기동·DDL·네이티브 쿼리 로컬 PG16 검증 완료. ⚠ Supabase 접속은 **세션 풀러 호스트**(aws-0-ap-northeast-2.pooler.supabase.com:5432, user=postgres.&lt;ref&gt;) 사용 — direct 호스트는 IPv6 전용.
+- **CD**: `deploy.yml`이 **main push에 자동 트리거** (develop→main PR 병합 = 배포). 이미지 3종(ssa-course/-notification/-geekchat) → GHCR → GH Actions가 WireGuard 터널로 서버 SSH 배포. nginx가 `/chat/`(REST)·`/chat/ws`(WebSocket)를 geekchat(context-path=/chat)로 라우팅.
+- **배포 전 수동 준비 (1회)**: ① Supabase SQL Editor에서 스키마 3개 CREATE ② 서버 `/opt/ssa/.env`를 `deploy/.env.example` 기준으로 갱신(시크릿 전부 신규 발급 — 채팅에 노출된 Supabase 비밀번호·WG 키는 로테이션) ③ GitHub Secrets(WG_* 6 + DEPLOY_* 4) 등록 ④ 첫 배포만 `GEEKCHAT_DDL_AUTO=update` → validate 복귀 ⑤ 서버 SSH 접근 확인(shjung@10.64.212.20, WG 터널 경유).
+- 잔여: notification PG 기동 스모크(FCM 키 필요), 서버 MySQL 기존 데이터 이관(범위 외, 빈 DB 시작), geekchat OAuth 콜백 URL 실도메인 반영.
+
+## 1. 지금 상태 한 줄 요약 (develop 기준)
+원격 29개 브랜치 전수 조사 → **유효 작업 전부 develop에 통합 완료**. develop = `a2dd683`, 3모듈 clean 빌드·테스트 green, CI green. PR #17(모노레포+PG+CD)이 develop 대기 중.
 
 ## 2. 이번 세션 통합 내역 (2026-07-10)
 ### 1차: 열린 PR 3개 병합
