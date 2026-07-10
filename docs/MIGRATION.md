@@ -163,9 +163,17 @@ Boot 4 = 메이저 업그레이드라 0.6을 넘어 회귀 위험 경로를 더 
 
 부수 수정 (test 인프라): `application-dev.yml`의 `ddl-auto: update` override 제거. `@ActiveProfiles("test","dev")`에서 dev의 update가 test의 create-drop을 덮어쓰는데, H2+MySQLDialect에서 update가 스키마를 안정 생성 못 해 "다른 테스트가 먼저 mem:testdb를 채워주길 기대"하는 실행-순서 의존 결함이 잠복해 있었다(새 테스트 클래스 추가로 표면화). 제거 후 모든 통합 컨텍스트가 create-drop으로 자체 스키마 생성 → 순서 독립.
 
-## Phase 8 — 배포 자동화 / CD
+## Phase 8 — 배포: Render(무료) + Supabase(Postgres) ✅ 설정 완료 (branch `migration/render-supabase-postgres`)
 
-VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 배포. 스키마는 Flyway/Liquibase로 (현 `ddl-auto` 부트스트랩 풋건 제거). prod Docker 강화.
+친구 클라우드(VPN 내부, self-hosted runner 필요) 방식을 **취소**하고 Render 무료 호스팅으로 전환 (사용자 결정 2026-07-10).
+
+- **DB: MySQL → PostgreSQL 마이그레이션** — Render 무료엔 관리형 MySQL이 없음. 순수 설정 변경(드라이버 `org.postgresql`, `PostgreSQLDialect`, jdbc URL). 엔티티/쿼리 무변경 근거: 모든 `@Query`가 JPQL, enum=`EnumType.STRING`, ID=UUID 문자열, `@GeneratedValue`/네이티브 SQL 없음. 테스트는 H2 `MODE=PostgreSQL`.
+- **DB 호스트: Supabase**(무료 Postgres) — 세션 pooler(5432) + SSL, env 주입. (무료: 500MB~1GB, 1주 유휴 시 일시정지.)
+- **앱 호스트: Render 무료 Docker web service** — `render.yaml`(Blueprint) + `Dockerfile` 멀티모듈용 재작성(`MaxRAMPercentage`로 512MB 적응). 첫 배포는 `SPRING_JPA_HIBERNATE_DDL_AUTO=update`로 빈 DB에 스키마 생성.
+- **런북**: `docs/DEPLOY-RENDER.md`. 친구 클라우드 자산(`docker-compose.yml`·`deploy/`·`docs/DEPLOYMENT.md`)은 보존(참조용).
+- **검증(실측)**: 141 tests green(Postgres dialect/H2-PG) · `docker build` 성공(멀티모듈 이미지) · 로컬 Postgres `bootRun` `/health`={db:connected} + 방 생성 `_links` 실동작.
+- **남은 수동 단계(사용자 계정 필요)**: Supabase 프로젝트 생성 → Render Blueprint 연결 → 시크릿(DB_*, FRONTEND_URL, OAUTH_CALLBACK_URL) 입력. `docs/DEPLOY-RENDER.md` 참조.
+- 제약: Render 무료 512MB(빠듯, 필요 시 JAVA_OPTS 튜닝/유료 $7) + 15분 spin-down. 실 서비스엔 유료 DB 권장.
 
 ---
 
@@ -180,7 +188,7 @@ VPN 내부 호스트 대응: self-hosted runner(VPN 내부) 또는 pull 기반 �
 - ✅ **Phase 4 완료** — 관리자 role + JWT authority + `@PreAuthorize` 게이팅 (PR #5 `9758d5c`)
 - ✅ **Phase 5 완료** — `:ai` 모듈 + Spring AI 2.0 (provider 3종 config 선택, admin 게이팅, 키 없이 부팅), 139 tests green (PR #6 `aef03f7`)
 - ✅ **Phase 7 완료** — Spring HATEOAS 3.1.1, 단일 room 응답 `EntityModel` additive 래핑 + 링크 중앙화, 141 tests green
-- ⬜ 남음: Phase 8(CD) — 인프라 의존(VPN 내부 호스트, self-hosted runner 필요)
+- ✅ **Phase 8 설정 완료** — 배포를 **Render 무료(Docker) + Supabase Postgres**로 전환(친구 클라우드/VPN 취소). DB MySQL→Postgres 마이그레이션, `render.yaml` + `docs/DEPLOY-RENDER.md`. 실제 배포는 사용자 계정 수동 단계(Supabase/Render).
   - (Phase 1 characterization 보강은 Phase 0.6에서 충분히 커버되어 별도 진행 생략)
   - ✅ 0.1 프로필 분리 (`application.yml` + `-dev` + `-test` + `-local`) — commit `c76aad7`
   - ✅ 0.2 `docker-compose.dev.yml` (MySQL 3310) — commit `c76aad7`

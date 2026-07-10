@@ -1,8 +1,8 @@
-# test 프로필 — JVM 테스트(H2 MODE=MySQL). application.yml(기본) 위에 병합됨.
-# @ActiveProfiles("test")로 활성화.
+# test 프로필 — JVM 테스트(H2 MODE=PostgreSQL). application.yml(기본, PostgreSQLDialect) 위에 병합됨.
+# @ActiveProfiles("test")로 활성화. H2를 Postgres 호환 모드로 띄워 prod(Supabase Postgres)와 dialect 일치.
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:

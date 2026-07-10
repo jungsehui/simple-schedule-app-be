@@ -32,7 +32,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-hateoas") // Phase 7: HAL auto-config for EntityModel
 
-    runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("org.postgresql:postgresql")
 }
 
 // Local dev convenience: `./gradlew :app:bootRun` (and IDE bootRun) default to the

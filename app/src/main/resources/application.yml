@@ -11,10 +11,14 @@ spring:
     lazy-initialization: false
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
+    # PostgreSQL (Supabase managed Postgres in prod). Host/port/creds come from env — use the
+    # Supabase pooler host (…​.pooler.supabase.com), username `postgres.<project-ref>`. SSL required.
+    # Session pooler = port 5432 (Hibernate-friendly); transaction pooler = 6543 (then add
+    # &prepareThreshold=0 via DB_* / DB_SSLMODE stays require). See docs/DEPLOY-RENDER.md.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres}?sslmode=${DB_SSLMODE:require}
     username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
@@ -29,7 +33,7 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           batch_size: 20
         order_inserts: true
