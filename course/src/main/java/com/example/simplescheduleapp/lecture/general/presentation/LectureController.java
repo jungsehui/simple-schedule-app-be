@@ -9,6 +9,10 @@ import com.example.simplescheduleapp.lecture.general.presentation.request.Lectur
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureCreateResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureSearchResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureUpdateResponse;
+import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.AuthIdentities;
+import com.example.simplescheduleapp.common.auth.RequireRole;
+import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.lecture.general.presentation.response.TutorLectureGetResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +28,15 @@ public class LectureController {
 
     private final LectureService lectureService;
 
+    // Phase 3a 듀얼리드: 토큰 식별자 우선, tutorId 파라미터는 레거시 폴백 (3b에서 제거 예정)
+    @RequireRole(Role.TUTOR)
     @PostMapping("/lectures")
     public ResponseEntity<LectureCreateResponse> createLecture(
-            @RequestParam Long tutorId,
+            @Auth(required = false) Long memberId,
+            @RequestParam(required = false) Long tutorId,
             @Valid @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
-        LectureCreateCommand command = lectureCreateRequest.toCommand(tutorId);
+        LectureCreateCommand command = lectureCreateRequest.toCommand(AuthIdentities.resolve(memberId, tutorId));
         Lecture savedLecture = lectureService.createLecture(command);
         URI location = URI.create("/lectures/" + savedLecture.getId());
         return ResponseEntity
@@ -55,13 +62,15 @@ public class LectureController {
         return ResponseEntity.ok(LectureSearchResponse.from(lectures));
     }
 
+    @RequireRole(Role.TUTOR)
     @PatchMapping("/lectures/{lectureId}")
     public ResponseEntity<LectureUpdateResponse> updateLecture(
-            @RequestParam Long tutorId,
+            @Auth(required = false) Long memberId,
+            @RequestParam(required = false) Long tutorId,
             @PathVariable Long lectureId,
             @Valid @RequestBody LectureUpdateRequest lectureUpdateRequest
     ) {
-        LectureUpdateCommand command = lectureUpdateRequest.toCommand(tutorId, lectureId);
+        LectureUpdateCommand command = lectureUpdateRequest.toCommand(AuthIdentities.resolve(memberId, tutorId), lectureId);
         Lecture updatedLecture = lectureService.updateLecture(command);
         return ResponseEntity.ok(LectureUpdateResponse.from(updatedLecture));
     }

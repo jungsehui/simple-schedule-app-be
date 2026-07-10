@@ -1,6 +1,8 @@
 package com.example.simplescheduleapp.lecture.application;
 
+import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
+import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -62,7 +65,8 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         long studentId = 2L;
         String lectureTitle = "수학";
 
-        PendingAcceptCommand command = new PendingAcceptCommand(99L);
+        // Phase 3a: 토큰 식별자(소유 튜터)와 함께 수락 — 소유권 검증 통과 경로
+        PendingAcceptCommand command = new PendingAcceptCommand(tutorId, 99L);
         PendingLectureEnrollment pending = sut.giveMeBuilder(PendingLectureEnrollment.class)
                 .set("lectureId", 1L)
                 .set("studentId", studentId)
@@ -110,7 +114,8 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         long studentId = 2L;
         String lectureTitle = "영어";
 
-        PendingRejectCommand command = new PendingRejectCommand(88L);
+        // Phase 3a: 토큰 식별자(소유 튜터)와 함께 거절 — 소유권 검증 통과 경로
+        PendingRejectCommand command = new PendingRejectCommand(tutorId, 88L);
         PendingLectureEnrollment pending = sut.giveMeBuilder(PendingLectureEnrollment.class)
                 .set("lectureId", 1L)
                 .set("studentId", studentId)
@@ -144,5 +149,29 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         assertThat(message.lectureTitle()).isEqualTo(lectureTitle);
 
         then(pendingLectureEnrollmentRepository).should().delete(pending);
+    }
+
+    @Test
+    void 다른_튜터의_토큰으로_수락하면_소유권_예외가_발생한다() {
+        // given — 강의 소유 튜터는 100L, 토큰 식별자는 999L (Phase 3a 소유권 검증)
+        long ownerTutorId = 100L;
+        PendingAcceptCommand command = new PendingAcceptCommand(999L, 99L);
+        PendingLectureEnrollment pending = sut.giveMeBuilder(PendingLectureEnrollment.class)
+                .set("lectureId", 1L)
+                .set("studentId", 2L)
+                .sample();
+
+        Lecture lecture = mock(Lecture.class);
+        Tutor tutor = mock(Tutor.class);
+
+        given(pendingLectureEnrollmentRepository.getById(anyLong())).willReturn(pending);
+        given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
+        given(lecture.getTutor()).willReturn(tutor);
+        given(tutor.getId()).willReturn(ownerTutorId);
+
+        // when & then
+        assertThatThrownBy(() -> lectureEnrollmentService.acceptEnrollment(command))
+                .isInstanceOf(ApplicationException.class)
+                .hasFieldOrPropertyWithValue("code", LectureExceptionCode.TUTOR_UNAUTHORIZED);
     }
 }

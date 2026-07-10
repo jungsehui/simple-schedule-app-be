@@ -6,7 +6,7 @@ public record PendingRejectRequest(
         Long pendingId
 ) {
 
-    public PendingRejectCommand toCommand() {
-        return new PendingRejectCommand(pendingId);
+    public PendingRejectCommand toCommand(Long memberId) {
+        return new PendingRejectCommand(memberId, pendingId);
     }
 }

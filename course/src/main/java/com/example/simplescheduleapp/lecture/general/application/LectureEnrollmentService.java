@@ -81,6 +81,7 @@ public class LectureEnrollmentService {
         try {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+            validateTutorOwnership(command.memberId(), lecture);
             Student student = studentRepository.getById(pending.getStudentId());
             scheduleConflictValidator.validateNoStudentConflict(student.getId(), lecture.getStartTime(), lecture.getEndTime(), null);
             pending.accept();
@@ -99,10 +100,21 @@ public class LectureEnrollmentService {
     public void rejectEnrollment(PendingRejectCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
+        validateTutorOwnership(command.memberId(), lecture);
         Student student = studentRepository.getById(pending.getStudentId());
         pending.reject();
         pendingLectureEnrollmentRepository.delete(pending);
         eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
+    }
+
+    // Phase 3a: 토큰을 제시한 요청만 소유권 검증(memberId null = 무토큰 레거시 → 통과). 3b에서 필수로 전환.
+    private void validateTutorOwnership(Long memberId, Lecture lecture) {
+        if (memberId == null) {
+            return;
+        }
+        if (!lecture.getTutor().getId().equals(memberId)) {
+            throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
+        }
     }
 
     public List<Long> findStudentIdsByLectureId(Long lectureId) {
