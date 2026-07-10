@@ -45,6 +45,9 @@ subprojects {
 		// 테스트 프레임워크 공통 적용
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+		// 아키텍처 규칙 검증 (헥사고날 레이어·도메인 순수성 — docs/adr/0002 참고)
+		testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
 	}
 
 	// 테스트 태스크 공통 설정

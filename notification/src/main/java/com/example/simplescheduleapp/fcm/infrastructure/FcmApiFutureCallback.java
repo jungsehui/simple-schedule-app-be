@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.fcm.domain.service;
+package com.example.simplescheduleapp.fcm.infrastructure;
 
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
@@ -8,6 +8,11 @@ import com.google.api.core.ApiFutureCallback;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Firebase 비동기 전송 콜백 어댑터.
+ * (기존 fcm.domain.service 위치에서 이동 — 도메인이 application의 NotificationRequest를
+ * 역참조하던 문제를 infrastructure로 옮겨 해소, ADR-0002 Stage 1)
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class FcmApiFutureCallback implements ApiFutureCallback<String> {

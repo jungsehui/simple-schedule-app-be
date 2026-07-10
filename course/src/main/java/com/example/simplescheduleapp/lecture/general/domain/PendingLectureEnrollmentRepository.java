@@ -2,13 +2,20 @@ package com.example.simplescheduleapp.lecture.general.domain;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
-public interface PendingLectureEnrollmentRepository extends JpaRepository<PendingLectureEnrollment, Long> {
+public interface PendingLectureEnrollmentRepository {
+
+    PendingLectureEnrollment save(PendingLectureEnrollment e);
+
+    void delete(PendingLectureEnrollment e);
+
+    boolean existsByLectureIdAndStudentId(Long lectureId, Long studentId);
+
+    Optional<PendingLectureEnrollment> findById(Long id);
+
+    Optional<PendingLectureEnrollment> findByLectureIdAndStudentId(Long studentId, Long lectureId);
 
     default PendingLectureEnrollment getById(Long pendingId) {
         return findById(pendingId)
@@ -19,8 +26,4 @@ public interface PendingLectureEnrollmentRepository extends JpaRepository<Pendin
         return findByLectureIdAndStudentId(lectureId, studentId)
                 .orElseThrow(() -> new ApplicationException(LectureEnrollmentExceptionCode.PENDING_LECTURE_ENROLLMENT_NOT_FOUND));
     }
-
-    boolean existsByLectureIdAndStudentId(Long lectureId, Long studentId);
-
-    Optional<PendingLectureEnrollment> findByLectureIdAndStudentId(Long studentId, Long lectureId);
 }

@@ -4,8 +4,8 @@ import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.notification.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.NotificationFacade;
-import com.example.simplescheduleapp.notification.client.CourseClient;
-import com.example.simplescheduleapp.notification.client.response.GetEnrolledStudentInfosResponse;
+import com.example.simplescheduleapp.notification.application.port.out.EnrolledStudentsPort;
+import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 public class LectureUpdatedStrategy implements NotificationStrategy {
 
     private final NotificationFacade notificationFacade;
-    private final CourseClient courseClient;
+    // 포트에만 의존 — course 서버 통신 수단(HTTP/캐시 등)이 바뀌어도 이 전략은 불변 (ADR-0002)
+    private final EnrolledStudentsPort courseClient;
 
     @Override
     public LectureEventType getSupportType() {
