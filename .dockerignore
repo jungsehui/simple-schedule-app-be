@@ -1,6 +1,8 @@
-# Build artifacts
+# Build artifacts (root + every module — multi-module build)
 build/
 .gradle/
+**/build/
+**/.gradle/
 
 # IDE
 .idea/
