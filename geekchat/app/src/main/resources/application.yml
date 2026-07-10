@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: geek-chat-server
+
+  threads:
+    virtual:
+      enabled: true
+
+  main:
+    # prod: eager init so bean-wiring errors fail at startup, not on first request.
+    lazy-initialization: false
+
+  datasource:
+    # PostgreSQL (Supabase managed Postgres in prod). Host/port/creds come from env — use the
+    # Supabase pooler host (…​.pooler.supabase.com), username `postgres.<project-ref>`. SSL required.
+    # Session pooler = port 5432 (Hibernate-friendly); transaction pooler = 6543 (then add
+    # &prepareThreshold=0 via DB_* / DB_SSLMODE stays require). See docs/DEPLOY-RENDER.md.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres}?sslmode=${DB_SSLMODE:require}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      leak-detection-threshold: 30000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        format_sql: false
+
+  jackson:
+    # Boot 4 defaults to Jackson 3; align mapper defaults with Jackson 2 (ISO-8601 dates,
+    # not numeric timestamps — replaces the removed serialization.write-dates-as-timestamps).
+    use-jackson2-defaults: true
+
+  ai:
+    # Admin-only AI chat (Phase 5). Provider-agnostic via Spring AI ChatClient — swap the active
+    # provider with `spring.ai.model.chat` (anthropic | openai | ollama). With no API key the
+    # provider auto-config backs off and a fallback reports "not configured", so the app still
+    # boots for regular human-to-human chat without an AI key.
+    model:
+      chat: ${AI_CHAT_PROVIDER:anthropic}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+
+server:
+  port: ${PORT:8080}
+  tomcat:
+    accept-count: 10
+    max-connections: 200
+    threads:
+      max: 10
+      min-spare: 2
+
+app:
+  jwt:
+    # No default — prod MUST provide JWT_SECRET (>= 32 bytes) or the app fails to start.
+    secret: ${JWT_SECRET}
+    access-token-expiry: 15m
+    refresh-token-expiry-days: 14
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  oauth:
+    callback-url: ${OAUTH_CALLBACK_URL:http://localhost:8080/auth/callback}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    naver:
+      client-id: ${NAVER_CLIENT_ID:}
+      client-secret: ${NAVER_CLIENT_SECRET:}

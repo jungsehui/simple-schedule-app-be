@@ -1,0 +1,58 @@
+# Render Blueprint — deploy the GeekChat v2 backend as a FREE Docker web service.
+# The database is external (Supabase managed Postgres), so there is no `databases:` block here.
+# Full walkthrough: docs/DEPLOY-RENDER.md
+#
+# First deploy: Render → New → Blueprint → connect this repo. Render reads this file and prompts for
+# every `sync: false` var — paste the values from Supabase (DB_*) and your provider consoles.
+services:
+  - type: web
+    name: geek-chat-server
+    runtime: docker
+    plan: free                 # 512MB RAM / 0.1 CPU, spins down after 15 min idle, 750h/mo
+    region: singapore          # closest free region to KR; change if you prefer
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true           # redeploy on push to the connected branch
+    envVars:
+      # ── Supabase Postgres — Dashboard → Connect → "Session pooler" (IPv4, port 5432) ──
+      - key: DB_HOST
+        sync: false            # e.g. aws-0-ap-southeast-1.pooler.supabase.com
+      - key: DB_PORT
+        value: "5432"          # session pooler = 5432 (Hibernate-friendly). Transaction pooler = 6543.
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USERNAME
+        sync: false            # postgres.<project-ref>
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      # First deploy creates the schema on the empty Supabase DB (app default is `validate`, which
+      # would fail on an empty DB). `update` creates missing tables and preserves data across deploys.
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      # ── Auth ──
+      - key: JWT_SECRET
+        generateValue: true    # Render generates a long random secret (>= 32 bytes)
+      - key: FRONTEND_URL
+        sync: false            # your frontend origin, e.g. https://geek-chat-web.vercel.app
+      - key: OAUTH_CALLBACK_URL
+        sync: false            # https://<this-service>.onrender.com/auth/callback
+      # ── OAuth providers (optional) ──
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: NAVER_CLIENT_ID
+        sync: false
+      - key: NAVER_CLIENT_SECRET
+        sync: false
+      # ── AI chat (optional — app boots and human-to-human chat works without any key) ──
+      - key: AI_CHAT_PROVIDER
+        value: anthropic       # anthropic | openai | ollama
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # ── JVM tuning for the 512MB free instance (override to tune, or drop on a paid plan) ──
+      - key: JAVA_OPTS
+        value: "-XX:+UseG1GC -XX:MaxRAMPercentage=65.0 -XX:MaxMetaspaceSize=160m -Dspring.jmx.enabled=false"

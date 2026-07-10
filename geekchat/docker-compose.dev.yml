@@ -1,0 +1,33 @@
+# GeekChat v2 — LOCAL DEV dependencies only (NOT for production)
+# Production DB is Supabase (managed Postgres); this mirrors it locally for the `local` profile.
+#
+# Usage:
+#   1. docker compose -f docker-compose.dev.yml up -d        # start Postgres
+#   2. ./gradlew bootRun --args='--spring.profiles.active=local'
+#   3. docker compose -f docker-compose.dev.yml down          # stop (data kept)
+#      docker compose -f docker-compose.dev.yml down -v       # stop + wipe data
+#
+# Matches the local defaults in application-local.yml:
+#   DB_HOST=localhost DB_PORT=5433 DB_NAME=geekchat DB_USERNAME=geekchat DB_PASSWORD=geekchat
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: geekchat-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: geekchat
+      POSTGRES_USER: geekchat
+      POSTGRES_PASSWORD: geekchat
+    ports:
+      - "5433:5432"   # host 5433 → container 5432. 5433 avoids colliding with a local Postgres on 5432.
+    volumes:
+      - geekchat-dev-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geekchat -d geekchat"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  geekchat-dev-postgres-data:
