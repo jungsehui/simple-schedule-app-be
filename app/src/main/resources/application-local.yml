@@ -2,15 +2,16 @@
 # 실행:
 #   docker compose -f docker-compose.dev.yml up -d
 #   ./gradlew bootRun --args='--spring.profiles.active=local'
-# 자격증명은 docker-compose.dev.yml의 MYSQL_USER/MYSQL_PASSWORD와 일치 — env 설정 없이 즉시 실행.
+# 자격증명은 docker-compose.dev.yml의 POSTGRES_USER/POSTGRES_PASSWORD와 일치 — env 설정 없이 즉시 실행.
 spring:
   main:
     lazy-initialization: true   # fast local restarts (dev convenience only; prod is eager)
   datasource:
-    # docker-compose.dev.yml maps host 3310 → container 3306. DB_PORT 로 변경 가능.
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3310}/${DB_NAME:geekchat}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true
+    # docker-compose.dev.yml runs local Postgres on host 5433 → container 5432. DB_PORT 로 변경 가능.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:geekchat}?sslmode=disable
     username: ${DB_USERNAME:geekchat}
     password: ${DB_PASSWORD:geekchat}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
