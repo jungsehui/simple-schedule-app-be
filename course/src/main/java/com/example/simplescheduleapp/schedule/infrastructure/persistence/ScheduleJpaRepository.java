@@ -19,7 +19,7 @@ public interface ScheduleJpaRepository extends JpaRepository<Schedule, Long> {
           AND s.start_time < :endTime
           AND s.end_time > :startTime
           AND s.deleted_date IS NULL
-          AND (:excludeScheduleId IS NULL OR s.schedule_id != :excludeScheduleId)
+          AND (CAST(:excludeScheduleId AS BIGINT) IS NULL OR s.schedule_id != CAST(:excludeScheduleId AS BIGINT))
         """, nativeQuery = true)
     List<Long> findOverlappingScheduleIdsByTutorId(
             @Param("tutorId") Long tutorId,
@@ -35,7 +35,7 @@ public interface ScheduleJpaRepository extends JpaRepository<Schedule, Long> {
           AND s.start_time < :endTime
           AND s.end_time > :startTime
           AND s.deleted_date IS NULL
-          AND (:excludeScheduleId IS NULL OR s.schedule_id != :excludeScheduleId)
+          AND (CAST(:excludeScheduleId AS BIGINT) IS NULL OR s.schedule_id != CAST(:excludeScheduleId AS BIGINT))
         UNION
         SELECT s.schedule_id FROM schedule s
         INNER JOIN special_lecture_enrollment sle ON s.schedule_id = sle.special_lecture_id
@@ -43,7 +43,7 @@ public interface ScheduleJpaRepository extends JpaRepository<Schedule, Long> {
           AND s.start_time < :endTime
           AND s.end_time > :startTime
           AND s.deleted_date IS NULL
-          AND (:excludeScheduleId IS NULL OR s.schedule_id != :excludeScheduleId)
+          AND (CAST(:excludeScheduleId AS BIGINT) IS NULL OR s.schedule_id != CAST(:excludeScheduleId AS BIGINT))
         """, nativeQuery = true)
     List<Long> findOverlappingScheduleIdsByStudentId(
             @Param("studentId") Long studentId,

@@ -4,9 +4,11 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    # Supabase PostgreSQL (외부 관리형). base yml의 mysql 드라이버를 반드시 override.
+    driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
+      # Supabase 커넥션 한도 공유(course+notification+geekchat) — 예산 분배
+      maximum-pool-size: 10
       connection-timeout: 30000
       max-lifetime: 600000
 
