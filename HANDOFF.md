@@ -1,7 +1,14 @@
 # SSA Backend — HANDOFF
 
-> 마지막 갱신: 2026-07-11 · 브랜치 `integration/geekchat-monorepo` (PR #17)
+> 마지막 갱신: 2026-07-11 (배포 완료) · 브랜치 `develop`
 > 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` · inner repo `simple-schedule-app-be/ssa` (main)
+
+## -1. 🚀 운영 배포 LIVE (2026-07-11, main `2c6a7b0`)
+- **3 프로세스 전부 가동·검증 완료**: course(actuator UP)·notification(FCM 200)·geekchat(healthy) + nginx/kafka/redis/zookeeper. Supabase 테이블 15/5/7 생성.
+- 배포 경로: main push → Deploy 워크플로(이미지 3종→GHCR) → WG 터널 → SSH → compose. **주의: CI가 노트북과 같은 WG 피어 키 사용 — 배포 중 노트북 터널 Deactivate 필수** (가드가 90초 내 감지·실패, `gh run rerun <id> --failed`로 재시도).
+- 트러블슈팅 이력(재발 방지): ① JWT_SECRET은 **base64url**(`openssl rand -base64 64 | tr '+/' '-_'`) ② RedissonConfig password 반영 픽스(f8f5bc8) ③ FCM 키 파일은 컨테이너 유저가 읽도록 644 ④ GHCR pull은 CI GITHUB_TOKEN만 가능(gh CLI 토큰은 read:packages 없음) ⑤ Supabase는 **aws-1** 세션 풀러.
+- 서버 상태 파일: `/opt/ssa/.env`(GEEKCHAT_DDL_AUTO=validate 전환됨), `/opt/ssa/secrets/fcm-service-account.json`.
+- 남은 개선: CI 전용 WG 피어 발급(DokaDev) 또는 서버측 pull 기반 자동 배포(read:packages PAT) — 터널 토글 불필요화.
 
 ## 0. 최신: GeekChat 모노레포 + Supabase PG + 자동 배포 (PR #17)
 - **GeekChat 편입**: geek-chat/server-v2 → `geekchat/` (subtree, 히스토리 보존). 한 레포 · 두 Gradle 빌드(Kotlin/Boot4 vs Java/Boot3.4). `common` 모듈명 충돌은 빌드 분리로 회피.
