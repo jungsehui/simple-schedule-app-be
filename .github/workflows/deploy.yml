@@ -148,9 +148,11 @@ jobs:
       - name: Deploy containers
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "cd /opt/ssa && \
+            "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin && \
+             cd /opt/ssa && \
              IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose.prod.yml --env-file .env pull && \
              IMAGE_TAG=${{ github.sha }} docker compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans && \
+             docker logout ghcr.io && \
              docker image prune -f"
 
       - name: Teardown WireGuard
