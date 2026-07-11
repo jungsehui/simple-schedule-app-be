@@ -36,6 +36,10 @@ spring:
     init:
       mode: never
 
+  # Flyway는 운영(prod)에서만 활성 — 로컬/테스트(MySQL/H2)는 ddl-auto 유지 (ADR-0003 Stage 0)
+  flyway:
+    enabled: false
+
   kafka:
     consumer:
       group-id: "ssa-course-server-group"

@@ -62,6 +62,13 @@ subprojects {
 	}
 }
 
+// CI 패리티 훅 설치 (ADR-0003 Stage 0): pre-push에서 CI 스코프 빌드+테스트 게이트
+// 1회 실행: ./gradlew installGitHooks
+tasks.register('installGitHooks', Exec) {
+	description = 'git core.hooksPath를 .githooks로 설정해 pre-push CI 패리티 게이트를 활성화'
+	commandLine 'git', 'config', 'core.hooksPath', '.githooks'
+}
+
 //allprojects {
 //	apply plugin: 'java'
 //

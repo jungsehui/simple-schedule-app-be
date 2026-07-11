@@ -25,6 +25,10 @@ dependencies {
 	implementation 'org.springframework.retry:spring-retry'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+	// DB 마이그레이션 — prod 전용 활성, ddl-auto 폐기 경로 확보 (ADR-0003 Stage 0)
+	implementation 'org.flywaydb:flyway-core'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
 	// DB 드라이버 — 로컬 dev는 MySQL, prod는 Supabase PostgreSQL (application-prod.yml)
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	runtimeOnly 'org.postgresql:postgresql'

@@ -7,6 +7,7 @@ import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
+import com.example.simplescheduleapp.fcm.infrastructure.FcmMessageSender;
 import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;
@@ -15,14 +16,9 @@ import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.sse.application.SseConnectionPublisher;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
-import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.Message;
 import org.junit.jupiter.api.*;
-import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -77,6 +73,11 @@ class NotificationIntegrationTest {
 
     @MockitoBean
     private FirebaseMessaging firebaseMessaging; // FcmConfig에서 FirebaseApp 초기화를 막기 위해 Mocking
+
+    // FCM 전송 어댑터(빈)를 mock으로 교체 — static mock과 달리 Spring DI를 타므로
+    // Kafka 리스너 스레드 등 어떤 스레드에서 호출되어도 실패 주입이 적용된다.
+    @MockitoBean
+    private FcmMessageSender fcmMessageSender;
 
     private final Long LECTURE_ID = 100L;
     private final Long TARGET_MEMBER_ID = 1L;
@@ -141,11 +142,10 @@ class NotificationIntegrationTest {
             });
         }
 
-        // FCM 실패를 ApiFutures/FirebaseMessaging의 스레드 로컬 static mock으로 주입하는데,
-        // 알림 디스패치가 비동기 스레드에서 실행되면 static mock이 적용되지 않아 onFailure→save가
-        // 실행되지 않는다(FCM 전송 자체는 호출됨 = 라우팅은 정상). 동기적으로 실패 콜백을 구동하도록
-        // 테스트를 재설계해야 안정화됨 → 재설계 전까지 비활성화.
-        @Disabled("async 경계에서 static mock 미적용으로 불안정 — 실패 주입 방식 재설계 필요")
+        // 실패 주입 재설계: 스레드 로컬이라 async 경계를 넘지 못하던 static mock 대신,
+        // Spring 빈인 FcmMessageSender(@MockitoBean)가 '이미 실패한 Future'를 반환하게 한다.
+        // 실제 FcmService가 그 Future에 콜백을 directExecutor로 등록하는 순간 onFailure가
+        // 등록 스레드(Kafka 리스너 스레드)에서 동기 실행되므로, 어떤 스레드에서 디스패치돼도 결정적이다.
         @Test
         void SSE_미연결_및_FCM_전송_실패_시_최종적으로_실패_알림을_DB에_저장한다() {
             // given
@@ -162,33 +162,21 @@ class NotificationIntegrationTest {
             GetEnrolledStudentInfosResponse response = new GetEnrolledStudentInfosResponse("테스트 강의", "메모", studentIds);
             given(courseClient.getEnrolledStudentInfosByLectureId(LECTURE_ID)).willReturn(response);
 
-            // 3. FcmService의 비동기 실패 시나리오 Mocking
-            ArgumentCaptor<ApiFutureCallback<String>> callbackCaptor = ArgumentCaptor.forClass(ApiFutureCallback.class);
+            // 3. FCM 전송 실패 주입: 전송 어댑터가 즉시 실패한 Future를 반환
+            //    → FcmService의 FcmApiFutureCallback.onFailure → failedNotificationRepository.save
+            given(fcmMessageSender.sendFcmNotificationAsync(any(FcmToken.class), any(), any()))
+                    .willReturn(ApiFutures.immediateFailedFuture(new RuntimeException("FCM 서버 에러")));
 
-            try (MockedStatic<FirebaseMessaging> fbMock = mockStatic(FirebaseMessaging.class);
-                 MockedStatic<ApiFutures> afMock = mockStatic(ApiFutures.class)) {
+            // when
+            kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
 
-                fbMock.when(FirebaseMessaging::getInstance).thenReturn(firebaseMessaging);
-                when(firebaseMessaging.sendAsync(any(Message.class))).thenReturn(mock(ApiFuture.class));
-
-                afMock.when(() -> ApiFutures.addCallback(any(), callbackCaptor.capture(), any()))
-                        .then(invocation -> {
-                            // 콜백이 등록되면, onFailure를 실행하여 실패 상황 시뮬레이션
-                            callbackCaptor.getValue().onFailure(new RuntimeException("FCM 서버 에러"));
-                            return null;
-                        });
-
-                // when
-                kafkaTemplate.send(KafkaTopics.COURSE_EVENT_TOPIC, message);
-
-                // then
-                await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {
-                    // FCM 전송이 1번 시도되었는지 확인
-                    verify(fcmService, times(1)).sendFcmNotification(any());
-                    // 최종적으로 DB에 저장되었는지 확인
-                    verify(failedNotificationRepository, times(1)).save(any(FailedNotification.class));
-                });
-            }
+            // then
+            await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
+                // FCM 전송이 1번 시도되었는지 확인
+                verify(fcmService, times(1)).sendFcmNotification(any());
+                // 최종적으로 DB에 저장되었는지 확인
+                verify(failedNotificationRepository, times(1)).save(any(FailedNotification.class));
+            });
         }
     }
 

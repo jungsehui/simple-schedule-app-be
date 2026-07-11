@@ -69,4 +69,32 @@ class TokenServiceTest {
         assertThatThrownBy(() -> tokenService.extractMemberId("not-a-jwt"))
                 .isInstanceOf(ApplicationException.class);
     }
+
+    @DisplayName("memberId claim이 없으면 sub에서 식별자를 복원한다 (계정 통합 토큰 관용 파서 — ADR-0003 Stage 0)")
+    @Test
+    void unifiedTokenWithSubOnlyFallsBackToSubject() {
+        SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(TEST_SECRET));
+        String unifiedToken = Jwts.builder()
+                .subject("42")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 3_600_000L))
+                .signWith(key, Jwts.SIG.HS512)
+                .compact();
+
+        assertThat(tokenService.extractMemberId(unifiedToken)).isEqualTo(42L);
+    }
+
+    @DisplayName("숫자가 아닌 sub(GeekChat UUID 토큰 등)는 예외 없이 null을 반환한다")
+    @Test
+    void nonNumericSubjectReturnsNull() {
+        SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(TEST_SECRET));
+        String uuidSubToken = Jwts.builder()
+                .subject("3f6c1b2a-8d4e-4c5f-9a7b-000000000000")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 3_600_000L))
+                .signWith(key, Jwts.SIG.HS512)
+                .compact();
+
+        assertThat(tokenService.extractMemberId(uuidSubToken)).isNull();
+    }
 }
