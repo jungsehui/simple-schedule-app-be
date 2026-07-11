@@ -1,1 +1,12 @@
-rootProject.name = 'SimpleScheduleAppBack'
+rootProject.name = "simple-schedule-app"
+
+// INFRA (Integration)
+include("common")
+
+// BOOT (Server)
+include("course")
+include("notification")
+
+// TEST (Test)
+include("playground")
+include("ngrinder")

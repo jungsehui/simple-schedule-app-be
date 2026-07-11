@@ -1,0 +1,54 @@
+package com.example.simplescheduleapp.schedule.infrastructure.persistence;
+
+import com.example.simplescheduleapp.schedule.domain.Schedule;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface ScheduleJpaRepository extends JpaRepository<Schedule, Long> {
+
+    @Query(value = """
+        SELECT s.schedule_id FROM schedule s
+        LEFT JOIN lecture l ON s.schedule_id = l.schedule_id
+        LEFT JOIN special_lecture sl ON s.schedule_id = sl.schedule_id
+        LEFT JOIN consultation c ON s.schedule_id = c.schedule_id
+        WHERE COALESCE(l.tutor_id, sl.tutor_id, c.tutor_id) = :tutorId
+          AND s.start_time < :endTime
+          AND s.end_time > :startTime
+          AND s.deleted_date IS NULL
+          AND (CAST(:excludeScheduleId AS BIGINT) IS NULL OR s.schedule_id != CAST(:excludeScheduleId AS BIGINT))
+        """, nativeQuery = true)
+    List<Long> findOverlappingScheduleIdsByTutorId(
+            @Param("tutorId") Long tutorId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("excludeScheduleId") Long excludeScheduleId
+    );
+
+    @Query(value = """
+        SELECT s.schedule_id FROM schedule s
+        INNER JOIN lecture_enrollment le ON s.schedule_id = le.lecture_id
+        WHERE le.student_id = :studentId
+          AND s.start_time < :endTime
+          AND s.end_time > :startTime
+          AND s.deleted_date IS NULL
+          AND (CAST(:excludeScheduleId AS BIGINT) IS NULL OR s.schedule_id != CAST(:excludeScheduleId AS BIGINT))
+        UNION
+        SELECT s.schedule_id FROM schedule s
+        INNER JOIN special_lecture_enrollment sle ON s.schedule_id = sle.special_lecture_id
+        WHERE sle.student_id = :studentId
+          AND s.start_time < :endTime
+          AND s.end_time > :startTime
+          AND s.deleted_date IS NULL
+          AND (CAST(:excludeScheduleId AS BIGINT) IS NULL OR s.schedule_id != CAST(:excludeScheduleId AS BIGINT))
+        """, nativeQuery = true)
+    List<Long> findOverlappingScheduleIdsByStudentId(
+            @Param("studentId") Long studentId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("excludeScheduleId") Long excludeScheduleId
+    );
+}

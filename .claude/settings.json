@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./gradlew -q :common:test :course:test :notification:test",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(**/ssa-fcm-firebase-adminsdk-*.json)",
+      "Read(**/.env)",
+      "Read(deploy/secrets/**)"
+    ]
+  }
+}

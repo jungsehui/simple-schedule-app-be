@@ -1,0 +1,36 @@
+plugins {
+	id 'java'
+	id 'java-library'
+	id 'org.springframework.boot' version "3.4.3"
+	id 'io.spring.dependency-management' version "1.1.7"
+}
+
+group = "com.example"
+version = "0.0.1-SNAPSHOT"
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+dependencies {
+	// Common 모듈 의존
+	implementation project(':common')
+	testImplementation(testFixtures(project(':common')))
+
+	// Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Retry (for optimistic locking)
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+	// DB 드라이버 — 로컬 dev는 MySQL, prod는 Supabase PostgreSQL (application-prod.yml)
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'
+
+	// Configuration Processor (Lombok과 별개로 설정 파일 자동완성용)
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}

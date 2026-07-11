@@ -1,0 +1,12 @@
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: "localhost:9092"
+    consumer:
+      bootstrap-servers: "localhost:9092"
+
+# ⚠ 기본값은 로컬 개발 전용(이미 공개된 값 — docs/SECURITY.md의 로테이션 대상).
+# 환경변수 JWT_SECRET으로 덮어쓸 수 있으며, 운영은 application-prod.yml에서 필수 env로 주입된다.
+token:
+  secretKey: ${JWT_SECRET:YS1zdXBlci1kdXBlci1sb25nLWFuZC11bHRyYS1zZWN1cmUtc2VjcmV0LWtleS1mb3Itand0LW11c3QtYmUtYXQtbGVhc3QtNjQtYnl0ZXM=}
+  accessTokenExpirationMillis: ${JWT_ACCESS_EXPIRATION_MS:86400000}

@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: course
+
+  profiles:
+    group:
+      local:
+        common-local
+    active: local
+
+  datasource:
+    # 로컬 기본값은 docker-compose.yml과 일치. 환경변수로 덮어쓰기 가능 (운영은 application-prod.yml)
+    url: ${DB_URL:jdbc:mysql://localhost:3306/course_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      maximum-pool-size: 21
+      connection-timeout: 30000 # 30초
+      max-lifetime: 600000      # 600000 (10분)
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: never
+
+  kafka:
+    consumer:
+      group-id: "ssa-course-server-group"
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          jpa: INFO
+      hibernate: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+cors:
+  allowed-origins: http://localhost:3000
+
+# 동시성 제어 4단계 방어 구조 Feature Toggle
+# 부하 테스트 시 시나리오 비교용 — 환경변수로 시나리오 전환
+# 사용법: DEFENSE_DISTRIBUTED_LOCK=true DEFENSE_OPTIMISTIC_LOCK_HANDLING=true ./gradlew :course:bootRun
+# - 시나리오 A: DEFENSE_DISTRIBUTED_LOCK=false DEFENSE_OPTIMISTIC_LOCK_HANDLING=false (baseline)
+# - 시나리오 B: DEFENSE_DISTRIBUTED_LOCK=true  DEFENSE_OPTIMISTIC_LOCK_HANDLING=false (분산 락)
+# - 시나리오 C: DEFENSE_DISTRIBUTED_LOCK=true  DEFENSE_OPTIMISTIC_LOCK_HANDLING=true  (전체 4단계, 권장)
+defense:
+  distributed-lock: ${DEFENSE_DISTRIBUTED_LOCK:true}
+  optimistic-lock-handling: ${DEFENSE_OPTIMISTIC_LOCK_HANDLING:true}

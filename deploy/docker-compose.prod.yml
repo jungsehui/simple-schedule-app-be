@@ -1,0 +1,169 @@
+# 운영 배포용 compose (서버 사양: vCPU 4 / RAM 8GB 기준 메모리 상한 설정)
+# 사용법: /opt/ssa 에서
+#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml --env-file .env up -d
+# 외부 노출은 nginx(80/443)만. Redis/Kafka는 내부 네트워크 전용.
+# DB는 외부 관리형(Supabase PostgreSQL) — MySQL 컨테이너 제거됨. 스키마 격리:
+#   course=ssa_course, notification=ssa_notification, geekchat=geekchat (사전 CREATE SCHEMA 필요)
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ssa-nginx
+    restart: always
+    ports:
+      - "80:80"
+      # TLS 도입 시: - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - course
+      - notification
+      - geekchat
+    networks: [app_network]
+    mem_limit: 128m
+
+  course:
+    image: ghcr.io/${GHCR_OWNER}/ssa-course:${IMAGE_TAG:-latest}
+    container_name: ssa-course
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Supabase PG 예: jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require&currentSchema=ssa_course
+      SPRING_DATASOURCE_URL: ${COURSE_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${COURSE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${COURSE_DB_PASSWORD}
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      TOKEN_SECRETKEY: ${JWT_SECRET}
+      TOKEN_ACCESSTOKENEXPIRATIONMILLIS: ${JWT_ACCESS_EXPIRATION_MS:-86400000}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      JAVA_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=60.0"
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks: [app_network]
+    mem_limit: 1536m
+
+  notification:
+    image: ghcr.io/${GHCR_OWNER}/ssa-notification:${IMAGE_TAG:-latest}
+    container_name: ssa-notification
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Supabase PG 예: jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require&currentSchema=ssa_notification
+      SPRING_DATASOURCE_URL: ${NOTIFICATION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${NOTIFICATION_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      TOKEN_SECRETKEY: ${JWT_SECRET}
+      TOKEN_ACCESSTOKENEXPIRATIONMILLIS: ${JWT_ACCESS_EXPIRATION_MS:-86400000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      CLIENT_COURSE_SERVER_INTERNAL_URL: http://course:8080/internal
+      CLIENT_INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      FCM_KEY_JSON: /app/config/fcm-service-account.json
+      JAVA_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=60.0"
+    volumes:
+      # FCM 서비스 계정 JSON은 서버에만 두고 마운트 (이미지/저장소에 포함 금지)
+      - ./secrets/fcm-service-account.json:/app/config/fcm-service-account.json:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks: [app_network]
+    mem_limit: 1024m
+
+  # GeekChat — 별도 JVM 프로세스 (모노레포 geekchat/ 서브빌드, /chat 경로로 nginx 라우팅)
+  geekchat:
+    image: ghcr.io/${GHCR_OWNER}/ssa-geekchat:${IMAGE_TAG:-latest}
+    container_name: ssa-geekchat
+    restart: always
+    environment:
+      SERVER_SERVLET_CONTEXT_PATH: /chat
+      DB_HOST: ${GEEKCHAT_DB_HOST}
+      DB_PORT: ${GEEKCHAT_DB_PORT:-5432}
+      DB_NAME: ${GEEKCHAT_DB_NAME:-postgres}
+      DB_USERNAME: ${GEEKCHAT_DB_USERNAME}
+      DB_PASSWORD: ${GEEKCHAT_DB_PASSWORD}
+      DB_SSLMODE: require
+      DB_SCHEMA: ${GEEKCHAT_DB_SCHEMA:-geekchat}
+      # 첫 배포만 update로 스키마 생성 후 validate로 되돌릴 것
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${GEEKCHAT_DDL_AUTO:-validate}
+      JWT_SECRET: ${GEEKCHAT_JWT_SECRET}
+      FRONTEND_URL: ${GEEKCHAT_FRONTEND_URL:-http://localhost:3000}
+      OAUTH_CALLBACK_URL: ${GEEKCHAT_OAUTH_CALLBACK_URL:-http://localhost/chat/auth/callback}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
+      AI_CHAT_PROVIDER: ${AI_CHAT_PROVIDER:-anthropic}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      JAVA_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=60.0 -XX:MaxMetaspaceSize=192m"
+    networks: [app_network]
+    mem_limit: 1024m
+    healthcheck:
+      # 런타임 이미지가 alpine이라 curl 없음 — busybox wget 사용. context-path 반영.
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/chat/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  redis:
+    image: redis:7.2
+    container_name: ssa-redis
+    restart: always
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis_data:/data
+    networks: [app_network]
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: ssa-zookeeper
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
+    networks: [app_network]
+    mem_limit: 512m
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: ssa-kafka
+    restart: always
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    networks: [app_network]
+    mem_limit: 1024m
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  redis_data:
