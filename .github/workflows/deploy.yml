@@ -139,6 +139,28 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           echo "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          # 죽은 터널에서 잡 타임아웃(15분)까지 행하지 않도록 전 SSH 호출에 빠른 실패 옵션 적용
+          cat >> ~/.ssh/config <<'EOF'
+          Host deploy-target
+            ConnectTimeout 15
+            ServerAliveInterval 10
+            ServerAliveCountMax 3
+          EOF
+          sed -i "s/Host deploy-target/Host ${{ secrets.DEPLOY_HOST }}/" ~/.ssh/config
+
+      - name: Verify tunnel connectivity (fail fast)
+        run: |
+          # WG 핸드셰이크는 wg-quick up 성공만으로 보장되지 않음 (동일 피어 키를 다른 기기가
+          # 점유 중이면 패킷이 그쪽으로 감). 90초 내 SSH 왕복 실패 시 명확한 메시지로 즉시 실패.
+          for i in 1 2 3; do
+            if ssh -i ~/.ssh/deploy_key -o BatchMode=yes \
+                 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'echo tunnel-ok'; then
+              exit 0
+            fi
+            echo "attempt $i failed; retrying in 15s..."; sleep 15
+          done
+          echo "::error::WireGuard 터널로 서버 SSH 불가 — 동일 피어 키를 쓰는 다른 기기(개인 노트북)의 터널이 Active인지 확인 후 re-run 하세요."
+          exit 1
 
       - name: Sync deploy bundle
         run: |
