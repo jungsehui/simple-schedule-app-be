@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./gradlew -q :common:test :course:test :notification:test",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

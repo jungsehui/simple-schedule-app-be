@@ -16,7 +16,9 @@
     "deny": [
       "Read(**/ssa-fcm-firebase-adminsdk-*.json)",
       "Read(**/.env)",
-      "Read(deploy/secrets/**)"
+      "Read(deploy/secrets/**)",
+      "Bash(docker compose -f deploy/docker-compose.prod.yml:*)",
+      "Bash(docker compose -f deploy/docker-compose.prod.yml *)"
     ]
   }
 }

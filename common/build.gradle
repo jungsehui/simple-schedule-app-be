@@ -2,6 +2,7 @@ plugins {
 	// java-library, boot 등은 루트에서 적용했으므로 생략 가능
 	// test-fixtures는 common만의 기능이므로 명시
 	id 'java-test-fixtures'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = "com.example"
@@ -49,6 +50,7 @@ dependencies {
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.1.11'
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-api:1.1.11'
 	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 // 라이브러리 역할을 하는 모듈이므로 bootJar(실행파일 생성)는 끄고 jar(라이브러리 생성)는 켬
@@ -58,4 +60,7 @@ tasks.named('bootJar') {
 
 tasks.named('jar') {
 	enabled = true
+}
+repositories {
+    mavenCentral()
 }

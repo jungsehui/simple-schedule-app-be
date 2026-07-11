@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/.wt-ssa-analysis && echo \\\"=== notification 테스트 support ===\\\" && ls notification/src/test/java/com/example/simplescheduleapp...",
+  "error": "Exit code 1\n=== notification 테스트 support ===",
+  "timestamp": "2026-08-13T17:15:05.291Z",
+  "retry_count": 2
+}

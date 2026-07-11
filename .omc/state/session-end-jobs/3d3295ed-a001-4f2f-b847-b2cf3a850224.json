@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "jobId": "2377ada8-3d8f-4bf9-8981-d82e4b12a4fc",
+  "sessionId": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+  "scopeKey": "609ffc4725ff02363dd5f47a11a11b0b285d183b12cfab1001f29a51a8452c6c",
+  "revision": 41,
+  "createdAt": "2026-08-14T10:04:13.002Z",
+  "updatedAt": "2026-08-14T10:04:14.413Z",
+  "producerGraceExpiresAt": "2026-08-14T10:04:43.003Z",
+  "bestEffortDeadlineAt": "2026-08-14T10:05:34.003Z",
+  "producers": {
+    "core": {
+      "state": "sealed",
+      "intentKey": "227691fe16968060cadc9b2ec94cce60fa6f68576808cda230f7c885a03af723",
+      "payloadDigest": "227691fe16968060cadc9b2ec94cce60fa6f68576808cda230f7c885a03af723",
+      "sealedAt": "2026-08-14T10:04:13.087Z",
+      "sealedBy": "foreground"
+    },
+    "wiki": {
+      "state": "no-op",
+      "sealedAt": "2026-08-14T10:04:13.002Z",
+      "sealedBy": "wiki-producer"
+    }
+  },
+  "actions": {
+    "foreground-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 0,
+      "idempotencyKey": "febf6dba2f2536433960a07f7cedce72e946b43ced0896570df80f017b8914d2",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {},
+        "foregroundResult": {
+          "removedTransientFiles": 1,
+          "completedAt": "2026-08-14T10:04:13.087Z"
+        }
+      },
+      "budgetMs": 9000,
+      "completedAt": "2026-08-14T10:04:13.087Z",
+      "lastOutcomeCode": "completed"
+    },
+    "wiki-capture": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 0,
+      "idempotencyKey": "1719cd1ef5b51e0269b78c4cb8c9308c9c1f7b82fd1c067fc034c060f23863f5",
+      "payload": {},
+      "budgetMs": 9000,
+      "completedAt": "2026-08-14T10:04:13.002Z"
+    },
+    "team-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "cee6ac31df545408e1e822247ac249b3f8182a98a5fe8e448ae3b251e55bdee1",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-14T10:04:13.142Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "27bafde8-0682-424e-91df-e53724c315a6",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-14T10:04:23.087Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-14T10:04:13.305Z"
+    },
+    "python-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "1f1370c4ac056606059d517e2f106b602d8cbcb04587b3fcc5f3b9f89e649cd0",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-14T10:04:13.351Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "327461fc-bb32-4d12-8f5d-162da52a96fa",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-14T10:04:23.087Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-14T10:04:13.572Z"
+    },
+    "reply-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "0b3a8b47c28b26d56aca004d4f572b96c118f16819c0d35162418816f9a5420a",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-14T10:04:13.604Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "b251369e-b88b-4608-b19f-eedfa1bcace7",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-14T10:04:23.087Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-14T10:04:13.811Z"
+    },
+    "callback": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "d068ede2655bf89e0c0950e087d0603d7dcf45538e94f20a654d08c6f4841895",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-14T10:04:13.849Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "fcbb1914-84c3-4da0-9ce8-e4ef4f155d57",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-14T10:04:23.087Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-14T10:04:14.026Z"
+    },
+    "notification": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "89c0438ff63097ce04beb60efb87292ff68a7af350a0ee331f3de9dbf42d62fc",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-14T10:04:14.069Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "07bcc4a3-cdea-4a76-86b7-84f0ea412172",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-14T10:04:23.087Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-14T10:04:14.230Z"
+    },
+    "openclaw": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "31fe8f6e1cf204e27006de511df257326fdd98655122ca437013e8779ffc735b",
+      "payload": {
+        "transcriptPath": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+        "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+        "reason": "other",
+        "input": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "transcript_path": "/Users/jsh14/.claude/projects/-Users-jsh14-Work-simple-schedule-app-simple-schedule-app-be-ssa/3d3295ed-a001-4f2f-b847-b2cf3a850224.jsonl",
+          "cwd": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "3d3295ed-a001-4f2f-b847-b2cf3a850224",
+          "ended_at": "2026-08-14T10:04:13.000Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-14T10:04:14.251Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "91ad85be-d3d6-40d1-9836-b8a0d8ec109d",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-14T10:04:23.087Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-14T10:04:14.373Z"
+    }
+  },
+  "owner": null,
+  "phase": "complete",
+  "completion": {
+    "completedAt": "2026-08-14T10:04:14.394Z",
+    "terminalDigest": "c635d6196b2d862794b3c8631d36ab86509de6e1cda237beb270e82abe14aeee",
+    "terminalRevision": 40
+  }
+}

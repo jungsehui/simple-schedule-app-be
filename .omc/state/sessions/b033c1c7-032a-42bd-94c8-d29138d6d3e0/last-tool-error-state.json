@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"echo \\\"═══ 운영 SSE 실측 (WG 터널 필요) ═══\\\"\\nH=10.64.212.20\\necho -n \\\"  대조군 /lectures/search (무토큰 → 401 기대): \\\"\\ncurl -s -o /dev/null -w '%{http_code}\\\\n' --max-time 8 \\\"http://$H/lectures/sear...",
+  "error": "Exit code 28\n═══ 운영 SSE 실측 (WG 터널 필요) ═══\n  대조군 /lectures/search (무토큰 → 401 기대): 000\n  신규 /sse-stream      (무토큰 → 401 기대): 000\n  구경로 /sse-stream/3  (→ 404 기대): 000\n  /login POST           (게이트 통과 → 400/401): 000",
+  "timestamp": "2026-08-02T11:30:34.280Z",
+  "retry_count": 1
+}

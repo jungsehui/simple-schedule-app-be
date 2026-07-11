@@ -1,0 +1,13 @@
+{
+  "jobId": "c2f1c91b-a346-4936-9a74-0b1acf84d574",
+  "action": "python-cleanup",
+  "attempt": 1,
+  "runnerNonce": "bd2daa8e-79b5-4cf4-8fd5-9e5b0c3c86c8",
+  "ownerNonce": "2ca0b870-5080-4d92-af06-62e7546f102e",
+  "runner": {
+    "pid": 51729,
+    "processStartIdentity": "1785343940000"
+  },
+  "deadlineAt": "2026-07-29T16:52:29.633Z",
+  "idempotencyKey": "1f1370c4ac056606059d517e2f106b602d8cbcb04587b3fcc5f3b9f89e649cd0"
+}

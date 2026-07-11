@@ -1,9 +1,19 @@
+buildscript {
+    ext.kotlin_version = '2.4.10'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
 plugins {
 	// Root에서는 버전을 관리하되, 직접 적용하지 않도록 'apply false' 사용
 	id 'java'
 	id 'org.springframework.boot' version "3.4.3" apply false
 	id 'io.spring.dependency-management' version "1.1.7" apply false
 }
+apply plugin: 'kotlin'
 
 // 모든 프로젝트(서브 모듈 포함)에 공통 적용
 subprojects {
@@ -60,6 +70,12 @@ subprojects {
 			}
 		}
 	}
+}
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 //allprojects {

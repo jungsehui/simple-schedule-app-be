@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1782996796467,
+  "lastScanned": 1790766087793,
   "projectRoot": "/Users/jsh14/Work/simple-schedule-app/simple-schedule-app-be/ssa",
   "techStack": {
     "languages": [
@@ -33,8 +33,13 @@
   "structure": {
     "isMonorepo": false,
     "workspaces": [],
-    "mainDirectories": [],
-    "gitBranches": null
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
   },
   "customNotes": [],
   "directoryMap": {
@@ -42,39 +47,81 @@
       "path": "build",
       "purpose": "Build output",
       "fileCount": 0,
-      "lastAccessed": 1782996796457,
+      "lastAccessed": 1790766087784,
+      "keyFiles": []
+    },
+    "buildSrc": {
+      "path": "buildSrc",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1790766087784,
       "keyFiles": []
     },
     "common": {
       "path": "common",
       "purpose": null,
-      "fileCount": 1,
-      "lastAccessed": 1782996796457,
+      "fileCount": 3,
+      "lastAccessed": 1790766087785,
       "keyFiles": [
+        "CLAUDE.md",
         "build.gradle"
       ]
     },
     "course": {
       "path": "course",
       "purpose": null,
-      "fileCount": 1,
-      "lastAccessed": 1782996796457,
+      "fileCount": 3,
+      "lastAccessed": 1790766087785,
       "keyFiles": [
+        "CLAUDE.md",
+        "Dockerfile",
         "build.gradle"
+      ]
+    },
+    "deploy": {
+      "path": "deploy",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1790766087786,
+      "keyFiles": [
+        "README.md",
+        "docker-compose.prod.yml"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1790766087786,
+      "keyFiles": [
+        "SECURITY.md"
+      ]
+    },
+    "geekchat": {
+      "path": "geekchat",
+      "purpose": null,
+      "fileCount": 16,
+      "lastAccessed": 1790766087786,
+      "keyFiles": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "Dockerfile",
+        "HANDOFF.md",
+        "README.md"
       ]
     },
     "gradle": {
       "path": "gradle",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1782996796457,
+      "lastAccessed": 1790766087786,
       "keyFiles": []
     },
     "ngrinder": {
       "path": "ngrinder",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1782996796458,
+      "lastAccessed": 1790766087786,
       "keyFiles": [
         "build.gradle"
       ]
@@ -82,9 +129,11 @@
     "notification": {
       "path": "notification",
       "purpose": null,
-      "fileCount": 1,
-      "lastAccessed": 1782996796458,
+      "fileCount": 3,
+      "lastAccessed": 1790766087786,
       "keyFiles": [
+        "CLAUDE.md",
+        "Dockerfile",
         "build.gradle"
       ]
     },
@@ -92,7 +141,7 @@
       "path": "playground",
       "purpose": null,
       "fileCount": 12,
-      "lastAccessed": 1782996796458,
+      "lastAccessed": 1790766087786,
       "keyFiles": [
         "MacOsPerformanceMetric.bash",
         "build.gradle",
@@ -101,11 +150,18 @@
         "docker-compose-single-thread.yml"
       ]
     },
+    "buildSrc/build": {
+      "path": "buildSrc/build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1790766087787,
+      "keyFiles": []
+    },
     "common/build": {
       "path": "common/build",
       "purpose": "Build output",
       "fileCount": 1,
-      "lastAccessed": 1782996796458,
+      "lastAccessed": 1790766087788,
       "keyFiles": [
         "resolvedMainClassName"
       ]
@@ -114,14 +170,14 @@
       "path": "common/src",
       "purpose": "Source code",
       "fileCount": 0,
-      "lastAccessed": 1782996796459,
+      "lastAccessed": 1790766087788,
       "keyFiles": []
     },
     "course/build": {
       "path": "course/build",
       "purpose": "Build output",
       "fileCount": 1,
-      "lastAccessed": 1782996796459,
+      "lastAccessed": 1790766087788,
       "keyFiles": [
         "resolvedMainClassName"
       ]
@@ -130,35 +186,37 @@
       "path": "course/src",
       "purpose": "Source code",
       "fileCount": 0,
-      "lastAccessed": 1782996796459,
+      "lastAccessed": 1790766087788,
       "keyFiles": []
     },
-    "ngrinder/src": {
-      "path": "ngrinder/src",
-      "purpose": "Source code",
+    "ngrinder/build": {
+      "path": "ngrinder/build",
+      "purpose": "Build output",
       "fileCount": 0,
-      "lastAccessed": 1782996796459,
+      "lastAccessed": 1790766087788,
       "keyFiles": []
     },
     "notification/build": {
       "path": "notification/build",
       "purpose": "Build output",
-      "fileCount": 0,
-      "lastAccessed": 1782996796459,
-      "keyFiles": []
+      "fileCount": 1,
+      "lastAccessed": 1790766087789,
+      "keyFiles": [
+        "resolvedMainClassName"
+      ]
     },
     "notification/src": {
       "path": "notification/src",
       "purpose": "Source code",
       "fileCount": 0,
-      "lastAccessed": 1782996796459,
+      "lastAccessed": 1790766087789,
       "keyFiles": []
     },
     "playground/build": {
       "path": "playground/build",
       "purpose": "Build output",
       "fileCount": 1,
-      "lastAccessed": 1782996796460,
+      "lastAccessed": 1790766087789,
       "keyFiles": [
         "resolvedMainClassName"
       ]
