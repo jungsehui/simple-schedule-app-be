@@ -1,7 +1,8 @@
-# CI: 모든 PR과 main/develop 푸시에서 빌드 + 테스트 검증
-# - Kafka는 @EmbeddedKafka(in-JVM)로 제공, DB는 H2, FCM은 @Profile("!test")로 제외
-# - Redisson/Redis는 컨텍스트 기동에 필요하므로 redis 서비스 컨테이너로 제공
-# - playground / ngrinder 모듈은 부하 테스트 전용이므로 CI 대상에서 제외
+# CI: 모든 PR과 main/develop 푸시에서 통합 빌드+테스트 (ADR-0003 Stage 1 — 단일 파이프라인)
+# - ./gradlew buildAll 하나로 SSA(common/course/notification) + GeekChat(:app)을 컴포지트로 빌드
+# - Kafka는 @EmbeddedKafka(in-JVM), SSA DB는 H2, GeekChat DB는 H2(PostgreSQL 모드), FCM은 @Profile("!test") 제외
+# - Redisson/Redis는 SSA 컨텍스트 기동에 필요하므로 redis 서비스 컨테이너로 제공 (GeekChat은 Redis 미사용)
+# - playground / ngrinder 모듈은 부하 테스트 전용이므로 buildAll·CI 대상에서 제외
 name: CI
 
 on:
@@ -50,46 +51,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 순차 실행: course와 notification이 동시에 돌면 둘 다 EmbeddedKafka 고정 포트(49092)를
-      # 잡아 충돌하므로 --parallel을 쓰지 않는다. @Tag("slow")(성능/데드락 타이밍 테스트)는 제외됨.
-      - name: Build & Test
-        run: ./gradlew :common:build :course:build :notification:build
+      # 단일 명령 통합 빌드. SSA 모듈은 순차 실행(--parallel 미사용)이라 EmbeddedKafka 포트 충돌 없음.
+      # @Tag("slow")(성능/데드락 타이밍 테스트)는 컨벤션 플러그인에서 기본 제외됨.
+      - name: Build & Test (buildAll)
+        run: ./gradlew buildAll
 
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
-          path: '**/build/reports/tests/test/'
-          retention-days: 7
-
-  # GeekChat: 모노레포 내 독립 Gradle 빌드 (Kotlin/Boot4, H2 PostgreSQL 모드 테스트 — 외부 서비스 불필요)
-  geekchat-build-and-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Setup Gradle (build cache 포함)
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Build & Test (geekchat)
-        working-directory: geekchat
-        run: |
-          chmod +x gradlew
-          ./gradlew build
-
-      - name: Upload test reports on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: geekchat-test-reports
-          path: 'geekchat/**/build/reports/tests/test/'
+          path: |
+            **/build/reports/tests/test/
+            geekchat/**/build/reports/tests/test/
           retention-days: 7

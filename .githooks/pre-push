@@ -6,10 +6,7 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-echo "[pre-push] SSA CI 스코프 빌드+테스트..."
-./gradlew :common:build :course:build :notification:build --quiet
-
-echo "[pre-push] GeekChat 빌드+테스트..."
-(cd geekchat && ./gradlew build --quiet)
+echo "[pre-push] 통합 빌드+테스트 (SSA + GeekChat)..."
+./gradlew buildAll --quiet
 
 echo "[pre-push] OK"

@@ -1,0 +1,26 @@
+# SSA 버전 카탈로그 (ADR-0003 Stage 1) — 모듈 build.gradle에서 libs.* 로 참조.
+# Boot/dependency-management 플러그인 버전은 buildSrc/build.gradle.kts(컨벤션 플러그인)에서 관리.
+# starter-*, flyway, postgresql, mysql, h2, junit-launcher 등은 Spring Boot BOM이 버전을 관리하므로 여기 없음.
+[versions]
+jjwt = "0.12.5"
+redisson = "3.29.0"
+kafkaClients = "3.7.1"
+logstashLogback = "8.0"
+fixtureMonkey = "1.1.11"
+firebaseAdmin = "9.2.0"
+
+[libraries]
+redisson-spring-boot-starter = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
+kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogback" }
+
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+fixture-monkey-starter = { module = "com.navercorp.fixturemonkey:fixture-monkey-starter", version.ref = "fixtureMonkey" }
+fixture-monkey = { module = "com.navercorp.fixturemonkey:fixture-monkey", version.ref = "fixtureMonkey" }
+fixture-monkey-api = { module = "com.navercorp.fixturemonkey:fixture-monkey-api", version.ref = "fixtureMonkey" }
+fixture-monkey-jakarta-validation = { module = "com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation", version.ref = "fixtureMonkey" }
+
+firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebaseAdmin" }
