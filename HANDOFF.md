@@ -1,7 +1,13 @@
 # SSA Backend — HANDOFF
 
-> 마지막 갱신: 2026-07-11 (배포 완료) · 브랜치 `develop`
-> 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` · inner repo `simple-schedule-app-be/ssa` (main)
+> 마지막 갱신: 2026-07-13 · 브랜치 `develop`
+> 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` · inner repo `simple-schedule-app-be/ssa` (main, `2c6a7b0`로 최신화됨)
+
+## -2. 🏗️ 모듈러 모놀리스 진행 (ADR-0003) — Stage 0·1 완료
+- **Stage 0**(`1668e41`): Flyway baseline(prod), 관용 파서(memberId↔sub), git hooks(pre-push=buildAll), 깨진 테스트 부채 0.
+- **Stage 1**(PR #21, `668172d`): 빌드·CI 단일화 — `buildSrc` 컨벤션 플러그인 3종 + `libs.versions.toml` + settings/build `.kts` + `includeBuild("geekchat")`+`buildAll` + CI 1잡. **루트 Gradle 8.11.1→8.14.5**(컴포지트 단일 버전). 모듈명·패키지·산출물(3 이미지) 불변.
+- 통합 빌드: `./gradlew buildAll` = SSA(common/course/notification) + geekchat(:app). playground/ngrinder는 부하 테스트 전용(제외).
+- 다음 = **Stage 2**(course+notification → 단일 `:app`, Kafka 유지·KRaft 전환). 상세·학습·함정은 `docs/adr/0003`.
 
 ## -1. 🚀 운영 배포 LIVE (2026-07-11, main `2c6a7b0`)
 - **3 프로세스 전부 가동·검증 완료**: course(actuator UP)·notification(FCM 200)·geekchat(healthy) + nginx/kafka/redis/zookeeper. Supabase 테이블 15/5/7 생성.

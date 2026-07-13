@@ -27,15 +27,23 @@
 
 ## 단계 (모든 단계는 빌드+테스트+배포 가능 상태로 종료)
 
+> **진행 상태**: Stage 0 ✅(`1668e41`), Stage 1 ✅(PR #21, `668172d`) — develop 병합·CI green. 다음 = Stage 2.
+
 | Stage | 규모 | 범위 | 게이트 |
 |---|---|---|---|
-| 0 기준선·안전장치 | M | 깨진 테스트 부채 해소(⚠ 승인 게이트), Flyway baseline, 신규 HS512 시크릿 병행 검증, 상호 claim 관용 파서(sub↔memberId), git hooks | 양쪽 `./gradlew test` 그린, 구/신 토큰 검증, 3-이미지 배포 무변경 |
-| 1 빌드·CI 통합 | M | build-logic 승격, 루트 kts 전환, 모듈 재배치(:platform 등), 컨벤션 플러그인 3종(모듈별 BOM 3.4/4.1 공존), 카탈로그, CI 1잡 | 단일 `./gradlew build` 그린, 단일 파이프라인 3-이미지 배포, 런타임 무변화 |
+| 0 기준선·안전장치 ✅ | M | 깨진 테스트 부채 해소(NotificationIntegrationTest @MockitoBean 재설계), Flyway baseline(prod), 상호 claim 관용 파서(sub↔memberId), git hooks(pre-push=buildAll) | 3모듈 빌드 green, 테스트 부채 0 — 완료 |
+| 1 빌드·CI 통합 ✅ | M | buildSrc 컨벤션 3종(`ssa.java-common/library/spring-boot-app`), `libs.versions.toml`, settings/build→kts, `includeBuild("geekchat")`+`buildAll`, CI 1잡. **모듈명·패키지·산출물 불변**(:platform 재배치는 Stage 4로 연기) | `./gradlew buildAll` green, bootJar 산출물 불변, CI 단일 잡 — 완료 |
 | 2 SSA 단일 JVM (Kafka 유지) | L | course+notification→`:app`(Boot 3.4 유지, Kafka 발행·구독 경로 무변경 — 자기소비), /internal REST→직접 호출, Kafka **KRaft 단일노드 전환**(Zookeeper 제거)+힙 상한 축소 | 전체 그린+부팅 스모크(EmbeddedKafka 테스트 그대로 통과), 특강→알림 E2E, 2-프로세스 배포 |
 | 3 Boot 4.1 정렬 | M | SSA 모듈 3.4→4.1, Gradle 통일, Redisson 상향, spring-retry 처리, fasterxml→tools.jackson(2파일), Hibernate 7 회귀 | 전체 그린 + 동일 토폴로지 배포, 직렬화 회귀 없음 |
 | 4 GeekChat 흡수 | L | `:app`이 `:chat:*` 포함, context-path 제거→`/chat` prefix 명시, WS `/chat/ws`, HealthController→actuator, Security 이중 체인 선고정, 단일 DataSource+search_path(교차 테이블명 검사) | 전체+Modularity+ArchUnit 그린, SSA 무인증 접근성 회귀 테스트, 1 app+redis+nginx 배포 |
 | 5 정체성 통합 | L | Flyway로 `account`(Long id, external_uuid) 생성·백필, 듀얼라이트, 통합 claim JWT, /login 응답 불변 | 레거시 클라이언트 무영향, 양측 로그인·refresh·OAuth E2E, 백필 정합성, 단계별 롤백 가능 |
 | 6 래칫·정리 (Phase 3b 게이트) | M | 레거시 파라미터 제거·무토큰 401, RoleInterceptor→@PreAuthorize, SHA-256 강제 재설정, outbox→Modulith Registry 검토, 패키지 루트 통일 | 항목별 독립 배포·롤백 |
+
+## 실행 노트 (학습)
+- **컴포지트 빌드는 단일 Gradle 버전**을 강제한다. `includeBuild("geekchat")` 하려면 루트 래퍼를 geekchat의 8.14.5로 올려야 했다(Boot 4.1 플러그인이 Gradle 8.14+ 요구). Boot 3.4는 8.14와 호환이라 안전 — Stage 3의 "Gradle 통일"이 Stage 1에서 선반영됨.
+- **buildSrc vs build-logic**: geekchat이 `build-logic`(name="build-logic")을 쓰므로, SSA는 이름 충돌을 피해 `buildSrc`를 택함(루트 빌드에만 적용, geekchat 격리).
+- `gradle.includedBuild("...")`의 키는 rootProject.name이 아니라 **디렉터리명**(`geekchat`).
+- Boot 플러그인이 buildSrc 클래스패스에 오르면 모듈 `plugins{}`에서 **버전 명시 금지**(unknown version 충돌) → playground/ngrinder도 컨벤션화로 해결.
 
 ## 삭제 대상 (누적)
 Zookeeper(KRaft 전환 시) · /internal REST·InternalApiKeyFilter · geekchat 독립 빌드/Dockerfile/CI 특례 ·
