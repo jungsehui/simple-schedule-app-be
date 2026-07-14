@@ -1,6 +1,6 @@
 plugins {
-    // 부팅 가능한 앱 모듈 — 공통 설정은 컨벤션 플러그인 (ADR-0003 Stage 1)
-    id 'ssa.spring-boot-app'
+    // 바운디드 컨텍스트 라이브러리 — 자체 bootJar 없음, :app이 조합 (ADR-0003 Stage 2)
+    id 'ssa.java-library'
 }
 
 dependencies {
@@ -8,11 +8,9 @@ dependencies {
     implementation project(':common')
     testImplementation(testFixtures(project(':common')))
 
-    // Actuator / FCM / Retry / AOP
+    // Actuator / FCM (재시도·AOP·스케줄링은 common api + SchedulingRetryConfig로 상속 — Stage 2)
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation libs.firebase.admin
-    implementation 'org.springframework.retry:spring-retry'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
 
     // DB 마이그레이션 — prod 전용 활성, ddl-auto 폐기 경로 확보 (ADR-0003 Stage 0)
     implementation 'org.flywaydb:flyway-core'

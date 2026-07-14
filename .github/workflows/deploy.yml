@@ -44,15 +44,11 @@ jobs:
     strategy:
       matrix:
         include:
-          # SSA 모듈: 러너에서 bootJar 빌드 후 도커라이즈
-          - module: course
+          # SSA 단일 JVM(:app = course+notification 통합): 러너에서 bootJar 빌드 후 도커라이즈
+          - module: app
             context: .
-            dockerfile: course/Dockerfile
-            gradle_task: ':course:bootJar'
-          - module: notification
-            context: .
-            dockerfile: notification/Dockerfile
-            gradle_task: ':notification:bootJar'
+            dockerfile: app/Dockerfile
+            gradle_task: ':app:bootJar'
           # GeekChat: 멀티스테이지 Dockerfile이 컨테이너 안에서 자체 Gradle 빌드 수행
           - module: geekchat
             context: geekchat

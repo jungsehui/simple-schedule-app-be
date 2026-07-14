@@ -12,12 +12,15 @@ rootProject.name = "simple-schedule-app"
 // Boot 버전 통일(Stage 3) 이후 진짜 단일 빌드/단일 bootJar(Stage 4)로 합류 예정.
 includeBuild("geekchat")
 
-// INFRA
+// INFRA (공유 기술 커널)
 include("common")
 
-// BOOT (Server)
+// BOUNDED CONTEXTS (라이브러리 — 자체 bootJar 없음, :app이 조합)
 include("course")
 include("notification")
+
+// BOOT (유일한 실행 모듈 — 단일 JVM, ADR-0003 Stage 2)
+include("app")
 
 // TOOLS (부하/성능 테스트 전용 — CI·배포 대상 아님, 자체 build.gradle 유지)
 include("playground")

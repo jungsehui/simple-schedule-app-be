@@ -1,20 +1,20 @@
-# 운영 프로파일 — 민감 값은 전부 환경변수 주입 (deploy/docker-compose.prod.yml, deploy/.env.example 참고)
+# 운영 프로파일 — 민감 값은 전부 환경변수 주입 (deploy/docker-compose.prod.yml, deploy/.env.example)
+# 단일 JVM: course+notification 통합. DB는 Supabase 단일 `ssa` 스키마(URL의 currentSchema=ssa로 주입).
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
-    # Supabase PostgreSQL (외부 관리형). base yml의 mysql 드라이버를 반드시 override.
     driver-class-name: org.postgresql.Driver
     hikari:
-      # Supabase 커넥션 한도 공유(course+notification+geekchat) — 예산 분배
-      maximum-pool-size: 10
+      # course(10)+notification(5) 통합 — 단일 앱이라 15로 상한, geekchat(5)과 합쳐 Supabase 예산 내
+      maximum-pool-size: 15
       connection-timeout: 30000
       max-lifetime: 600000
 
   jpa:
     hibernate:
-      # TODO: Flyway 도입 후 validate로 전환 (deploy/README.md 4번 항목)
+      # TODO: Flyway 정착 후 validate로 전환
       ddl-auto: update
     show-sql: false
     open-in-view: false
@@ -26,8 +26,7 @@ spring:
     init:
       mode: never
 
-  # ADR-0003 Stage 0: 기존 스키마는 baseline(V1)으로 동결, 신규 DDL은 V2+ 마이그레이션으로만.
-  # ddl-auto:update는 과도기 동안 병행 유지 — Flyway 정착 후 validate로 전환 예정.
+  # ADR-0003 Stage 0/2: 단일 `ssa` 스키마를 baseline(V1)으로 동결, 신규 DDL은 V2+.
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -39,7 +38,7 @@ spring:
       bootstrap-servers: ${SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS}
     consumer:
       bootstrap-servers: ${SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS}
-      group-id: "ssa-course-server-group"
+      group-id: "ssa-server-group"
 
   data:
     redis:
@@ -51,10 +50,15 @@ token:
   secretKey: ${TOKEN_SECRETKEY}
   accessTokenExpirationMillis: ${TOKEN_ACCESSTOKENEXPIRATIONMILLIS:86400000}
 
-# 서버 간 /internal API 공유 시크릿 (notification과 동일 값). 미설정 시 가드 비활성(fail-open)
+# /internal API 공유 시크릿 가드 (InternalApiKeyFilter). 단일 JVM에선 내부 미사용이나 필터는 존치.
 internal:
   api:
     key: ${INTERNAL_API_KEY:}
+
+fcm:
+  key:
+    json: ${FCM_KEY_JSON}
+    url: https://www.googleapis.com/auth/firebase.messaging
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}

@@ -1,0 +1,79 @@
+# SSA 단일 JVM 기본(local) 프로파일 — course+notification 통합 (ADR-0003 Stage 2)
+# 운영 값은 application-prod.yml에서 환경변수로 주입. 테스트는 각 모듈 src/test/resources + common-test.
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ssa
+
+  profiles:
+    group:
+      local:
+        common-local
+    active: local
+
+  datasource:
+    # 로컬 단일 DB (모놀리스). course+notification 테이블이 한 스키마에 공존(이름 충돌 0건).
+    url: ${DB_URL:jdbc:mysql://localhost:3306/ssa}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 21
+      connection-timeout: 30000
+      max-lifetime: 600000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    # defer-datasource-initialization은 Flyway(prod)와 순환 의존을 일으키고, sql.init.mode=never라
+    # 무용지물이므로 제거 (모듈 병합 잔재). SSE Emitter Connection 고갈 방지로 open-in-view는 전역 false.
+    open-in-view: false
+
+  sql:
+    init:
+      mode: never
+
+  # Flyway는 운영(prod)에서만 활성 — 로컬/테스트(MySQL/H2)는 ddl-auto (ADR-0003 Stage 0)
+  flyway:
+    enabled: false
+
+  # 단일 컨텍스트라 컨슈머 그룹은 하나 (실질 리스너는 notification 1곳)
+  kafka:
+    consumer:
+      group-id: "ssa-server-group"
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+fcm:
+  key:
+    json: ssa-fcm-firebase-adminsdk-fbsvc-cabee70300.json
+    url: https://www.googleapis.com/auth/firebase.messaging
+
+cors:
+  allowed-origins: http://localhost:3000
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          jpa: INFO
+      hibernate: INFO
