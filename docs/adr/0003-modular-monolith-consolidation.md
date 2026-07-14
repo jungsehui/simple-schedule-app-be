@@ -22,7 +22,7 @@
 | 6 | 경계 강제 | ArchUnit freeze 래칫 유지 + Modulith `@ApplicationModule`(초기 OPEN) + ModularityTests 병행. OPEN→CLOSED·패키지 루트 통일은 래칫 백로그 | 이중 표준은 과도기 비용으로 수용 |
 | 7 | Kafka·Redis | **둘 다 유지 (사용자 결정 2026-07-11).** 단일 JVM `:app`이 Kafka에 발행·구독하는 자기소비 구조 — 브로커 경유의 내구성(재소비·버퍼링)과 기존 멱등/DLQ 계층, 학습 가치를 보존. 앱 프로세스 개수와 브로커 유지 여부는 무관함을 명시. 메모리 절약은 **KRaft 모드 전환**(Zookeeper 제거, −512m)과 힙 상한 축소로 달성. EmbeddedKafka 테스트 재작성 불필요 → Stage 2의 테스트 승인 게이트 소멸 | 초안의 "완전 삭제"는 메모리 최적화 제안이었으나 기각. Modulith Registry 전환은 장기 선택지로만 보존 |
 | 8 | 통신 규약 | 컨텍스트 간 단방향 도메인 이벤트(과거형 네이밍, `aggregateId="Type:id"`). notification은 "아무도 import하지 않는" 격리 모듈(이벤트 유입만) | linkareer outbox 규약 + GC websocket 격리 패턴 결합 |
-| 9 | DB | 단일 Supabase PG + 당분간 스키마 3개(search_path 브리지). **Flyway를 Stage 0 선도입**(ddl-auto:update 폐기 경로) | 스키마 1개 통합은 마지막 선택 단계 |
+| 9 | DB 스키마 (2026-07-13 확정) | **course+notification → 단일 `ssa` 스키마** (단일 JVM=단일 DataSource=단일 스키마, 아웃박스 원자성이 강제). `domain_event`/`kafka_message_consume_history`/`dead_letter`는 중복이 아니라 **공유 인프라 테이블**(현재는 각 스키마에 빈 shell) → 단일 카피. **프리픽스 불필요**(테이블명 충돌 0건 + Producer/Consumer 역할 비고정 → 이벤트/멱등/DLQ는 공유 인프라). 모듈 경계는 코드(Gradle+ArchUnit+패키지), DB 스키마 아님. **geekchat는 `geekchat` 스키마 유지**(Stage 4 흡수 시 결정). 기존 ssa_course/ssa_notification(pre-Flyway) 폐기. | 단일 스키마, 프리픽스 없음, geekchat만 분리 |
 | 10 | 순서 원칙 | 빌드 통합 → **Kafka 제거(SSA JVM 통합과 동일 단계)** → Boot 4.1 상향(독립 격리) → GeekChat 흡수 → 정체성 통합 | 프레임워크 업그레이드 리스크와 앱 통합 리스크를 절대 섞지 않음 |
 
 ## 단계 (모든 단계는 빌드+테스트+배포 가능 상태로 종료)

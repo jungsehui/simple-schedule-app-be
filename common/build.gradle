@@ -14,6 +14,11 @@ dependencies {
     api libs.redisson.spring.boot.starter
     api libs.logstash.logback.encoder
 
+    // 스케줄링·재시도 — SchedulingRetryConfig(@EnableScheduling/@EnableRetry)가 common에 있으므로
+    // 하위 모듈(course/notification/:app)에 전파되도록 api. (ADR-0003 Stage 2)
+    api 'org.springframework.retry:spring-retry'
+    api 'org.springframework.boot:spring-boot-starter-aop'
+
     // Kafka Client
     implementation libs.kafka.clients
 

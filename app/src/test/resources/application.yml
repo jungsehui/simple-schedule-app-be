@@ -1,0 +1,21 @@
+# :app 통합 컨텍스트 테스트 프로파일 (ADR-0003 Stage 2)
+# datasource url 미설정 → H2 자동 구성(모듈 테스트와 동일 패턴). kafka/redis는 common-test.
+spring:
+  profiles:
+    group:
+      test:
+        common-test
+    active: test
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: create
+
+  kafka:
+    consumer:
+      group-id: "ssa-server-test-group"
+
+token:
+  secretKey: "YS1zdXBlci1kdXBlci1sb25nLWFuZC11bHRyYS1zZWN1cmUtc2VjcmV0LWtleS1mb3Itand0LW11c3QtYmUtYXQtbGVhc3QtNjQtYnl0ZXM"
+  accessTokenExpirationMillis: 86400000

@@ -11,7 +11,7 @@ import com.example.simplescheduleapp.fcm.infrastructure.FcmMessageSender;
 import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;
-import com.example.simplescheduleapp.notification.client.CourseClient;
+import com.example.simplescheduleapp.notification.application.port.out.EnrolledStudentsPort;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.sse.application.SseConnectionPublisher;
@@ -83,7 +83,7 @@ class NotificationIntegrationTest {
     private final Long TARGET_MEMBER_ID = 1L;
 
     @MockitoBean
-    private CourseClient courseClient;
+    private EnrolledStudentsPort courseClient;
 
     @BeforeEach
     void setUp() {

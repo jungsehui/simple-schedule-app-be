@@ -6,7 +6,7 @@ import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;
-import com.example.simplescheduleapp.notification.client.CourseClient;
+import com.example.simplescheduleapp.notification.application.port.out.EnrolledStudentsPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public abstract class AbstractNotificationPerformanceTest {
     protected NotificationDispatcher notificationDispatcher;
 
     @MockitoBean
-    protected CourseClient courseClient;
+    protected EnrolledStudentsPort courseClient;
 
     protected StopWatch stopWatch;
     protected CountDownLatch latch;

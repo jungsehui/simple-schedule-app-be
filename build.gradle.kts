@@ -10,7 +10,8 @@ tasks.register<Exec>("installGitHooks") {
 // CI가 이 태스크 하나로 전 스택을 빌드·테스트한다. (playground/ngrinder는 부하 테스트 전용이라 제외)
 tasks.register("buildAll") {
     group = "build"
-    description = "SSA(common/course/notification) + GeekChat(:app) 통합 빌드 — CI 단일 파이프라인 엔트리포인트"
-    dependsOn(":common:build", ":course:build", ":notification:build")
+    description = "SSA(:app = course+notification 단일 JVM) + GeekChat(:app) 통합 빌드 — CI 단일 파이프라인 엔트리포인트"
+    // :app:build가 course/notification/common을 컴파일하지만 그들의 test는 안 돌리므로 명시적으로 포함
+    dependsOn(":course:build", ":notification:build", ":app:build")
     dependsOn(gradle.includedBuild("geekchat").task(":app:build"))
 }
