@@ -3,11 +3,19 @@
 > 마지막 갱신: 2026-07-13 · 브랜치 `develop`
 > 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` · inner repo `simple-schedule-app-be/ssa` (main, `2c6a7b0`로 최신화됨)
 
-## -2. 🏗️ 모듈러 모놀리스 진행 (ADR-0003) — Stage 0·1 완료
-- **Stage 0**(`1668e41`): Flyway baseline(prod), 관용 파서(memberId↔sub), git hooks(pre-push=buildAll), 깨진 테스트 부채 0.
-- **Stage 1**(PR #21, `668172d`): 빌드·CI 단일화 — `buildSrc` 컨벤션 플러그인 3종 + `libs.versions.toml` + settings/build `.kts` + `includeBuild("geekchat")`+`buildAll` + CI 1잡. **루트 Gradle 8.11.1→8.14.5**(컴포지트 단일 버전). 모듈명·패키지·산출물(3 이미지) 불변.
-- 통합 빌드: `./gradlew buildAll` = SSA(common/course/notification) + geekchat(:app). playground/ngrinder는 부하 테스트 전용(제외).
-- 다음 = **Stage 2**(course+notification → 단일 `:app`, Kafka 유지·KRaft 전환). 상세·학습·함정은 `docs/adr/0003`.
+## -2. 🏗️ 모듈러 모놀리스 진행 (ADR-0003) — Stage 0·1·2 완료
+- **Stage 0**(`1668e41`): Flyway baseline(prod), 관용 파서(memberId↔sub), git hooks(pre-push=buildAll).
+- **Stage 1**(PR #21): 빌드·CI 단일화 — buildSrc 컨벤션 3종 + `libs.versions.toml` + `.kts` + `includeBuild("geekchat")`+`buildAll` + CI 1잡. 루트 Gradle **8.14.5**.
+- **Stage 2**(PR #22, `92464a3`): **course+notification → 단일 JVM `:app`** (2 프로세스=app+geekchat). course/notification=라이브러리, 통합 main `SsaApplication`. Kafka 자기소비 유지. **단일 `ssa` 스키마**(공유 인프라 테이블 단일 카피, 프리픽스 없음 — 사용자 결정). /internal HTTP→`InProcessEnrolledStudentsAdapter`(:app). 검증: 통합 컨텍스트 테스트 + 로컬 Postgres prod 부팅(Flyway V1·18테이블·Kafka 배선). 아키텍처 리뷰 위반 0.
+- 통합 빌드: `./gradlew buildAll` = `:app`(course+notification) + geekchat(:app). 배포 이미지 = ssa-app + ssa-geekchat(2종).
+- **다음 = Stage 3**(SSA Boot 3.4→4.1 정렬). 이후 Stage 4(geekchat 흡수=단일 JVM 완성) → Stage 5(account 통합=member+user).
+- 후속 개선(비블로커): Flyway 정착 후 ddl-auto→validate, `app.integration` ArchUnit 가드, Kafka KRaft 전환(zookeeper 제거, −512m).
+
+## ⚠️ Stage 2 배포 전 수동 준비 (다음 배포 시 필수)
+1. Supabase: `CREATE SCHEMA IF NOT EXISTS ssa;` (기존 ssa_course/ssa_notification은 폐기 — pre-Flyway 테스트 데이터)
+2. 서버 `/opt/ssa/.env`: `COURSE_DB_*`/`NOTIFICATION_DB_*` → **단일 `SSA_DB_URL`/`SSA_DB_USER`/`SSA_DB_PASSWORD`** (currentSchema=ssa). deploy/.env.example 참고.
+3. 이미지가 ssa-course/ssa-notification(2) → **ssa-app(1)**로 바뀜. compose는 app 서비스 하나. 첫 배포 시 구 course/notification 컨테이너는 `--remove-orphans`로 정리됨.
+4. GEEKCHAT_DDL_AUTO=validate 유지(변경 없음).
 
 ## -1. 🚀 운영 배포 LIVE (2026-07-11, main `2c6a7b0`)
 - **3 프로세스 전부 가동·검증 완료**: course(actuator UP)·notification(FCM 200)·geekchat(healthy) + nginx/kafka/redis/zookeeper. Supabase 테이블 15/5/7 생성.
