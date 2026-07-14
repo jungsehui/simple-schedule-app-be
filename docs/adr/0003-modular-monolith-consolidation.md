@@ -27,7 +27,7 @@
 
 ## 단계 (모든 단계는 빌드+테스트+배포 가능 상태로 종료)
 
-> **진행 상태**: Stage 0 ✅(`1668e41`), Stage 1 ✅(PR #21, `668172d`) — develop 병합·CI green. 다음 = Stage 2.
+> **진행 상태**: Stage 0 ✅(`1668e41`), Stage 1 ✅(PR #21, `668172d`), **Stage 2 ✅**(course+notification→단일 `:app`, 단일 `ssa` 스키마, Kafka 자기소비 — 로컬 prod 부팅+통합 컨텍스트 테스트 검증). **KRaft 전환은 후속 최적화로 연기**(CI 검증 불가·배포 전용, 검증된 zookeeper+kafka 유지). 다음 = Stage 3(Boot 4.1).
 
 | Stage | 규모 | 범위 | 게이트 |
 |---|---|---|---|

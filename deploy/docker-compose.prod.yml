@@ -2,8 +2,8 @@
 # 사용법: /opt/ssa 에서
 #   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml --env-file .env up -d
 # 외부 노출은 nginx(80/443)만. Redis/Kafka는 내부 네트워크 전용.
-# DB는 외부 관리형(Supabase PostgreSQL) — MySQL 컨테이너 제거됨. 스키마 격리:
-#   course=ssa_course, notification=ssa_notification, geekchat=geekchat (사전 CREATE SCHEMA 필요)
+# 프로세스: app(course+notification 단일 JVM) + geekchat = 2 프로세스 (ADR-0003 Stage 2).
+# DB는 외부 관리형(Supabase PostgreSQL). 스키마: app=ssa, geekchat=geekchat (사전 CREATE SCHEMA 필요).
 services:
   nginx:
     image: nginx:1.27-alpine
@@ -16,22 +16,22 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      - course
-      - notification
+      - app
       - geekchat
     networks: [app_network]
     mem_limit: 128m
 
-  course:
-    image: ghcr.io/${GHCR_OWNER}/ssa-course:${IMAGE_TAG:-latest}
-    container_name: ssa-course
+  # SSA 단일 JVM — course(수강/강의/회원) + notification(SSE/FCM). Kafka 자기소비.
+  app:
+    image: ghcr.io/${GHCR_OWNER}/ssa-app:${IMAGE_TAG:-latest}
+    container_name: ssa-app
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      # Supabase PG 예: jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require&currentSchema=ssa_course
-      SPRING_DATASOURCE_URL: ${COURSE_DB_URL}
-      SPRING_DATASOURCE_USERNAME: ${COURSE_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${COURSE_DB_PASSWORD}
+      # Supabase PG 예: jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require&currentSchema=ssa
+      SPRING_DATASOURCE_URL: ${SSA_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SSA_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SSA_DB_PASSWORD}
       SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_DATA_REDIS_HOST: redis
@@ -41,37 +41,8 @@ services:
       TOKEN_ACCESSTOKENEXPIRATIONMILLIS: ${JWT_ACCESS_EXPIRATION_MS:-86400000}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
-      JAVA_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=60.0"
-    depends_on:
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_started
-    networks: [app_network]
-    mem_limit: 1536m
-
-  notification:
-    image: ghcr.io/${GHCR_OWNER}/ssa-notification:${IMAGE_TAG:-latest}
-    container_name: ssa-notification
-    restart: always
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      # Supabase PG 예: jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require&currentSchema=ssa_notification
-      SPRING_DATASOURCE_URL: ${NOTIFICATION_DB_URL}
-      SPRING_DATASOURCE_USERNAME: ${NOTIFICATION_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
-      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      TOKEN_SECRETKEY: ${JWT_SECRET}
-      TOKEN_ACCESSTOKENEXPIRATIONMILLIS: ${JWT_ACCESS_EXPIRATION_MS:-86400000}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
-      CLIENT_COURSE_SERVER_INTERNAL_URL: http://course:8080/internal
-      CLIENT_INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       FCM_KEY_JSON: /app/config/fcm-service-account.json
-      JAVA_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=60.0"
+      JAVA_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=65.0"
     volumes:
       # FCM 서비스 계정 JSON은 서버에만 두고 마운트 (이미지/저장소에 포함 금지)
       - ./secrets/fcm-service-account.json:/app/config/fcm-service-account.json:ro
@@ -81,7 +52,7 @@ services:
       kafka:
         condition: service_started
     networks: [app_network]
-    mem_limit: 1024m
+    mem_limit: 2048m
 
   # GeekChat — 별도 JVM 프로세스 (모노레포 geekchat/ 서브빌드, /chat 경로로 nginx 라우팅)
   geekchat:
