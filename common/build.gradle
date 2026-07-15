@@ -14,10 +14,10 @@ dependencies {
     api libs.redisson.spring.boot.starter
     api libs.logstash.logback.encoder
 
-    // 스케줄링·재시도 — SchedulingRetryConfig(@EnableScheduling/@EnableRetry)가 common에 있으므로
-    // 하위 모듈(course/notification/:app)에 전파되도록 api. (ADR-0003 Stage 2)
-    api 'org.springframework.retry:spring-retry'
-    api 'org.springframework.boot:spring-boot-starter-aop'
+    // 재시도는 Framework 7 네이티브(@EnableResilientMethods/@Retryable, spring-context 내장)로 이관 —
+    // 별도 spring-retry 의존 불필요 (Boot 4가 BOM에서 제거). (ADR-0003 Stage 3)
+    // AspectJ 스타터는 Boot 4에서 starter-aop→starter-aspectj로 리네임 (Redisson @Aspect 락에 필요).
+    api 'org.springframework.boot:spring-boot-starter-aspectj'
 
     // Kafka Client
     implementation libs.kafka.clients
@@ -27,8 +27,10 @@ dependencies {
     runtimeOnly libs.jjwt.impl
     runtimeOnly libs.jjwt.jackson
 
-    // 하위 모듈의 테스트에서도 사용 — testFixturesApi (@SpringBootTest / @EmbeddedKafka)
+    // 하위 모듈의 테스트에서도 사용 — testFixturesApi (@SpringBootTest / @EmbeddedKafka / @WebMvcTest)
     testFixturesApi 'org.springframework.boot:spring-boot-starter-test'
+    // Boot 4에서 @WebMvcTest 슬라이스가 별도 스타터로 분리됨 (ADR-0003 Stage 3)
+    testFixturesApi 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testFixturesApi 'org.springframework.kafka:spring-kafka-test'
     testFixturesApi libs.fixture.monkey.starter
     testFixturesApi libs.fixture.monkey.jakarta.validation

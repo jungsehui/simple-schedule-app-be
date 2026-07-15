@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -19,6 +20,11 @@ import java.util.Map;
 
 import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
 
+// Boot 4는 KafkaAutoConfiguration을 spring-boot-autoconfigure에서 별도 spring-boot-kafka 모듈로 옮겼다.
+// 본 프로젝트는 spring-kafka를 직접 의존(그 Boot 모듈 미포함)하므로 @KafkaListener 자동 활성화가 사라진다.
+// 앱이 template·factory·container를 전부 자체 구성하므로, 리스너 컨테이너 팩토리를 소유한 이 설정에
+// @EnableKafka를 명시해 리스너 BPP만 보충한다(Boot 3.4는 autoconfigure에 있어 무의식적으로 활성화됨). (ADR-0003 Stage 3)
+@EnableKafka
 @RequiredArgsConstructor
 @Configuration
 public class KafkaConsumerConfig {

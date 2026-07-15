@@ -3,7 +3,8 @@
 # starter-*, flyway, postgresql, mysql, h2, junit-launcher 등은 Spring Boot BOM이 버전을 관리하므로 여기 없음.
 [versions]
 jjwt = "0.12.5"
-redisson = "3.29.0"
+# Boot 4.0 지원 버전 — redisson-spring-data-40 자동 포함 (ADR-0003 Stage 3)
+redisson = "4.6.1"
 kafkaClients = "3.7.1"
 logstashLogback = "8.0"
 fixtureMonkey = "1.1.11"

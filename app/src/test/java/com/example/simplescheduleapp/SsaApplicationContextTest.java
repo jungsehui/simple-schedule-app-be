@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
@@ -16,10 +17,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * DataSource에 매핑, (4) Kafka 프로듀서(course)+컨슈머(notification)가 한 컨텍스트 공존.
  */
 @SpringBootTest
-@EmbeddedKafka(
-        brokerProperties = {"listeners=PLAINTEXT://localhost:49092"},
-        ports = {49092}
-)
+// Boot 4 KRaft EmbeddedKafka는 랜덤 포트로 기동 — 앱의 bootstrap-servers를 그 브로커로 덮어쓴다. (ADR-0003 Stage 3)
+@EmbeddedKafka(partitions = 1)
+@TestPropertySource(properties = {
+        "spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}"
+})
 class SsaApplicationContextTest {
 
     // FcmConfig(@Profile("!test"))가 test에선 FirebaseMessaging을 만들지 않으므로 모킹 (프로덕션은 무관)

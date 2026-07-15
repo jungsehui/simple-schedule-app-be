@@ -27,14 +27,15 @@
 
 ## 단계 (모든 단계는 빌드+테스트+배포 가능 상태로 종료)
 
-> **진행 상태**: Stage 0 ✅(`1668e41`), Stage 1 ✅(PR #21, `668172d`), **Stage 2 ✅**(course+notification→단일 `:app`, 단일 `ssa` 스키마, Kafka 자기소비 — 로컬 prod 부팅+통합 컨텍스트 테스트 검증). **KRaft 전환은 후속 최적화로 연기**(CI 검증 불가·배포 전용, 검증된 zookeeper+kafka 유지). 다음 = Stage 3(Boot 4.1).
+> **진행 상태**: Stage 0 ✅(`1668e41`), Stage 1 ✅(PR #21, `668172d`), **Stage 2 ✅**(course+notification→단일 `:app`, 단일 `ssa` 스키마, Kafka 자기소비 — 로컬 prod 부팅+통합 컨텍스트 테스트 검증). **KRaft 전환은 후속 최적화로 연기**(CI 검증 불가·배포 전용, 검증된 zookeeper+kafka 유지). **Stage 3a ✅**(Boot 3.4.3→4.1.0: spring-retry→Framework 7 native retry, aop→aspectj, Redisson 4.6.1, WebMvcTest·MockitoBean 패키지 이동, Jackson 2→3(`tools.jackson`), EmbeddedKafka KRaft 랜덤포트 전환, **`@EnableKafka` 명시**(Boot 4가 `KafkaAutoConfiguration`을 `spring-boot-autoconfigure`→별도 `spring-boot-kafka` 모듈로 이동: 본 프로젝트는 `spring-kafka` 직접 의존이라 그 모듈이 없어 리스너 자동활성화가 사라짐. 앱은 template·factory·container를 전부 자체 구성하므로 오토컨피그에서 필요한 건 리스너 활성화 하나뿐 → `@EnableKafka`로 완결. Boot 3.4는 autoconfigure에 있어 무의식적으로 활성화됐던 것 — 프로덕션 결함 수정) — 전 모듈 96 테스트 green). 다음 = Stage 3b(로컬 Postgres prod 부팅 스모크로 Hibernate 7 회귀 최종 확인 → PR·병합).
 
 | Stage | 규모 | 범위 | 게이트 |
 |---|---|---|---|
 | 0 기준선·안전장치 ✅ | M | 깨진 테스트 부채 해소(NotificationIntegrationTest @MockitoBean 재설계), Flyway baseline(prod), 상호 claim 관용 파서(sub↔memberId), git hooks(pre-push=buildAll) | 3모듈 빌드 green, 테스트 부채 0 — 완료 |
 | 1 빌드·CI 통합 ✅ | M | buildSrc 컨벤션 3종(`ssa.java-common/library/spring-boot-app`), `libs.versions.toml`, settings/build→kts, `includeBuild("geekchat")`+`buildAll`, CI 1잡. **모듈명·패키지·산출물 불변**(:platform 재배치는 Stage 4로 연기) | `./gradlew buildAll` green, bootJar 산출물 불변, CI 단일 잡 — 완료 |
 | 2 SSA 단일 JVM (Kafka 유지) | L | course+notification→`:app`(Boot 3.4 유지, Kafka 발행·구독 경로 무변경 — 자기소비), /internal REST→직접 호출, Kafka **KRaft 단일노드 전환**(Zookeeper 제거)+힙 상한 축소 | 전체 그린+부팅 스모크(EmbeddedKafka 테스트 그대로 통과), 특강→알림 E2E, 2-프로세스 배포 |
-| 3 Boot 4.1 정렬 | M | SSA 모듈 3.4→4.1, Gradle 통일, Redisson 상향, spring-retry 처리, fasterxml→tools.jackson(2파일), Hibernate 7 회귀 | 전체 그린 + 동일 토폴로지 배포, 직렬화 회귀 없음 |
+| 3a Boot 4.1 컴파일·테스트 복구 ✅ | M | SSA 3.4→4.1: spring-retry→Framework 7 native retry(`resilience.annotation`), aop→aspectj, Redisson 4.6.1, WebMvcTest·MockitoBean/MockitoSpyBean 패키지 이동, fasterxml→`tools.jackson`(4파일), EmbeddedKafka **고정포트→KRaft 랜덤포트**(`${spring.embedded.kafka.brokers}` 주입), **`@EnableKafka` 명시**(Boot 4가 `KafkaAutoConfiguration`을 별도 `spring-boot-kafka` 모듈로 이동 → 미포함 시 리스너 자동활성화 소멸. 앱이 Kafka 빈 전부 자체구성이라 리스너 활성화만 보충 = 프로덕션 결함 수정) | 전 모듈 96 테스트 green — 완료 |
+| 3b Boot 4.1 런타임 회귀·배포 | S | 로컬 Postgres prod 부팅 스모크(Hibernate 7 DDL/dialect·Flyway·Kafka 자기소비 확인), fixture-monkey Jackson 3 호환 최종 확인, PR·CI·develop 병합 | prod 부팅 green + 동일 토폴로지 배포, 직렬화 회귀 없음 |
 | 4 GeekChat 흡수 | L | `:app`이 `:chat:*` 포함, context-path 제거→`/chat` prefix 명시, WS `/chat/ws`, HealthController→actuator, Security 이중 체인 선고정, 단일 DataSource+search_path(교차 테이블명 검사) | 전체+Modularity+ArchUnit 그린, SSA 무인증 접근성 회귀 테스트, 1 app+redis+nginx 배포 |
 | 5 정체성 통합 | L | Flyway로 `account`(Long id, external_uuid) 생성·백필, 듀얼라이트, 통합 claim JWT, /login 응답 불변 | 레거시 클라이언트 무영향, 양측 로그인·refresh·OAuth E2E, 백필 정합성, 단계별 롤백 가능 |
 | 6 래칫·정리 (Phase 3b 게이트) | M | 레거시 파라미터 제거·무토큰 401, RoleInterceptor→@PreAuthorize, SHA-256 강제 재설정, outbox→Modulith Registry 검토, 패키지 루트 통일 | 항목별 독립 배포·롤백 |

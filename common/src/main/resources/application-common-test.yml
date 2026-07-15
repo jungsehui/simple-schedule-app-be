@@ -1,9 +1,11 @@
 spring:
   kafka:
+    # Boot 4 KRaft EmbeddedKafka는 랜덤 포트로 기동 — @EmbeddedKafka가 주입하는 실제 브로커 주소 사용.
+    # @EmbeddedKafka가 없는 컨텍스트(ApplicationTest 등)는 프로듀서를 지연 연결하므로 기본값으로 대체. (ADR-0003 Stage 3)
     producer:
-      bootstrap-servers: "localhost:49092"
+      bootstrap-servers: "${spring.embedded.kafka.brokers:localhost:9092}"
     consumer:
-      bootstrap-servers: "localhost:49092"
+      bootstrap-servers: "${spring.embedded.kafka.brokers:localhost:9092}"
 
   # RedissonConfig가 컨텍스트 기동 시 요구 (CI에서는 redis 서비스 컨테이너로 제공)
   data:
