@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.common.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.resilience.annotation.EnableResilientMethods;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * course·notification·:app 어디서나 정확히 1개의 빈으로 존재해 통합 시 빈 이름 충돌이 없다.
  */
 @EnableScheduling
-@EnableRetry
+@EnableResilientMethods
 @Configuration
 public class SchedulingRetryConfig {
 }

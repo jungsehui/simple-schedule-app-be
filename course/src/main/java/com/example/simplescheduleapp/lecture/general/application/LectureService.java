@@ -10,8 +10,7 @@ import com.example.simplescheduleapp.schedule.domain.service.ScheduleConflictVal
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -51,7 +50,8 @@ public class LectureService {
         return lectureRepository.findByKeyword(keyword);
     }
 
-    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    // maxRetries=2 → 초기 1회 + 재시도 2회 = 총 3회 (구 spring-retry maxAttempts=3과 동일 동작)
+    @Retryable(includes = OptimisticLockingFailureException.class, maxRetries = 2, delay = 100)
     @Transactional
     public Lecture updateLecture(LectureUpdateCommand command) {
         Tutor tutor = tutorRepository.getById(command.tutorId());

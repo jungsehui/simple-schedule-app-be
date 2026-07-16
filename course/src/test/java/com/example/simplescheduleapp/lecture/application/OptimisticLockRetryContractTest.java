@@ -4,7 +4,7 @@ import com.example.simplescheduleapp.lecture.general.application.LectureEnrollme
 import com.example.simplescheduleapp.lecture.general.application.LectureService;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -30,8 +30,9 @@ class OptimisticLockRetryContractTest {
 
         for (Method m : retryables) {
             Retryable r = m.getAnnotation(Retryable.class);
-            assertThat(r.retryFor()).contains(OptimisticLockingFailureException.class);
-            assertThat(r.maxAttempts()).isEqualTo(3);
+            assertThat(r.includes()).contains(OptimisticLockingFailureException.class);
+            // maxRetries=2 → 총 3회 시도 (Framework 7 네이티브 retry, 구 maxAttempts=3과 동일)
+            assertThat(r.maxRetries()).isEqualTo(2);
         }
     }
 }

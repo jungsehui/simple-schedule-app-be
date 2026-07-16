@@ -13,8 +13,7 @@ import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationWithKafkaTest;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.jupiter.api.AfterEach;
@@ -59,7 +58,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
     }
 
     @Test
-    void 수강등록_수락_처리() throws JsonProcessingException {
+    void 수강등록_수락_처리() {
         // given
         long tutorId = 100L;
         long studentId = 2L;
@@ -108,7 +107,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
     }
 
     @Test
-    void 수강등록_거부_처리() throws JsonProcessingException {
+    void 수강등록_거부_처리() {
         // given
         long tutorId = 100L;
         long studentId = 2L;

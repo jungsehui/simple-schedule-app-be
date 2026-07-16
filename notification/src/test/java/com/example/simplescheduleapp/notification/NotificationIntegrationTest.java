@@ -21,7 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.TestPropertySource;
@@ -51,14 +51,14 @@ class NotificationIntegrationTest {
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    // 실제 로직을 호출하면서도 특정 메서드를 Mocking하기 위해 @SpyBean 사용
-    @SpyBean
+    // 실제 로직을 호출하면서도 특정 메서드를 Mocking하기 위해 @MockitoSpyBean 사용
+    @MockitoSpyBean
     private NotificationDispatcher notificationDispatcher;
 
-    @SpyBean
+    @MockitoSpyBean
     private SseConnectionPublisher sseConnectionPublisher;
 
-    @SpyBean
+    @MockitoSpyBean
     private FcmService fcmService;
 
     @MockitoBean
