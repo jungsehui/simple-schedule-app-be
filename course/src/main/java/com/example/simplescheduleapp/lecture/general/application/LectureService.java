@@ -34,7 +34,7 @@ public class LectureService {
     public Lecture createLecture(LectureCreateCommand command) {
         Tutor tutor = tutorRepository.getById(command.memberId());
         scheduleConflictValidator.validateNoTutorConflict(tutor.getId(), command.startTime(), command.endTime(), null);
-        Lecture lecture = new Lecture(command.title(), command.startTime(), command.endTime(), command.memo(), tutor, command.capacity());
+        Lecture lecture = new Lecture(command.title(), command.startTime(), command.endTime(), command.memo(), tutor.getId(), command.capacity());
         return lectureRepository.save(lecture);
     }
 
@@ -59,7 +59,7 @@ public class LectureService {
         scheduleConflictValidator.validateNoTutorConflict(tutor.getId(), command.startTime(), command.endTime(), lecture.getId());
         Schedule schedule = command.toSchedule();
         int capacity = command.capacity();
-        lecture.update(tutor, schedule, capacity);
+        lecture.update(tutor.getId(), schedule, capacity);
 
         log.info("Try to update Lecture. tutor ID {}, lecture ID {}", tutor.getId(), lecture.getId());
         Lecture updatedLecture = lectureRepository.save(lecture);

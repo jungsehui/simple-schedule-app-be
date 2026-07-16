@@ -25,7 +25,7 @@ public class LectureEnrollmentRequestedEvent extends DomainEvent {
         super(lecture.getId());
 
         this.studentId = pending.getStudentId();
-        this.tutorId = lecture.getTutor().getId();
+        this.tutorId = lecture.getTutorId();
         this.lectureTitle = lecture.getTitle();
     }
 

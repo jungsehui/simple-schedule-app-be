@@ -27,7 +27,7 @@ public class LectureEnrollmentAcceptedEvent extends DomainEvent {
 
         // 이벤트 당사자들을 모두 명시
         this.studentId = student.getId();
-        this.tutorId = lecture.getTutor().getId(); // 단순 사실 관계 기록용
+        this.tutorId = lecture.getTutorId(); // 단순 사실 관계 기록용
         this.lectureTitle = lecture.getTitle();
     }
 

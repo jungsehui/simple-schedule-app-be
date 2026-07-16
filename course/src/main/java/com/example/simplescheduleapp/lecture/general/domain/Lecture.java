@@ -4,7 +4,6 @@ import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
 import com.example.simplescheduleapp.student.domain.Student;
-import com.example.simplescheduleapp.tutor.domain.Tutor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,9 +18,9 @@ import java.time.LocalDateTime;
 @Entity
 public class Lecture extends Schedule {
 
-    @ManyToOne
-    @JoinColumn(name = "tutor_id")
-    private Tutor tutor;
+    // 애그리게잇 간 참조는 ID로 한다(DDD) — Tutor 애그리게잇을 객체로 소유하지 않는다. (ADR-0004 Phase A)
+    // @Column 미사용: Spring Boot 기본 네이밍 전략이 tutorId → tutor_id로 매핑(스키마 불변, 도메인 순수성 유지).
+    private Long tutorId;
 
     @Column(nullable = false)
     private int capacity;
@@ -33,9 +32,9 @@ public class Lecture extends Schedule {
     // JPA 제약상 엔티티 계층(@Inheritance)에서 @Version은 root entity에만 둘 수 있다.
     // Schedule.version으로 enrolledCount의 동시 수정(race condition)이 자동으로 감지된다.
 
-    public Lecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
+    public Lecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Long tutorId, int capacity) {
         super(title, startTime, endTime, memo);
-        this.tutor = tutor;
+        this.tutorId = tutorId;
         this.capacity = capacity;
         this.enrolledCount = 0;
     }
@@ -45,8 +44,8 @@ public class Lecture extends Schedule {
         return new LectureEnrollment(this, student);
     }
 
-    public void update(Tutor tutor, Schedule schedule, int capacity) {
-        validateTutorAuthority(tutor);
+    public void update(Long tutorId, Schedule schedule, int capacity) {
+        validateTutorAuthority(tutorId);
         validateCapacityNotBelowEnrolled(capacity);
         updateSchedule(schedule);
         this.capacity = capacity;
@@ -68,8 +67,8 @@ public class Lecture extends Schedule {
         this.enrolledCount++;
     }
 
-    private void validateTutorAuthority(Tutor tutor) {
-        if (!this.tutor.getId().equals(tutor.getId())) {
+    private void validateTutorAuthority(Long tutorId) {
+        if (!this.tutorId.equals(tutorId)) {
             throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
         }
     }

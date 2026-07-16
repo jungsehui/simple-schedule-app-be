@@ -24,7 +24,7 @@ public class LectureUpdatedEvent extends DomainEvent {
         // 컨슈머가 이 ID를 보고 수강생 목록을 조회해야 함
         super(lecture.getId());
 
-        this.tutorId = lecture.getTutor().getId();
+        this.tutorId = lecture.getTutorId();
         this.lectureTitle = lecture.getTitle();
         this.updatedDetails = updatedDetails;
     }

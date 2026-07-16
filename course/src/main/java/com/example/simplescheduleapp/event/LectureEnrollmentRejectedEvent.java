@@ -25,7 +25,7 @@ public class LectureEnrollmentRejectedEvent extends DomainEvent {
         super(lecture.getId()); // targetDomainId = lectureId
 
         this.studentId = student.getId();
-        this.tutorId = lecture.getTutor().getId();
+        this.tutorId = lecture.getTutorId();
         this.lectureTitle = lecture.getTitle();
     }
 

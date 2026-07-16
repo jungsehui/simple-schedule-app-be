@@ -111,7 +111,7 @@ public class LectureEnrollmentService {
         if (memberId == null) {
             return;
         }
-        if (!lecture.getTutor().getId().equals(memberId)) {
+        if (!lecture.getTutorId().equals(memberId)) {
             throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
         }
     }

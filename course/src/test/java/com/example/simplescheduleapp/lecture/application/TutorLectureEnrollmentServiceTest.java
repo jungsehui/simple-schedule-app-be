@@ -81,8 +81,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         given(studentRepository.getById(studentId)).willReturn(student);
         given(lecture.enroll(student)).willReturn(enrollment);
         given(lecture.getTitle()).willReturn(lectureTitle);
-        given(lecture.getTutor()).willReturn(tutor);
-        given(tutor.getId()).willReturn(tutorId);
+        given(lecture.getTutorId()).willReturn(tutorId);
         given(student.getId()).willReturn(studentId);
 
         // when
@@ -128,8 +127,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
         given(studentRepository.getById(studentId)).willReturn(student);
         given(lecture.getTitle()).willReturn(lectureTitle);
-        given(lecture.getTutor()).willReturn(tutor);
-        given(tutor.getId()).willReturn(tutorId);
+        given(lecture.getTutorId()).willReturn(tutorId);
         given(student.getId()).willReturn(studentId); // 거부 메시지에도 학생 ID가 필요할 수 있으므로 추가
 
         // when
@@ -165,8 +163,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
 
         given(pendingLectureEnrollmentRepository.getById(anyLong())).willReturn(pending);
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
-        given(lecture.getTutor()).willReturn(tutor);
-        given(tutor.getId()).willReturn(ownerTutorId);
+        given(lecture.getTutorId()).willReturn(ownerTutorId);
 
         // when & then
         assertThatThrownBy(() -> lectureEnrollmentService.acceptEnrollment(command))

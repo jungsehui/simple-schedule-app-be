@@ -24,7 +24,7 @@ public class LectureEnrollmentCanceledEvent extends DomainEvent {
         super(lecture.getId()); // targetDomainId = lectureId
 
         this.studentId = studentId;
-        this.tutorId = lecture.getTutor().getId();
+        this.tutorId = lecture.getTutorId();
         this.lectureTitle = lecture.getTitle();
     }
 

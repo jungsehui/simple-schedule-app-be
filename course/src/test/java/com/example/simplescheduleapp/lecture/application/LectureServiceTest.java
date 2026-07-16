@@ -60,13 +60,13 @@ class LectureServiceTest extends ApplicationTest {
         assertThat(createdLecture.getMemo()).isEqualTo("테스트 메모");
         assertThat(createdLecture.getCapacity()).isEqualTo(5);
         assertThat(createdLecture.getEnrolledCount()).isEqualTo(0);
-        assertThat(createdLecture.getTutor().getId()).isEqualTo(savedTutor.getId());
+        assertThat(createdLecture.getTutorId()).isEqualTo(savedTutor.getId());
     }
 
     @Test
     void 강의_수정_요청이_들어오면_강의를_수정한다() {
         Tutor savedTutor = tutorRepository.save(tutor);
-        Lecture lecture = new Lecture("생성 강의", LocalDateTime.now(), LocalDateTime.now().plusHours(1), "생성 메모", savedTutor, 3);
+        Lecture lecture = new Lecture("생성 강의", LocalDateTime.now(), LocalDateTime.now().plusHours(1), "생성 메모", savedTutor.getId(), 3);
 
         Lecture savedLecture = lectureRepository.save(lecture);
         LocalDateTime now = LocalDateTime.now();
