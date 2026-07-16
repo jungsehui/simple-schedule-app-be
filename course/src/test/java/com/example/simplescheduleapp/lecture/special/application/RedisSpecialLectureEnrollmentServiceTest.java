@@ -67,7 +67,7 @@ class RedisSpecialLectureEnrollmentServiceTest extends MockTestSupport {
         Tutor tutor = new Tutor("tutor", "Password1!", "튜터", 30, "01012345678", 5);
         Student student = new Student("student", "Password1!", "학생", 20, "01098765432", "학교");
         SpecialLecture lecture = new SpecialLecture(
-                "특강", LocalDateTime.now(), LocalDateTime.now().plusHours(1), "메모", tutor, 100);
+                "특강", LocalDateTime.now(), LocalDateTime.now().plusHours(1), "메모", tutor.getId(), 100);
         return new SpecialLectureEnrollment(lecture, student);
     }
 
