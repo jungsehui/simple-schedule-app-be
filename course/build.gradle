@@ -14,7 +14,9 @@ dependencies {
     // 재시도·AOP·스케줄링은 common의 api(spring-retry/starter-aop)+SchedulingRetryConfig로 상속 (Stage 2)
 
     // DB 마이그레이션 — prod 전용 활성, ddl-auto 폐기 경로 확보 (ADR-0003 Stage 0)
-    implementation 'org.flywaydb:flyway-core'
+    // Boot 4는 FlywayAutoConfiguration을 별도 spring-boot-flyway 모듈로 분리 — flyway-core만으론
+    // 마이그레이션이 아예 안 돈다. 스타터로 오토컨피그를 포함시킨다. (ADR-0003 Stage 3b)
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
     // DB 드라이버 — 로컬 dev는 MySQL, prod는 Supabase PostgreSQL (application-prod.yml)
