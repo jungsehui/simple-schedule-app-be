@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.lecture.general.presentation;
 
 import com.example.simplescheduleapp.lecture.general.application.LectureEnrollmentService;
-import com.example.simplescheduleapp.lecture.general.domain.LectureEnrollment;
+import com.example.simplescheduleapp.lecture.general.application.result.LectureEnrollmentDetail;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureEnrollmentGetResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.StudentInfoResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +22,8 @@ public class LectureEnrollmentController {
     public ResponseEntity<LectureEnrollmentGetResponse> getLectureEnrollments(
             @PathVariable Long lectureId
     ) {
-        List<LectureEnrollment> lectureEnrollments = lectureEnrollmentService.getLectureEnrollments(lectureId);
-        List<StudentInfoResponse> students = StudentInfoResponse.from(lectureEnrollments);
-        return ResponseEntity.ok(LectureEnrollmentGetResponse.of(lectureEnrollments, students));
+        LectureEnrollmentDetail detail = lectureEnrollmentService.getLectureEnrollmentDetail(lectureId);
+        List<StudentInfoResponse> students = StudentInfoResponse.from(detail.students());
+        return ResponseEntity.ok(LectureEnrollmentGetResponse.of(detail.lecture(), students));
     }
 }

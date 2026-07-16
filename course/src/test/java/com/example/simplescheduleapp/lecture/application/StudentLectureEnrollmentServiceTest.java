@@ -48,13 +48,9 @@ class StudentLectureEnrollmentServiceTest extends ApplicationTest {
         // given
         Long lectureId = 1L;
 
-        // Fixture Monkey를 사용한 테스트 데이터 생성
-        Lecture lecture = sut.giveMeBuilder(Lecture.class)
-                .set("id", lectureId)
-                .sample();
-
+        // Fixture Monkey를 사용한 테스트 데이터 생성 (애그리게잇 간 참조는 ID — ADR-0004 Phase A)
         LectureEnrollment enrollment = sut.giveMeBuilder(LectureEnrollment.class)
-                .set("lecture", lecture)
+                .set("lectureId", lectureId)
                 .sample();
 
         given(lectureEnrollmentRepository.getAllByLectureId(lectureId))
@@ -65,6 +61,6 @@ class StudentLectureEnrollmentServiceTest extends ApplicationTest {
 
         // then
         assertThat(lectureEnrollments).hasSize(1);
-        assertThat(lectureEnrollments.getFirst().getLecture().getId()).isEqualTo(lectureId);
+        assertThat(lectureEnrollments.getFirst().getLectureId()).isEqualTo(lectureId);
     }
 }

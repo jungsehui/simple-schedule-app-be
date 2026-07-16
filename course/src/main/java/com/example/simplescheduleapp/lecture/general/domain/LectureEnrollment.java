@@ -1,6 +1,5 @@
 package com.example.simplescheduleapp.lecture.general.domain;
 
-import com.example.simplescheduleapp.student.domain.Student;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,16 +20,15 @@ public class LectureEnrollment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "lecture_id", nullable = false)
-    private Lecture lecture;
+    // 애그리게잇 간 참조는 ID로 한다(DDD). @Column 미사용 — 네이밍 전략이 lectureId→lecture_id,
+    // studentId→student_id로 매핑(스키마 불변). NOT NULL 제약은 Phase B에서 JPA 엔티티로 이관하며 복원.
+    // (ADR-0004 Phase A)
+    private Long lectureId;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    private Long studentId;
 
-    public LectureEnrollment(Lecture lecture, Student student) {
-        this.lecture = lecture;
-        this.student = student;
+    public LectureEnrollment(Long lectureId, Long studentId) {
+        this.lectureId = lectureId;
+        this.studentId = studentId;
     }
 }

@@ -79,7 +79,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         given(pendingLectureEnrollmentRepository.getById(anyLong())).willReturn(pending);
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
         given(studentRepository.getById(studentId)).willReturn(student);
-        given(lecture.enroll(student)).willReturn(enrollment);
+        given(lecture.enroll(studentId)).willReturn(enrollment);
         given(lecture.getTitle()).willReturn(lectureTitle);
         given(lecture.getTutorId()).willReturn(tutorId);
         given(student.getId()).willReturn(studentId);
