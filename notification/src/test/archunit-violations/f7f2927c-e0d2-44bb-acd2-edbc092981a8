@@ -1,7 +1,0 @@
-Class <com.example.simplescheduleapp.fcm.domain.FcmToken> is annotated with <jakarta.persistence.Entity> in (FcmToken.java:0)
-Class <com.example.simplescheduleapp.fcm.domain.FcmToken> is annotated with <jakarta.persistence.Table> in (FcmToken.java:0)
-Field <com.example.simplescheduleapp.fcm.domain.FcmToken.id> has annotation member of type <jakarta.persistence.GenerationType> in (FcmToken.java:0)
-Field <com.example.simplescheduleapp.fcm.domain.FcmToken.id> is annotated with <jakarta.persistence.Column> in (FcmToken.java:0)
-Field <com.example.simplescheduleapp.fcm.domain.FcmToken.id> is annotated with <jakarta.persistence.GeneratedValue> in (FcmToken.java:0)
-Field <com.example.simplescheduleapp.fcm.domain.FcmToken.id> is annotated with <jakarta.persistence.Id> in (FcmToken.java:0)
-Interface <com.example.simplescheduleapp.fcm.domain.FcmTokenRepository> extends interface <org.springframework.data.jpa.repository.JpaRepository> in (FcmTokenRepository.java:0)
