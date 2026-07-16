@@ -3,7 +3,6 @@ package com.example.simplescheduleapp.lecture.special.domain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
-import com.example.simplescheduleapp.student.domain.Student;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,8 +32,8 @@ public class SpecialLecture extends Schedule {
         this.capacity = capacity;
     }
 
-    public SpecialLectureEnrollment enroll(Student student) {
-        return new SpecialLectureEnrollment(this, student);
+    public SpecialLectureEnrollment enroll(Long studentId) {
+        return new SpecialLectureEnrollment(getId(), studentId);
     }
 
     public void update(Long tutorId, Schedule schedule, int capacity) {
