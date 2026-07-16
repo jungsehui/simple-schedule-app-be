@@ -1,24 +1,24 @@
 package com.example.simplescheduleapp.member.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 비밀번호 값 객체(VO) — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>JPA/프레임워크 의존 0. 영속 시에는 {@code MemberEntity}가 해시 문자열을 그대로
+ * {@code password} 컬럼에 보유하고, 매퍼가 {@code Password} ↔ {@code String}을 변환한다
+ * (컬럼은 동일 — 스키마 불변). 해시 알고리즘·동작은 순수화 전과 같다.
+ */
 @Getter
-@Embeddable
 public class Password {
 
     private static final String ALGORITHM = "SHA-256";
 
-    @Column(name = "password", nullable = false)
-    private String hashedPassword;
+    private final String hashedPassword;
 
     public Password(String hashedPassword) {
         this.hashedPassword = hashedPassword;
