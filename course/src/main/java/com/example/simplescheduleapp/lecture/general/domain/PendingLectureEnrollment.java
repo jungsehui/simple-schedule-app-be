@@ -1,32 +1,20 @@
 package com.example.simplescheduleapp.lecture.general.domain;
 
-import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
-
-@SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
-@Table(
-        name = "pending_lecture_enrollment",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_pending_lecture_student", columnNames = {"lecture_id", "student_id"})
-        }
-)
-@Getter
+/**
+ * 수강신청 대기 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>JPA/프레임워크 의존 0. 영속 매핑(테이블·유니크 제약·소프트삭제)은
+ * {@code infrastructure/persistence}의 {@code PendingLectureEnrollmentEntity}가 담당한다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
-public class PendingLectureEnrollment extends SoftDeletedDomain {
+@Getter
+public class PendingLectureEnrollment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long lectureId;
     private Long studentId;
     private boolean permitted;
@@ -35,6 +23,14 @@ public class PendingLectureEnrollment extends SoftDeletedDomain {
         this.lectureId = lectureId;
         this.studentId = studentId;
         this.permitted = false;
+    }
+
+    /** DB 복원용 재구성 팩토리 — 매퍼 전용. */
+    public static PendingLectureEnrollment reconstitute(Long id, Long lectureId, Long studentId, boolean permitted) {
+        PendingLectureEnrollment pending = new PendingLectureEnrollment(lectureId, studentId);
+        pending.id = id;
+        pending.permitted = permitted;
+        return pending;
     }
 
     public void accept() {
