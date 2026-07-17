@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 /**
- * {@code SpecialLectureEnrollmentRepository} 포트의 JPA 어댑터. 도메인은 포트에만 의존하고,
- * Spring Data 세부는 여기에 격리된다. (ADR-0002 Stage 2)
+ * {@code SpecialLectureEnrollmentRepository} 포트의 JPA 어댑터 (ADR-0004).
+ * <p>Spring Data/JPA 세부와 도메인↔엔티티 매핑을 여기에 격리한다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -19,11 +19,12 @@ public class SpecialLectureEnrollmentRepositoryAdapter implements SpecialLecture
 
     @Override
     public SpecialLectureEnrollment save(SpecialLectureEnrollment specialLectureEnrollment) {
-        return jpaRepository.save(specialLectureEnrollment);
+        return SpecialLectureEnrollmentMapper.toDomain(
+                jpaRepository.save(SpecialLectureEnrollmentMapper.toEntity(specialLectureEnrollment)));
     }
 
     @Override
     public Optional<SpecialLectureEnrollment> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(SpecialLectureEnrollmentMapper::toDomain);
     }
 }
