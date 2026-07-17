@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.common.event;
 
-import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
+import com.example.simplescheduleapp.common.persistence.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

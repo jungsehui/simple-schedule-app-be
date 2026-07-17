@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.lecture.general.infrastructure.persistence;
 
-import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
+import com.example.simplescheduleapp.common.persistence.SoftDeletedDomain;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
