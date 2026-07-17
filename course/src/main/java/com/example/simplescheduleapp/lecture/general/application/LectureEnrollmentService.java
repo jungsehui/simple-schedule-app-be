@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.event.LectureEnrollmentCanceledEvent;
 import com.example.simplescheduleapp.event.LectureEnrollmentRejectedEvent;
 import com.example.simplescheduleapp.event.LectureEnrollmentRequestedEvent;
 import com.example.simplescheduleapp.lecture.general.application.command.*;
+import com.example.simplescheduleapp.lecture.general.application.result.LectureEnrollmentDetail;
 import com.example.simplescheduleapp.lecture.general.domain.*;
 import com.example.simplescheduleapp.lecture.general.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
@@ -67,7 +68,8 @@ public class LectureEnrollmentService {
     @Transactional
     public void cancelLectureEnrollment(LectureEnrollmentCancelCommand command) {
         LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
-        Lecture lecture = lectureEnrollment.getLecture();
+        // 애그리게잇 관통(enrollment→lecture) 대신 Lecture 애그리게잇을 리포지토리로 직접 로드 (ADR-0004 Phase A)
+        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
         lecture.cancel();
         lectureRepository.save(lecture);
         lectureEnrollmentRepository.delete(lectureEnrollment);
@@ -85,7 +87,7 @@ public class LectureEnrollmentService {
             scheduleConflictValidator.validateNoStudentConflict(student.getId(), lecture.getStartTime(), lecture.getEndTime(), null);
             pending.accept();
             pendingLectureEnrollmentRepository.delete(pending);
-            LectureEnrollment lectureEnrollment = lecture.enroll(student);
+            LectureEnrollment lectureEnrollment = lecture.enroll(student.getId());
             lectureEnrollmentRepository.save(lectureEnrollment);
             eventPublisher.publishEvent(new LectureEnrollmentAcceptedEvent(lecture, student));
             return lectureEnrollment.getId();
@@ -111,7 +113,7 @@ public class LectureEnrollmentService {
         if (memberId == null) {
             return;
         }
-        if (!lecture.getTutor().getId().equals(memberId)) {
+        if (!lecture.getTutorId().equals(memberId)) {
             throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
         }
     }
@@ -120,9 +122,23 @@ public class LectureEnrollmentService {
         return lectureEnrollmentRepository.findAllByLectureId(lectureId)
                 .orElse(List.of())
                 .stream()
-                .map(LectureEnrollment::getStudent) // 먼저 Student 객체를 가져오고
-                .filter(Objects::nonNull)           // null이 아닌 Student만 필터링
-                .map(Student::getId)                // 안전하게 ID를 가져옴
+                .map(LectureEnrollment::getStudentId) // ID 참조라 객체 순회 불필요 (ADR-0004 Phase A)
+                .filter(Objects::nonNull)
                 .toList();
+    }
+
+    /**
+     * 수강생 조회 화면용 상세 — 애그리게잇 간 참조가 ID이므로 관련 애그리게잇(Lecture·Student)을
+     * 애플리케이션 계층이 로드해 조립한다. 프레젠테이션은 도메인 그래프를 순회하지 않는다.
+     */
+    public LectureEnrollmentDetail getLectureEnrollmentDetail(Long lectureId) {
+        List<LectureEnrollment> lectureEnrollments = getLectureEnrollments(lectureId);
+        Lecture lecture = lectureRepository.getByLectureId(lectureId);
+        List<Student> students = lectureEnrollments.stream()
+                .map(LectureEnrollment::getStudentId)
+                .filter(Objects::nonNull)
+                .map(studentRepository::getById)
+                .toList();
+        return new LectureEnrollmentDetail(lecture, students);
     }
 }

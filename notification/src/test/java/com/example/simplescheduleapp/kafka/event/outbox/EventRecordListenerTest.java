@@ -1,8 +1,8 @@
 package com.example.simplescheduleapp.kafka.event.outbox;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
-import com.example.simplescheduleapp.common.event.outbox.EventRecordListener;
-import com.example.simplescheduleapp.common.event.outbox.EventRecorder;
+import com.example.simplescheduleapp.common.outbox.EventRecordListener;
+import com.example.simplescheduleapp.common.outbox.EventRecorder;
 import com.example.simplescheduleapp.support.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

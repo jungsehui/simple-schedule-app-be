@@ -1,6 +1,6 @@
 package com.example.simplescheduleapp.common.kafka.deadletter;
 
-import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
+import com.example.simplescheduleapp.common.persistence.SoftDeletedDomain;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

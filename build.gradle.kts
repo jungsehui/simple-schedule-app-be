@@ -11,7 +11,9 @@ tasks.register<Exec>("installGitHooks") {
 tasks.register("buildAll") {
     group = "build"
     description = "SSA(:app = course+notification 단일 JVM) + GeekChat(:app) 통합 빌드 — CI 단일 파이프라인 엔트리포인트"
-    // :app:build가 course/notification/common을 컴파일하지만 그들의 test는 안 돌리므로 명시적으로 포함
-    dependsOn(":course:build", ":notification:build", ":app:build")
+    // :app:build가 course/notification/common을 컴파일하지만 그들의 test는 안 돌리므로 명시적으로 포함.
+    // common은 testFixtures만 소비되어 :common:test가 빠져 있었다 — ArchUnit 헥사고날 래칫이
+    // common에 있으므로, 빠지면 도메인 순수성 위반이 CI를 초록으로 통과한다 (ADR-0004).
+    dependsOn(":common:build", ":course:build", ":notification:build", ":app:build")
     dependsOn(gradle.includedBuild("geekchat").task(":app:build"))
 }

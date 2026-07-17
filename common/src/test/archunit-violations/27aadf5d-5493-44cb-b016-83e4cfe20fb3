@@ -1,0 +1,5 @@
+Constructor <com.example.simplescheduleapp.common.event.exception.DomainEventExceptionCode.<init>(java.lang.String, int, org.springframework.http.HttpStatus, java.lang.String, java.lang.String)> has parameter of type <org.springframework.http.HttpStatus> in (DomainEventExceptionCode.java:0)
+Field <com.example.simplescheduleapp.common.event.exception.DomainEventExceptionCode.httpStatus> has type <org.springframework.http.HttpStatus> in (DomainEventExceptionCode.java:0)
+Method <com.example.simplescheduleapp.common.event.exception.DomainEventExceptionCode.getHttpStatus()> has return type <org.springframework.http.HttpStatus> in (DomainEventExceptionCode.java:0)
+Static Initializer <com.example.simplescheduleapp.common.event.exception.DomainEventExceptionCode.<clinit>()> gets field <org.springframework.http.HttpStatus.NOT_FOUND> in (DomainEventExceptionCode.java:10)
+Static Initializer <com.example.simplescheduleapp.common.event.exception.DomainEventExceptionCode.<clinit>()> gets field <org.springframework.http.HttpStatus.NOT_FOUND> in (DomainEventExceptionCode.java:11)

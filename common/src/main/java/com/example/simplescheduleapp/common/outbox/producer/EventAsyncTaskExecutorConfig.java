@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.common.event.producer;
+package com.example.simplescheduleapp.common.outbox.producer;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

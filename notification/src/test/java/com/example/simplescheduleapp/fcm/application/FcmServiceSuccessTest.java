@@ -3,7 +3,6 @@ package com.example.simplescheduleapp.fcm.application;
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
-import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import com.google.api.core.ApiFuture;
@@ -44,12 +43,13 @@ class FcmServiceSuccessTest extends ApplicationTest {
     private Long tutorId = 1L;
     private Long studentId = 2L;
     private FcmToken fcmToken;
-    private NotificationRequest event;
+    /** fcm이 소유한 입력 계약 (ADR-0004: notification↔fcm 슬라이스 순환 제거) */
+    private FcmSendRequest event;
 
     @BeforeEach
     void setUp() {
         fcmToken = new FcmToken(studentId, "test-token");
-        event = new NotificationRequest(tutorId, studentId, "제목", "내용");
+        event = new FcmSendRequest(tutorId, studentId, "제목", "내용");
 
         given(fcmTokenRepository.getByMemberId(studentId)).willReturn(fcmToken);
     }

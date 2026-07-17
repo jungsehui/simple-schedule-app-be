@@ -1,6 +1,7 @@
-package com.example.simplescheduleapp.common.event.producer;
+package com.example.simplescheduleapp.common.outbox.producer;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
+import com.example.simplescheduleapp.common.event.producer.EventProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import static com.example.simplescheduleapp.common.event.producer.EventAsyncTaskExecutorConfig.EVENT_ASYNC_TASK_EXECUTOR;
+import static com.example.simplescheduleapp.common.outbox.producer.EventAsyncTaskExecutorConfig.EVENT_ASYNC_TASK_EXECUTOR;
 
 @Slf4j
 @RequiredArgsConstructor

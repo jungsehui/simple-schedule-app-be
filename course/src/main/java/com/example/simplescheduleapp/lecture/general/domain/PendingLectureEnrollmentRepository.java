@@ -15,7 +15,9 @@ public interface PendingLectureEnrollmentRepository {
 
     Optional<PendingLectureEnrollment> findById(Long id);
 
-    Optional<PendingLectureEnrollment> findByLectureIdAndStudentId(Long studentId, Long lectureId);
+    // 파라미터명은 메서드명 순서(lectureId, studentId)와 일치시킨다.
+    // (구버전은 이름이 뒤바뀌어 있었다 — 호출은 위치 기반이라 동작은 정상이었으나 오해를 유발)
+    Optional<PendingLectureEnrollment> findByLectureIdAndStudentId(Long lectureId, Long studentId);
 
     default PendingLectureEnrollment getById(Long pendingId) {
         return findById(pendingId)

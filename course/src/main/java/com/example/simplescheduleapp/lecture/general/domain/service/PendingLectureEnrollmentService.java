@@ -5,10 +5,8 @@ import com.example.simplescheduleapp.lecture.general.domain.PendingLectureEnroll
 import com.example.simplescheduleapp.lecture.general.domain.PendingLectureEnrollmentRepository;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
-@Component
 public class PendingLectureEnrollmentService {
 
     private final PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;

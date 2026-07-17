@@ -26,7 +26,7 @@ public class SpecialLectureService {
         Tutor tutor = tutorRepository.getById(command.memberId());
         scheduleConflictValidator.validateNoTutorConflict(tutor.getId(), command.startTime(), command.endTime(), null);
         SpecialLecture specialLecture = new SpecialLecture(
-                command.title(), command.startTime(), command.endTime(), command.memo(), tutor, command.capacity()
+                command.title(), command.startTime(), command.endTime(), command.memo(), tutor.getId(), command.capacity()
         );
 
         // 먼저 DB에 저장하여 ID를 부여

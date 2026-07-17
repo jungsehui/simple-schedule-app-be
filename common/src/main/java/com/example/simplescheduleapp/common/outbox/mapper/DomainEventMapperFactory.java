@@ -1,7 +1,8 @@
-package com.example.simplescheduleapp.common.event.mapper;
+package com.example.simplescheduleapp.common.outbox.mapper;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.event.exception.DomainEventExceptionCode;
+import com.example.simplescheduleapp.common.event.mapper.DomainEventMapper;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

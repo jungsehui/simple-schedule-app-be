@@ -24,11 +24,11 @@ public class NotificationDispatcher {
                 sseConnectionPublisher.publishSseNotification(request);
             } catch (Exception e) {
                 log.warn("SSE 전송 실패. FCM으로 대체 전송합니다. targetId: {}", request.targetId(), e);
-                fcmService.sendFcmNotification(request);
+                fcmService.sendFcmNotification(request.toFcmSendRequest());
             }
         } else {
             // SSE가 연결되어 있지 않다면 바로 FCM 전송
-            fcmService.sendFcmNotification(request);
+            fcmService.sendFcmNotification(request.toFcmSendRequest());
         }
     }
 }

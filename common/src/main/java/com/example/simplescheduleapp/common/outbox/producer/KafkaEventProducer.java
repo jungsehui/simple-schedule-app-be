@@ -1,9 +1,10 @@
-package com.example.simplescheduleapp.common.event.producer;
+package com.example.simplescheduleapp.common.outbox.producer;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.event.DomainEventRepository;
-import com.example.simplescheduleapp.common.event.mapper.DomainEventMapperFactory;
 import com.example.simplescheduleapp.common.event.mapper.DomainEventMapper;
+import com.example.simplescheduleapp.common.event.producer.EventProducer;
+import com.example.simplescheduleapp.common.outbox.mapper.DomainEventMapperFactory;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
