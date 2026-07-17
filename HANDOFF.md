@@ -1,7 +1,17 @@
 # SSA Backend — HANDOFF
 
-> 마지막 갱신: 2026-07-13 · 브랜치 `develop`
+> 마지막 갱신: 2026-07-17 · 브랜치 `develop` (`5987d3d`)
 > 작업 트리: worktree `simple-schedule-app-be/.wt-ssa-analysis` · inner repo `simple-schedule-app-be/ssa` (main, `2c6a7b0`로 최신화됨)
+
+## -3. ✅ ADR-0004 전면 도메인 순수화 완료 (PR #24, `5987d3d`, 2026-07-17)
+ADR-0002가 걸어둔 Stage 3 동결을 **오너 결정으로 해제**하고 전면 순수화 진행. 도메인=순수 POJO, JPA는 `infrastructure/persistence/`(Entity+Mapper+JpaRepository+RepositoryAdapter)에 격리.
+
+- **래칫 해소: course 177→0, notification 38→0, common 54→5.** 잔여 5줄은 `DomainEventExceptionCode`의 HttpStatus 참조 — 프로젝트 전반 컨벤션이라 의도적 잔존.
+- Phase A(교차참조 객체→ID) → Phase B(Member·Schedule JOINED 계층, 수강등록 3종, FailedNotification, FcmToken) → common(`common.domain`→`common.persistence` 개명, 이벤트 인프라 `common.outbox` 분리, DomainEvent 3분리).
+- **순수화가 드러낸 결함 2건 수정**: ① `created_date` 유실(`7f7eafc`) — 순수 도메인엔 감사 필드가 없어 매퍼가 만든 새 엔티티로 UPDATE하면 null로 덮임 ② **아웃박스 id 전파**(`df1c77a`) — 분리 후 매퍼가 만든 *다른 인스턴스*에 id가 담기므로 전파 안 하면 발행 후 save()가 INSERT가 되어 중복 배달. `EventRecorder.assignId` + `EventRecorderTest`가 가드.
+- **별건 결함**: bcrypt 전환(`f6ae465`, 무염 SHA-256→bcrypt, 점진 마이그레이션이라 기존 사용자 무중단) · SSE 하트비트 누수(`ea35036`) · notification↔fcm 순환 제거(`bf23bcc`).
+- **CI 구멍 수정(`971cb2f`)**: `buildAll`이 `:common:test`를 빠뜨려 **ArchUnit 래칫이 CI에서 한 번도 안 돌고 있었다**. 즉 순수화가 되돌아가도 CI는 초록. `:common:build` 추가로 해소 — CI 로그에 `> Task :common:test` 최초 확인.
+- 검증: 로컬 118 테스트 green, PR CI green(8m6s, headSha=971cb2f). **스키마 변경 없음**(discriminator·컬럼 전부 보존).
 
 ## -2. 🏗️ 모듈러 모놀리스 진행 (ADR-0003) — Stage 0·1·2 완료
 - **Stage 0**(`1668e41`): Flyway baseline(prod), 관용 파서(memberId↔sub), git hooks(pre-push=buildAll).
@@ -65,13 +75,16 @@
 
 ## 5. 다음 할 일 (우선순위)
 1. **인증 Phase 3b** (오케스트레이터 게이트): Android Phase 2 완료 후 — @Auth required 전환, 레거시 파라미터 제거, RoleInterceptor 무토큰 401. 코드에 `Phase 3a`/`3b에서 전환` 주석으로 전환 지점 전부 표시됨.
-2. **Stage 2 나머지**: notification 리포지토리 포트화(fcm/notification/sse), common testFixtures 정리. common/event(DomainEventRepository)는 여전히 raw Spring Data — Stage 4(common 분해)와 함께.
-3. **Stage 3** (ADR-0003 작성 후): 도메인 JPA 애노테이션 제거, 래칫 153 해소.
+2. ~~Stage 2 나머지~~ / ~~Stage 3 도메인 JPA 제거~~ → **ADR-0004로 완료**(위 -3절). `DomainEventRepository`도 포트+어댑터로 분리됨(`c342c8d`).
+3. **ADR-0003 Stage 4**: geekchat 흡수(단일 JVM 완성) → Stage 5(account 통합=member+user).
 4. **운영 후속**: outbox DEAD 이벤트 메트릭/알림, domain_event.status 인덱스, 멀티 인스턴스 시 relay 중복 실행 가드(ShedLock), Redis 정원 키 백필 절차(SL002 대량 발생 대비), @Retryable 소진 시 409 매핑(@Recover).
 5. **브랜치 청소** (승인 필요): 통합 완료된 원격 브랜치 삭제 — feature/1-1~1-5, 2-1, 2-4, stage/*, 병합된 PR 브랜치들.
 
 ## 6. 주의/함정
 - ArchUnit freeze 갱신은 같은 커밋에 · common 테스트 DoNotIncludeJars 금지 · PR 재타깃만으론 CI 안 돎(close/reopen)
+- **래칫을 새 모듈에 붙이면 `./gradlew buildAll --dry-run | grep :<모듈>:test`로 CI 포함 여부 확인 필수** — 규칙이 작동해도 CI에서 안 돌면 무의미하다(2026-07-17 common이 정확히 이 상태였음, `971cb2f`)
+- **순수 도메인 ↔ 엔티티 매핑 시 id·감사필드 전파 확인** — 매퍼가 만드는 건 *다른 인스턴스*다. id 미전파=INSERT 중복, createdDate 미전파=null 덮어쓰기. 새 애그리거트 순수화 시 왕복 테스트 필수
+- `ci.yml`의 `pull_request: branches:`는 **base 기준 필터** — base가 목록 밖이면 CI가 아예 안 돈다(PR #24가 `integration/*` base라 24개 커밋 동안 CI 0회)
 - 낙관적 락 @Version은 **Schedule 루트에만** — 자식 엔티티에 추가하면 Hibernate 기동 실패
 - KafkaEventProducer.produce()에 @Transactional 금지 — 실패 상태 저장이 롤백됨
 - Redis 정원 키 완전 소실(플러시) 시 특강 신청 전부 404 SL002 — 재적재 절차 필요
@@ -81,8 +94,9 @@
 ## 7. 검증 명령
 ```
 cd simple-schedule-app-be/.wt-ssa-analysis
-./gradlew :common:build :course:build :notification:build   # CI 스코프
-wc -l */src/test/archunit-violations/*                        # 래칫 진행도 (course 153)
+./gradlew buildAll                                          # CI와 동일한 단일 엔트리포인트
+wc -l */src/test/archunit-violations/*                      # 래칫 진행도 (course 0 / notification 0 / common 5)
+./gradlew buildAll --dry-run | grep ":.*:test"              # CI가 실제로 도는 test 태스크 확인
 ```
 로컬 인프라: `docker compose up -d` (MySQL 3306/3307, Redis 6379, Kafka 9092).
 
