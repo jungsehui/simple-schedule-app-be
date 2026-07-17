@@ -23,7 +23,7 @@ public class NotificationRetryService {
             try {
                 NotificationRequest request = NotificationRequest.fromFail(failedNotification);
                 // 응답 받기
-                fcmService.retryFcmNotification(request).get();
+                fcmService.retryFcmNotification(request.toFcmSendRequest()).get();
 
                 // 성공 시 삭제
                 failedNotificationRepository.delete(failedNotification);
