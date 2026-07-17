@@ -1,18 +1,21 @@
 package com.example.simplescheduleapp.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
+import com.example.simplescheduleapp.common.event.EventStatus;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.general.domain.Lecture;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@DiscriminatorValue("LECTURE_UPDATED")
+/**
+ * 강의 수정 이벤트 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>아웃박스 영속은 {@code event/infrastructure/persistence}의 {@code LectureUpdatedEventEntity}가,
+ * 변환은 같은 패키지의 영속 매퍼가 담당한다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
 public class LectureUpdatedEvent extends DomainEvent {
 
     private Long tutorId;
@@ -26,6 +29,16 @@ public class LectureUpdatedEvent extends DomainEvent {
 
         this.tutorId = lecture.getTutorId();
         this.lectureTitle = lecture.getTitle();
+        this.updatedDetails = updatedDetails;
+    }
+
+    /** DB 복원용 — 영속 매퍼 전용. */
+    public LectureUpdatedEvent(Long id, String uuid, EventStatus status, Long targetDomainId,
+                               String failReason, int retryCount,
+                               Long tutorId, String lectureTitle, String updatedDetails) {
+        super(id, uuid, status, targetDomainId, failReason, retryCount);
+        this.tutorId = tutorId;
+        this.lectureTitle = lectureTitle;
         this.updatedDetails = updatedDetails;
     }
 

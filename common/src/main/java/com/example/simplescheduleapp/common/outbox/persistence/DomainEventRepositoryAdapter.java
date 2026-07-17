@@ -13,37 +13,44 @@ import java.util.Optional;
 /**
  * {@code DomainEventRepository} 포트의 JPA 어댑터 (ADR-0004).
  *
- * <p>Spring Data 세부를 이벤트 추상화(common.event) 밖으로 격리한다. {@code DomainEvent}는 아직
- * JPA 엔티티이므로 매핑 없이 위임한다 — 도메인/영속 모델 3분리(ADR-0002 §4)는 후속 작업.
+ * <p>Spring Data/JPA 세부와 도메인↔아웃박스 엔티티 매핑을 여기에 격리한다. 서브타입별 변환은
+ * {@link DomainEventPersistenceMapperFactory}가 찾아준 전략에 위임한다.
  */
 @Repository
 @RequiredArgsConstructor
 public class DomainEventRepositoryAdapter implements DomainEventRepository {
 
     private final DomainEventJpaRepository jpaRepository;
+    private final DomainEventPersistenceMapperFactory mapperFactory;
 
     @Override
     public DomainEvent save(DomainEvent domainEvent) {
-        return jpaRepository.save(domainEvent);
+        DomainEventEntity entity = mapperFactory.getMapper(domainEvent).toEntity(domainEvent);
+        DomainEventEntity saved = jpaRepository.save(entity);
+        return toDomain(saved);
     }
 
     @Override
     public Optional<DomainEvent> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(this::toDomain);
     }
 
     @Override
     public Optional<DomainEvent> findByUuid(String uuid) {
-        return jpaRepository.findByUuid(uuid);
+        return jpaRepository.findByUuid(uuid).map(this::toDomain);
     }
 
     @Override
     public List<DomainEvent> findByStatus(EventStatus status) {
-        return jpaRepository.findByStatus(status);
+        return jpaRepository.findByStatus(status).stream().map(this::toDomain).toList();
     }
 
     @Override
     public List<DomainEvent> findByStatusAndCreatedDateBefore(EventStatus status, LocalDateTime before) {
-        return jpaRepository.findByStatusAndCreatedDateBefore(status, before);
+        return jpaRepository.findByStatusAndCreatedDateBefore(status, before).stream().map(this::toDomain).toList();
+    }
+
+    private DomainEvent toDomain(DomainEventEntity entity) {
+        return mapperFactory.getMapper(entity).toDomain(entity);
     }
 }
