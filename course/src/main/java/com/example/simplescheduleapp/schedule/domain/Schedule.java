@@ -1,61 +1,40 @@
 package com.example.simplescheduleapp.schedule.domain;
 
-import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
-
-@SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE schedule_id = ?")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "type")
-@Table(name = "schedule")
+/**
+ * 스케줄 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>JPA/프레임워크 의존 0. 영속 매핑(JOINED 상속·discriminator·소프트삭제·감사)은
+ * {@code infrastructure/persistence}의 {@code ScheduleEntity}가 담당한다.
+ *
+ * <p>서브타입(Lecture/SpecialLecture/Consultation)의 공통 상태·불변식을 보유하며,
+ * {@code LectureUpdateCommand.toSchedule()}처럼 수정 값 운반체로도 쓰인다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
-public class Schedule extends SoftDeletedDomain {
+public class Schedule {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "schedule_id")
     private Long id;
-
-    @Column(name = "title", nullable = false)
     private String title;
-
-    @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
-
-    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
-
-    @Column(name = "memo")
     private String memo;
 
     /**
-     * 3차 방어선: 낙관적 락(Optimistic Lock)을 위한 버전 필드.
-     * <p>
-     * JPA 제약상 {@code @Version}은 엔티티 계층의 <b>루트(root)</b>에만 존재할 수 있다.
-     * Schedule이 {@code @Inheritance(JOINED)} 계층의 root entity이므로,
-     * 여기에 두어 모든 자식 엔티티(Lecture, SpecialLecture, Consultation)가 함께 낙관적 락 보호를 받는다.
-     * <p>
-     * JPA가 UPDATE 시 {@code WHERE version = ?}을 자동으로 추가한다.
-     * 다른 트랜잭션이 먼저 commit했다면 UPDATE 결과가 0행 → {@link jakarta.persistence.OptimisticLockException} 발생.
-     * <p>
-     * 정상 시(2차 분산 락이 직렬화 보장): 버전 체크 비용만 추가, 충돌 없음.
-     * 비정상 시(분산 락 만료/네트워크 파티션): 동시 수정을 감지하여 안전 실패.
+     * 3차 방어선: 낙관적 락 버전.
+     *
+     * <p>순수 도메인이므로 {@code @Version} 애노테이션은 갖지 않는다 — 실제 낙관적 락은
+     * {@code ScheduleEntity}의 {@code @Version}이 수행한다. 다만 <b>매퍼가 이 값을 반드시
+     * 왕복 복원</b>해야 detached 엔티티 merge 시 {@code WHERE version = ?}가 올바르게 적용된다.
+     * 이 왕복이 끊기면 낙관적 락이 조용히 무력화된다(특강 4단계 방어의 3차선).
      */
-    @Version
-    @Column(name = "version", nullable = false)
     private Long version;
 
     public Schedule(String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
@@ -65,6 +44,21 @@ public class Schedule extends SoftDeletedDomain {
         this.endTime = endTime;
         this.memo = memo;
         this.version = 0L;
+    }
+
+    /**
+     * DB 복원용 — 매퍼/서브타입 전용.
+     *
+     * <p>이미 저장된 데이터는 재검증하지 않는다(과거 스케줄 로드가 실패하면 안 되므로
+     * {@code validatePastTime}을 호출하지 않는다).
+     */
+    protected Schedule(Long id, Long version, String title, LocalDateTime startTime, LocalDateTime endTime, String memo) {
+        this.id = id;
+        this.version = version;
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.memo = memo;
     }
 
     protected void updateSchedule(Schedule schedule) {

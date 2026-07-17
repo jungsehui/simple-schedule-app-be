@@ -3,33 +3,45 @@ package com.example.simplescheduleapp.lecture.special.domain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@DiscriminatorValue("SPECIAL_LECTURE")
-@Table(name = "special_lecture")
+/**
+ * 특강 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>JPA/프레임워크 의존 0. 영속 매핑은 {@code infrastructure/persistence}의
+ * {@code SpecialLectureEntity}가 담당한다. 애그리게잇 간 참조는 ID(tutorId)로 한다(Phase A).
+ *
+ * <p>선착순 신청의 3차 방어선(낙관적 락)은 상위 Schedule의 version이 담당한다 —
+ * 매퍼의 version 왕복이 전제다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
 public class SpecialLecture extends Schedule {
 
-    // 애그리게잇 간 참조는 ID로 한다(DDD). @Column 미사용 — 네이밍 전략이 tutorId→tutor_id 매핑. (ADR-0004 Phase A)
     private Long tutorId;
-
-    @Column(nullable = false)
     private int capacity;
-
-    // 낙관적 락(@Version)은 부모 엔티티 Schedule에 정의되어 있다.
-    // JPA 제약상 엔티티 계층(@Inheritance)에서 @Version은 root entity에만 둘 수 있다.
 
     public SpecialLecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Long tutorId, int capacity) {
         super(title, startTime, endTime, memo);
         this.tutorId = tutorId;
         this.capacity = capacity;
+    }
+
+    private SpecialLecture(Long id, Long version, String title, LocalDateTime startTime, LocalDateTime endTime,
+                           String memo, Long tutorId, int capacity) {
+        super(id, version, title, startTime, endTime, memo);
+        this.tutorId = tutorId;
+        this.capacity = capacity;
+    }
+
+    /** DB 복원용 재구성 팩토리 — 매퍼 전용. */
+    public static SpecialLecture reconstitute(Long id, Long version, String title, LocalDateTime startTime,
+                                              LocalDateTime endTime, String memo, Long tutorId, int capacity) {
+        return new SpecialLecture(id, version, title, startTime, endTime, memo, tutorId, capacity);
     }
 
     public SpecialLectureEnrollment enroll(Long studentId) {

@@ -3,39 +3,48 @@ package com.example.simplescheduleapp.lecture.general.domain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@DiscriminatorValue("LECTURE")
-@Table(name = "lecture")
+/**
+ * 일반 강의 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>JPA/프레임워크 의존 0. 영속 매핑은 {@code infrastructure/persistence}의
+ * {@code LectureEntity}가 담당한다. 애그리게잇 간 참조는 ID(tutorId)로 한다(Phase A).
+ *
+ * <p>정원 불변식({@code enrolledCount <= capacity})의 동시 수정 감지는 상위 Schedule의
+ * version(낙관적 락)이 담당한다 — 매퍼의 version 왕복이 전제다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
 public class Lecture extends Schedule {
 
-    // 애그리게잇 간 참조는 ID로 한다(DDD) — Tutor 애그리게잇을 객체로 소유하지 않는다. (ADR-0004 Phase A)
-    // @Column 미사용: Spring Boot 기본 네이밍 전략이 tutorId → tutor_id로 매핑(스키마 불변, 도메인 순수성 유지).
     private Long tutorId;
-
-    @Column(nullable = false)
     private int capacity;
-
-    @Column(nullable = false)
     private int enrolledCount;
-
-    // 낙관적 락(@Version)은 부모 엔티티 Schedule에 정의되어 있다.
-    // JPA 제약상 엔티티 계층(@Inheritance)에서 @Version은 root entity에만 둘 수 있다.
-    // Schedule.version으로 enrolledCount의 동시 수정(race condition)이 자동으로 감지된다.
 
     public Lecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Long tutorId, int capacity) {
         super(title, startTime, endTime, memo);
         this.tutorId = tutorId;
         this.capacity = capacity;
         this.enrolledCount = 0;
+    }
+
+    private Lecture(Long id, Long version, String title, LocalDateTime startTime, LocalDateTime endTime, String memo,
+                    Long tutorId, int capacity, int enrolledCount) {
+        super(id, version, title, startTime, endTime, memo);
+        this.tutorId = tutorId;
+        this.capacity = capacity;
+        this.enrolledCount = enrolledCount;
+    }
+
+    /** DB 복원용 재구성 팩토리 — 매퍼 전용. */
+    public static Lecture reconstitute(Long id, Long version, String title, LocalDateTime startTime, LocalDateTime endTime,
+                                       String memo, Long tutorId, int capacity, int enrolledCount) {
+        return new Lecture(id, version, title, startTime, endTime, memo, tutorId, capacity, enrolledCount);
     }
 
     public LectureEnrollment enroll(Long studentId) {
