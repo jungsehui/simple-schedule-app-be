@@ -21,7 +21,8 @@ public abstract class Member {
 
     private final Long id;
     private final String username;
-    private final Password password;
+    /** 레거시 해시가 로그인 시 bcrypt로 승급될 수 있어 가변이다({@link #login} 참고). */
+    private Password password;
     private final String name;
     private final int age;
     private final String phoneNumber;
@@ -41,11 +42,22 @@ public abstract class Member {
         this.phoneNumber = phoneNumber;
     }
 
-    public void login(String plainPassword) {
-        boolean same = this.password.match(plainPassword);
-        if (!same) {
+    /**
+     * 인증한다. 레거시(무염 SHA-256) 해시로 인증에 성공하면 <b>그 자리에서 bcrypt로 승급</b>한다 —
+     * 기존 사용자를 끊지 않는 점진 마이그레이션(ADR-0004, 구조 리뷰 HIGH 보안 수정).
+     *
+     * @return 비밀번호가 승급되어 저장이 필요하면 {@code true}. 호출자(애플리케이션 계층)가
+     *         승급된 경우에만 저장한다.
+     */
+    public boolean login(String plainPassword) {
+        if (!this.password.match(plainPassword)) {
             throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_PASSWORD);
         }
+        if (this.password.isLegacy()) {
+            this.password = Password.hashPassword(plainPassword);
+            return true;
+        }
+        return false;
     }
 
     /** 구체 서브타입(Student/Tutor/Parent)이 자신의 역할을 반환한다. discriminator와 대응. */

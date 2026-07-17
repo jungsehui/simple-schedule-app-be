@@ -11,6 +11,10 @@ dependencies {
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // 비밀번호 해싱 — 순수 자바 bcrypt. 도메인(Password VO)이 직접 사용하며,
+    // 프레임워크가 아닌 알고리즘 라이브러리라 도메인 순수성 규칙에 위배되지 않는다. (ADR-0004)
+    implementation libs.bcrypt
+
     // 재시도·AOP·스케줄링은 common의 api(spring-retry/starter-aop)+SchedulingRetryConfig로 상속 (Stage 2)
 
     // DB 마이그레이션 — prod 전용 활성, ddl-auto 폐기 경로 확보 (ADR-0003 Stage 0)

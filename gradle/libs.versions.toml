@@ -9,11 +9,16 @@ kafkaClients = "3.7.1"
 logstashLogback = "8.0"
 fixtureMonkey = "1.1.11"
 firebaseAdmin = "9.2.0"
+# 순수 자바 bcrypt — 도메인(Password VO)이 직접 사용. 프레임워크/IO 의존이 아닌 알고리즘
+# 라이브러리이므로 도메인 순수성 규칙(ArchUnit)에 위배되지 않는다. (ADR-0004)
+bcrypt = "0.10.2"
 
 [libraries]
 redisson-spring-boot-starter = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogback" }
+
+bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
