@@ -4,7 +4,7 @@ import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import com.example.simplescheduleapp.common.event.DomainEventRepository;
 import com.example.simplescheduleapp.common.event.EventStatus;
-import com.example.simplescheduleapp.common.event.outbox.EventRecorder;
+import com.example.simplescheduleapp.common.outbox.EventRecorder;
 import com.example.simplescheduleapp.kafka.event.mock.TestDomainEvent;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.DisplayName;

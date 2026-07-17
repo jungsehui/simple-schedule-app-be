@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.kafka.event.producer;
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.common.event.DomainEventRepository;
 import com.example.simplescheduleapp.common.event.EventStatus;
-import com.example.simplescheduleapp.common.event.producer.KafkaEventProducer;
+import com.example.simplescheduleapp.common.outbox.producer.KafkaEventProducer;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.producer.KafkaProducer;

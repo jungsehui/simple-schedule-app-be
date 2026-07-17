@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.common.event.outbox;
+package com.example.simplescheduleapp.common.outbox;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
 import lombok.RequiredArgsConstructor;
