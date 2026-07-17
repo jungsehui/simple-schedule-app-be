@@ -53,13 +53,30 @@ infrastructure/persistence/
 > **진행 상태** (2026-07-17): **Phase A 완료** — course 전 애그리게잇의 교차 참조를 ID로 전환
 > (Lecture/SpecialLecture/Consultation→Tutor, LectureEnrollment·SpecialLectureEnrollment,
 > ConsultationAttendee→Parent). `ConsultationAttendee.consultation`만 애그리게잇 내부 합성으로 유지.
-> **Phase B 대부분 완료** — notification 전체(FailedNotification·FcmToken), **Member JOINED 계층**
+> **Phase B 완료** — notification 전체(FailedNotification·FcmToken), **Member JOINED 계층**
 > (다형 매퍼), **Schedule JOINED 계층**(@Version 낙관락 왕복 — `LectureOptimisticLockTest`로 실증),
 > 수강등록 3종, 도메인 서비스 @Component 제거.
-> **ArchUnit freeze 스토어: course 148줄 → 0줄, notification 0줄**(신규 부채 0) = course·notification
-> 도메인 100% 프레임워크-프리. 전 모듈 106 테스트 green(`--rerun-tasks` 강제 재실행).
-> **남은 것**: common 54줄(공유 커널·DomainEvent), Password bcrypt(리뷰 HIGH), sse 자원누수,
-> notification↔fcm 순환.
+> **DomainEvent 3분리 완료**(순서 3) — 순수 POJO / `DomainEventEntity`(SINGLE_TABLE) /
+> `DomainEventPersistenceMapper`+Factory. course 이벤트 5종 동반 분리, discriminator·컬럼 동일이라
+> 스키마 무변경. `EventRecorder.assignId` 전파 추가 — 가드(`EventRecorderTest`)가 실재함을
+> assignId 일시 제거로 실증(`The given id must not be null`으로 실패).
+> **ArchUnit freeze 스토어: course 148 → 0, notification 0, common 54 → 5**. 잔여 5건은 전부
+> `DomainEventExceptionCode`의 HttpStatus로, 예외코드가 HttpStatus를 갖는 것은 프로젝트 전반
+> 컨벤션이므로 순수화 대상이 아니다(결함 아님). 전 모듈 113 테스트 green.
+>
+> **순수화가 낳은 함정과 그 차단**(빌드 green으로는 잡히지 않던 것):
+> 어댑터의 `save()`가 매퍼로 *새 엔티티 인스턴스*를 만들어 넘기므로, 순수 도메인이 들고 있지 않은
+> 엔티티 전용 컬럼은 merge 시 NULL로 덮어써진다. `created_date`가 이에 해당했고, NULL이 되면
+> `findByStatusAndCreatedDateBefore`(릴레이의 지연 이벤트 탐지)가 그 행을 영영 못 찾아
+> **전달 보증이 조용히 깨진다**. `BaseDomain.createdDate`에 `@Column(updatable = false)`로 차단하고
+> `OutboxAuditingPreservationTest`로 가드했다. 이 수정은 공유 `@MappedSuperclass`이므로 먼저
+> 순수화된 Member·Schedule·FailedNotification·PendingLectureEnrollment의 동일한 구멍까지 함께 닫는다 —
+> 이들은 순수화 시점부터 이 결함을 안고 있었다.
+> 같은 유형(`@Version`)은 스윕 결과 코드베이스 전체에 `ScheduleEntity` 하나뿐이며 순수 `Schedule`이
+> 이미 왕복·가드하고 있어 추가 구멍 없음.
+>
+> **남은 것**: Password bcrypt(리뷰 HIGH), sse 자원누수, notification↔fcm 순환 — 모두 이 브랜치에서
+> 완료됨. 순서 5(`common.domain`→`common.persistence` 리네임)는 적용 완료.
 
 ### 마이그레이션 순서 (각 단계 = 빌드·테스트 그린, 개별 가역, 컨텍스트 단위 커밋)
 
