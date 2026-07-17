@@ -1,4 +1,0 @@
-Class <com.example.simplescheduleapp.lecture.general.domain.service.PendingLectureEnrollmentService> is annotated with <org.springframework.stereotype.Component> in (PendingLectureEnrollmentService.java:0)
-Class <com.example.simplescheduleapp.parent.domain.service.ParentRegister> is annotated with <org.springframework.stereotype.Component> in (ParentRegister.java:0)
-Class <com.example.simplescheduleapp.student.domain.service.StudentRegister> is annotated with <org.springframework.stereotype.Component> in (StudentRegister.java:0)
-Class <com.example.simplescheduleapp.tutor.domain.service.TutorRegister> is annotated with <org.springframework.stereotype.Component> in (TutorRegister.java:0)
