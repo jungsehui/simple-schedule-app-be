@@ -50,6 +50,17 @@ infrastructure/persistence/
 - 스토어 라인 수 = 진행도 지표. 전 컨텍스트 완료 시 스토어 0 → 규칙을 freeze 해제(엄격 모드)로 승격.
 - 신규 도메인 누수는 즉시 CI 실패.
 
+> **진행 상태** (2026-07-17): **Phase A 완료** — course 전 애그리게잇의 교차 참조를 ID로 전환
+> (Lecture/SpecialLecture/Consultation→Tutor, LectureEnrollment·SpecialLectureEnrollment,
+> ConsultationAttendee→Parent). `ConsultationAttendee.consultation`만 애그리게잇 내부 합성으로 유지.
+> **Phase B 대부분 완료** — notification 전체(FailedNotification·FcmToken), **Member JOINED 계층**
+> (다형 매퍼), **Schedule JOINED 계층**(@Version 낙관락 왕복 — `LectureOptimisticLockTest`로 실증),
+> 수강등록 3종, 도메인 서비스 @Component 제거.
+> **ArchUnit freeze 스토어: course 148줄 → 0줄, notification 0줄**(신규 부채 0) = course·notification
+> 도메인 100% 프레임워크-프리. 전 모듈 106 테스트 green(`--rerun-tasks` 강제 재실행).
+> **남은 것**: common 54줄(공유 커널·DomainEvent), Password bcrypt(리뷰 HIGH), sse 자원누수,
+> notification↔fcm 순환.
+
 ### 마이그레이션 순서 (각 단계 = 빌드·테스트 그린, 개별 가역, 컨텍스트 단위 커밋)
 
 1. **Leaf 단일 엔티티**(상속 무관, 패턴 정립): `notification/FailedNotification`, `fcm/FcmToken`
