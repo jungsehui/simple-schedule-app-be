@@ -1,17 +1,17 @@
 package com.example.simplescheduleapp.lecture.general.domain;
 
-import com.example.simplescheduleapp.common.domain.SoftDeletedDomain;
+import com.example.simplescheduleapp.common.domain.BaseDomain;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
-
-@SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
+/**
+ * 수강신청 대기(pending)는 하드 삭제한다. uk_pending_lecture_student(lecture_id, student_id)가
+ * deleted_date를 포함하지 않으므로, 소프트 삭제하면 취소/거절 뒤 같은 조합의 재신청 INSERT가
+ * 남아 있는 행과 충돌한다(500). 확정된 수강 이력은 LectureEnrollment가 갖고, 대기 행은
+ * 수락/거절/취소 시 항상 제거되는 일시 상태이므로 삭제 이력을 보존할 이유가 없다.
+ */
 @Table(
         name = "pending_lecture_enrollment",
         uniqueConstraints = {
@@ -21,7 +21,7 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class PendingLectureEnrollment extends SoftDeletedDomain {
+public class PendingLectureEnrollment extends BaseDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
