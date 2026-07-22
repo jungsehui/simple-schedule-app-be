@@ -1,22 +1,20 @@
 package com.example.simplescheduleapp.lecture.general.infrastructure.persistence;
 
-import com.example.simplescheduleapp.common.persistence.SoftDeletedDomain;
+import com.example.simplescheduleapp.common.persistence.BaseDomain;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
-
-import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_DATE_IS_NULL;
 
 /**
  * {@code PendingLectureEnrollment} 도메인의 JPA 영속 모델 (ADR-0004).
  *
- * <p>감사·소프트삭제는 영속 관심사이므로 도메인이 아닌 여기서 담당한다.
+ * <p><b>하드 삭제한다(소프트 삭제 금지).</b> uk_pending_lecture_student(lecture_id, student_id)가
+ * deleted_date를 포함하지 않으므로, 소프트 삭제하면 취소/거절 뒤 같은 조합의 재신청 INSERT가
+ * 남아 있는 행과 충돌한다(500 — 실서버에서 발생, main {@code 963379f}). 대기 행은 수락/거절/취소
+ * 시 항상 제거되는 일시 상태이고 확정 이력은 LectureEnrollment가 담당하므로 삭제 이력을 보존할
+ * 이유가 없다. {@code PendingLectureEnrollmentRepositoryTest}가 재신청 회귀를 가드한다.
  */
-@SQLRestriction(DELETED_DATE_IS_NULL)
-@SQLDelete(sql = "UPDATE pending_lecture_enrollment SET deleted_date = CURRENT_TIMESTAMP WHERE id = ?")
 @Table(
         name = "pending_lecture_enrollment",
         uniqueConstraints = {
@@ -26,7 +24,7 @@ import static com.example.simplescheduleapp.common.SqlRestrictionClause.DELETED_
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class PendingLectureEnrollmentEntity extends SoftDeletedDomain {
+public class PendingLectureEnrollmentEntity extends BaseDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
