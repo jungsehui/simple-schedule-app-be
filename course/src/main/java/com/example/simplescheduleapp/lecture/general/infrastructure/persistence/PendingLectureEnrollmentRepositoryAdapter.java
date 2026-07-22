@@ -25,7 +25,7 @@ public class PendingLectureEnrollmentRepositoryAdapter implements PendingLecture
 
     @Override
     public void delete(PendingLectureEnrollment e) {
-        // @SQLDelete(소프트삭제)가 발동하도록 엔티티 삭제 경로를 사용한다.
+        // 하드 DELETE — 소프트 삭제 금지 이유는 PendingLectureEnrollmentEntity javadoc 참고.
         jpaRepository.deleteById(e.getId());
     }
 
