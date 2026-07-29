@@ -97,4 +97,18 @@ class TokenServiceTest {
 
         assertThat(tokenService.extractMemberId(uuidSubToken)).isNull();
     }
+
+    @DisplayName("다른 키로 서명된 토큰은 INVALID_TOKEN(401)이다 — UNKNOWN_TOKEN(500)이 아니다")
+    @Test
+    void wrongSignatureTokenIsInvalidNotUnknown() {
+        String otherSecret = Base64.getUrlEncoder().encodeToString(
+                "another-test-only-secret-key-that-is-definitely-not-the-real-one-64b!".getBytes());
+        TokenService otherService = new TokenService(new TokenProperty(otherSecret, 3_600_000L));
+        Token forged = otherService.createToken(4L, Role.STUDENT);
+
+        assertThatThrownBy(() -> tokenService.extractMemberId(forged.accessToken()))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("code")
+                .isEqualTo(TokenExceptionCode.INVALID_TOKEN);
+    }
 }
