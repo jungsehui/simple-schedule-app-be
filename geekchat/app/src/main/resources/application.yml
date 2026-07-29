@@ -76,6 +76,10 @@ app:
     access-token-expiry: 15m
     refresh-token-expiry-days: 14
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  # 추가 허용 origin (CSV). frontend-url 하나로는 로컬 개발·배포·프리뷰를 동시에
+  # 담을 수 없어 분리한다. REST CORS(SecurityConfig)와 WS 핸드셰이크(WebSocketConfig)가
+  # 같은 목록을 쓰며, 와일드카드(https://*.vercel.app)를 지원한다.
+  frontend-origin-patterns: ${APP_FRONTEND_ORIGIN_PATTERNS:}
   oauth:
     callback-url: ${OAUTH_CALLBACK_URL:http://localhost:8080/auth/callback}
     google:

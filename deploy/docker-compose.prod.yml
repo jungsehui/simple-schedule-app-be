@@ -101,6 +101,10 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${GEEKCHAT_DDL_AUTO:-validate}
       JWT_SECRET: ${GEEKCHAT_JWT_SECRET}
       FRONTEND_URL: ${GEEKCHAT_FRONTEND_URL:-http://localhost:3000}
+      # 추가 허용 origin (CSV). FRONTEND_URL은 단일값이라 로컬 개발·프리뷰 도메인을
+      # 동시에 못 담는다. app.frontend-origin-patterns에 바인딩되어 REST CORS와
+      # WS 핸드셰이크 양쪽에 적용된다. 예: http://localhost:3000,https://*.vercel.app
+      APP_FRONTEND_ORIGIN_PATTERNS: ${GEEKCHAT_FRONTEND_ORIGIN_PATTERNS:-}
       OAUTH_CALLBACK_URL: ${GEEKCHAT_OAUTH_CALLBACK_URL:-http://localhost/chat/auth/callback}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
