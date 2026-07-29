@@ -68,7 +68,9 @@ public class TokenService {
                     .getPayload();
         } catch (ExpiredJwtException e) {
             throw new ApplicationException(TokenExceptionCode.EXPIRED_TOKEN);
-        } catch (MalformedJwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
+            // 서명 위조(SignatureException) 포함 모든 JWT 파싱 실패는 클라이언트 귀책이므로 401.
+            // T5(500)는 JWT와 무관한 예기치 못한 예외에만 남긴다. (RoleInterceptor 계약: 제시된 토큰 검증 실패 → 401)
             throw new ApplicationException(TokenExceptionCode.INVALID_TOKEN);
         } catch (Exception e) {
             throw new ApplicationException(TokenExceptionCode.UNKNOWN_TOKEN);
