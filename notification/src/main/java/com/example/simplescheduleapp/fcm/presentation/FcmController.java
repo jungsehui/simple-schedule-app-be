@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.fcm.presentation;
 
 import com.example.simplescheduleapp.common.auth.Auth;
-import com.example.simplescheduleapp.common.auth.AuthIdentities;
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,13 +14,18 @@ public class FcmController {
 
     private final FcmService fcmService;
 
-    // Phase 3a 듀얼리드: 토큰 식별자 우선, memberId 파라미터는 레거시 폴백 (3b에서 제거 예정)
+    /**
+     * FCM 기기 토큰 등록. 역할 제한은 없으나 인증은 필요하다.
+     *
+     * <p>{@code memberId} 쿼리 파라미터는 하위호환으로 남기되 값을 쓰지 않는다 — 예전에는 이 값으로
+     * 남의 계정에 기기 토큰을 붙일 수 있었다(푸시 탈취). 이제 토큰 식별자만 사용한다(ADR-0005).
+     */
     @GetMapping(value = "/fcm/token")
     public void addFcmToken(
-            @Auth(required = false) Long authMemberId,
-            @RequestParam(required = false) Long memberId,
+            @Auth Long authMemberId,
+            @RequestParam(required = false) Long memberId, // 레거시 — 수용하되 무시
             @RequestHeader("FCM-TOKEN") String fcmToken
-    ){
-        fcmService.addFcmToken(AuthIdentities.resolve(authMemberId, memberId), fcmToken);
+    ) {
+        fcmService.addFcmToken(authMemberId, fcmToken);
     }
 }

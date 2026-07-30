@@ -82,7 +82,7 @@ public class LectureEnrollmentService {
         try {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
-            validateTutorOwnership(command.memberId(), lecture);
+            lecture.requireTutor(command.memberId());
             Student student = studentRepository.getById(pending.getStudentId());
             scheduleConflictValidator.validateNoStudentConflict(student.getId(), lecture.getStartTime(), lecture.getEndTime(), null);
             pending.accept();
@@ -101,22 +101,13 @@ public class LectureEnrollmentService {
     public void rejectEnrollment(PendingRejectCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
-        validateTutorOwnership(command.memberId(), lecture);
+        lecture.requireTutor(command.memberId());
         Student student = studentRepository.getById(pending.getStudentId());
         pending.reject();
         pendingLectureEnrollmentRepository.delete(pending);
         eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
     }
 
-    // Phase 3a: 토큰을 제시한 요청만 소유권 검증(memberId null = 무토큰 레거시 → 통과). 3b에서 필수로 전환.
-    private void validateTutorOwnership(Long memberId, Lecture lecture) {
-        if (memberId == null) {
-            return;
-        }
-        if (!lecture.getTutorId().equals(memberId)) {
-            throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
-        }
-    }
 
     public List<Long> findStudentIdsByLectureId(Long lectureId) {
         return lectureEnrollmentRepository.findAllByLectureId(lectureId)
@@ -131,9 +122,15 @@ public class LectureEnrollmentService {
      * 수강생 조회 화면용 상세 — 애그리게잇 간 참조가 ID이므로 관련 애그리게잇(Lecture·Student)을
      * 애플리케이션 계층이 로드해 조립한다. 프레젠테이션은 도메인 그래프를 순회하지 않는다.
      */
-    public LectureEnrollmentDetail getLectureEnrollmentDetail(Long lectureId) {
-        List<LectureEnrollment> lectureEnrollments = getLectureEnrollments(lectureId);
+    /**
+     * 강의의 수강생 명단. <b>해당 강의의 강사만</b> 볼 수 있다 (ADR-0005).
+     *
+     * <p>이전에는 인증조차 없어 강의 ID만 알면 누구나 수강생 명단을 조회할 수 있었다.
+     */
+    public LectureEnrollmentDetail getLectureEnrollmentDetail(Long memberId, Long lectureId) {
         Lecture lecture = lectureRepository.getByLectureId(lectureId);
+        lecture.requireTutor(memberId);
+        List<LectureEnrollment> lectureEnrollments = getLectureEnrollments(lectureId);
         List<Student> students = lectureEnrollments.stream()
                 .map(LectureEnrollment::getStudentId)
                 .filter(Objects::nonNull)

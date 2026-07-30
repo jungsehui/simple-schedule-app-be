@@ -10,7 +10,6 @@ import com.example.simplescheduleapp.lecture.general.presentation.response.Lectu
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureSearchResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureUpdateResponse;
 import com.example.simplescheduleapp.common.auth.Auth;
-import com.example.simplescheduleapp.common.auth.AuthIdentities;
 import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.lecture.general.presentation.response.TutorLectureGetResponse;
@@ -22,21 +21,27 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * 강의 API.
+ *
+ * <p>조회 3종은 역할 제한이 없지만 <b>인증은 필요하다</b> — 무인증 허용은 {@code @PublicEndpoint}로만
+ * 표현하며 이 컨트롤러에는 없다(ADR-0005). {@code tutorId} 쿼리 파라미터는 하위호환으로 남기되
+ * 값을 쓰지 않는다.
+ */
 @RequiredArgsConstructor
 @RestController
 public class LectureController {
 
     private final LectureService lectureService;
 
-    // Phase 3a 듀얼리드: 토큰 식별자 우선, tutorId 파라미터는 레거시 폴백 (3b에서 제거 예정)
     @RequireRole(Role.TUTOR)
     @PostMapping("/lectures")
     public ResponseEntity<LectureCreateResponse> createLecture(
-            @Auth(required = false) Long memberId,
-            @RequestParam(required = false) Long tutorId,
+            @Auth Long memberId,
+            @RequestParam(required = false) Long tutorId, // 레거시 — 수용하되 무시
             @Valid @RequestBody LectureCreateRequest lectureCreateRequest
     ) {
-        LectureCreateCommand command = lectureCreateRequest.toCommand(AuthIdentities.resolve(memberId, tutorId));
+        LectureCreateCommand command = lectureCreateRequest.toCommand(memberId);
         Lecture savedLecture = lectureService.createLecture(command);
         URI location = URI.create("/lectures/" + savedLecture.getId());
         return ResponseEntity
@@ -65,12 +70,12 @@ public class LectureController {
     @RequireRole(Role.TUTOR)
     @PatchMapping("/lectures/{lectureId}")
     public ResponseEntity<LectureUpdateResponse> updateLecture(
-            @Auth(required = false) Long memberId,
-            @RequestParam(required = false) Long tutorId,
+            @Auth Long memberId,
+            @RequestParam(required = false) Long tutorId, // 레거시 — 수용하되 무시
             @PathVariable Long lectureId,
             @Valid @RequestBody LectureUpdateRequest lectureUpdateRequest
     ) {
-        LectureUpdateCommand command = lectureUpdateRequest.toCommand(AuthIdentities.resolve(memberId, tutorId), lectureId);
+        LectureUpdateCommand command = lectureUpdateRequest.toCommand(memberId, lectureId);
         Lecture updatedLecture = lectureService.updateLecture(command);
         return ResponseEntity.ok(LectureUpdateResponse.from(updatedLecture));
     }

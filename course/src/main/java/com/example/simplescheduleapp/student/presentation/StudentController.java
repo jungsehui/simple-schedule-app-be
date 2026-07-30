@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.student.presentation;
 
 import com.example.simplescheduleapp.common.auth.Auth;
-import com.example.simplescheduleapp.common.auth.AuthIdentities;
+import com.example.simplescheduleapp.common.auth.PublicEndpoint;
 import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
@@ -20,6 +20,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 수강생 API.
+ *
+ * <p>{@code studentId} 쿼리 파라미터는 하위호환을 위해 시그니처에 남아 있지만 <b>값을 쓰지 않는다</b>
+ * — 식별자는 토큰에서만 온다(ADR-0005). 클라이언트가 남의 ID를 넣어도 자기 자원만 다룬다.
+ */
 @RequiredArgsConstructor
 @RestController
 public class StudentController {
@@ -28,6 +34,8 @@ public class StudentController {
     private final TokenService tokenService;
     private final LectureEnrollmentService lectureEnrollmentService;
 
+    /** 회원가입은 아직 계정이 없는 요청이므로 토큰을 요구할 수 없다 (ADR-0005 화이트리스트). */
+    @PublicEndpoint
     @PostMapping("/students")
     public ResponseEntity<LoginResponse> signUpStudent(
             @RequestBody @Valid StudentSignUpRequest request
@@ -38,15 +46,14 @@ public class StudentController {
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.STUDENT.name()));
     }
 
-    // Phase 3a 듀얼리드: 토큰 식별자 우선, studentId 파라미터는 레거시 폴백 (3b에서 제거 예정)
     @RequireRole(Role.STUDENT)
     @PostMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<LectureEnrollmentResponse> requestLectureEnrollment(
-            @Auth(required = false) Long memberId,
-            @RequestParam(required = false) Long studentId,
+            @Auth Long memberId,
+            @RequestParam(required = false) Long studentId, // 레거시 — 수용하되 무시
             @PathVariable Long lectureId
     ) {
-        LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(AuthIdentities.resolve(memberId, studentId), lectureId);
+        LectureEnrollmentCreateCommand command = LectureEnrollmentCreateCommand.of(memberId, lectureId);
         Long pendingId = lectureEnrollmentService.requestEnrollment(command);
         return ResponseEntity.ok(new LectureEnrollmentResponse(pendingId, lectureId));
     }
@@ -54,11 +61,11 @@ public class StudentController {
     @RequireRole(Role.STUDENT)
     @DeleteMapping("/lectures/{lectureId}/pending-enrollments")
     public ResponseEntity<Void> cancelPendingEnrollment(
-            @Auth(required = false) Long memberId,
-            @RequestParam(required = false) Long studentId,
+            @Auth Long memberId,
+            @RequestParam(required = false) Long studentId, // 레거시 — 수용하되 무시
             @PathVariable Long lectureId
     ) {
-        PendingLectureEnrollmentCancelCommand command = PendingLectureEnrollmentCancelCommand.of(AuthIdentities.resolve(memberId, studentId), lectureId);
+        PendingLectureEnrollmentCancelCommand command = PendingLectureEnrollmentCancelCommand.of(memberId, lectureId);
         lectureEnrollmentService.cancelPendingLectureEnrollment(command);
         return ResponseEntity.noContent().build();
     }
@@ -66,11 +73,11 @@ public class StudentController {
     @RequireRole(Role.STUDENT)
     @DeleteMapping("/lectures/{lectureId}/enrollments")
     public ResponseEntity<Void> cancelEnrollment(
-            @Auth(required = false) Long memberId,
-            @RequestParam(required = false) Long studentId,
+            @Auth Long memberId,
+            @RequestParam(required = false) Long studentId, // 레거시 — 수용하되 무시
             @PathVariable Long lectureId
     ) {
-        LectureEnrollmentCancelCommand command = LectureEnrollmentCancelCommand.of(AuthIdentities.resolve(memberId, studentId), lectureId);
+        LectureEnrollmentCancelCommand command = LectureEnrollmentCancelCommand.of(memberId, lectureId);
         lectureEnrollmentService.cancelLectureEnrollment(command);
         return ResponseEntity.noContent().build();
     }

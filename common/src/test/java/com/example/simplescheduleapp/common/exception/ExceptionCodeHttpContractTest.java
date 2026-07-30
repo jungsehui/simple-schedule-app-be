@@ -42,7 +42,6 @@ class ExceptionCodeHttpContractTest {
                 arguments(TokenExceptionCode.REQUIRED_BEARER_TOKEN, HttpStatus.UNAUTHORIZED),
                 arguments(TokenExceptionCode.UNKNOWN_TOKEN, HttpStatus.INTERNAL_SERVER_ERROR),
                 arguments(TokenExceptionCode.FORBIDDEN, HttpStatus.FORBIDDEN),
-                arguments(TokenExceptionCode.IDENTITY_REQUIRED, HttpStatus.UNAUTHORIZED),
                 arguments(InternalServerExceptionCode.UNKNOWN_EXCEPTION, HttpStatus.INTERNAL_SERVER_ERROR),
                 arguments(InternalServerExceptionCode.EXTERNAL_API_ERROR, HttpStatus.INTERNAL_SERVER_ERROR),
                 arguments(InternalServerExceptionCode.INVALID_INPUT_VALUE, HttpStatus.BAD_REQUEST),

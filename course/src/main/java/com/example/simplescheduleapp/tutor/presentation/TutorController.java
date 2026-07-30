@@ -1,6 +1,7 @@
 package com.example.simplescheduleapp.tutor.presentation;
 
 import com.example.simplescheduleapp.common.auth.Auth;
+import com.example.simplescheduleapp.common.auth.PublicEndpoint;
 import com.example.simplescheduleapp.common.auth.RequireRole;
 import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
@@ -30,6 +31,8 @@ public class TutorController {
     private final TokenService tokenService;
     private final LectureEnrollmentService lectureEnrollmentService;
 
+    /** 회원가입은 아직 계정이 없는 요청이므로 토큰을 요구할 수 없다 (ADR-0005 화이트리스트). */
+    @PublicEndpoint
     @PostMapping("/tutors")
     public ResponseEntity<LoginResponse> signUpTutor(
             @RequestBody @Valid TutorSignUpRequest request
@@ -40,11 +43,11 @@ public class TutorController {
         return ResponseEntity.ok(new LoginResponse(id, token.accessToken(), Role.TUTOR.name()));
     }
 
-    // Phase 3a 듀얼리드: 토큰이 있으면 서비스에서 튜터 소유권을 검증하고, 없으면 기존 동작 유지 (3b에서 강제)
+    // 소유권(이 강의의 강사인가)은 서비스가 애그리거트에 위임해 검증한다 — ADR-0005.
     @RequireRole(Role.TUTOR)
     @PostMapping("/enrollments/accept")
     public ResponseEntity<LectureEnrollmentAcceptedResponse> acceptEnrollment(
-            @Auth(required = false) Long memberId,
+            @Auth Long memberId,
             @RequestBody PendingAcceptRequest request
     ) {
         PendingAcceptCommand command = request.toCommand(memberId);
@@ -55,7 +58,7 @@ public class TutorController {
     @RequireRole(Role.TUTOR)
     @PostMapping("/enrollments/reject")
     public ResponseEntity<Void> rejectEnrollment(
-            @Auth(required = false) Long memberId,
+            @Auth Long memberId,
             @RequestBody PendingRejectRequest request
     ) {
         PendingRejectCommand command = request.toCommand(memberId);
