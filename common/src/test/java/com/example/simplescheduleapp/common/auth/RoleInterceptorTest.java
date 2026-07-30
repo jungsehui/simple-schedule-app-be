@@ -17,8 +17,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
- * Phase 3a(듀얼리드) 인가 인터셉터 규칙 테스트:
- * 무토큰 통과 / 유효 토큰 role 일치 통과 / role 불일치 403 / 레거시(role 없는) 토큰 통과.
+ * 인가 인터셉터 규칙 (ADR-0005 — 기본 차단으로 전환된 이후).
+ *
+ * <p>이전 Phase 3a는 무토큰 요청과 role 클레임이 없는 토큰을 통과시켰다. 두 통과 경로는
+ * 인가 판단 근거 없이 보호 엔드포인트를 열어주는 fail-open이라 폐기했다.
  */
 @ExtendWith(MockitoExtension.class)
 class RoleInterceptorTest {
@@ -46,14 +48,15 @@ class RoleInterceptorTest {
     }
 
     @Test
-    void 무토큰_요청은_통과한다() throws Exception {
-        // Phase 3a: 레거시 클라이언트 허용 — 3b에서 401로 전환
+    void 무토큰_요청은_거부한다() throws Exception {
+        // AuthenticationInterceptor가 앞서 막지만, 이 인터셉터 단독으로도 열리지 않아야 한다(다층 방어).
         MockHttpServletRequest request = new MockHttpServletRequest();
+        given(bearerTokenExtractor.extract(null))
+                .willThrow(new ApplicationException(TokenExceptionCode.REQUIRED_BEARER_TOKEN));
 
-        boolean result = roleInterceptor.preHandle(request, new MockHttpServletResponse(), handler("tutorOnly"));
-
-        assertThat(result).isTrue();
-        verifyNoInteractions(tokenService, bearerTokenExtractor);
+        assertThatThrownBy(() -> roleInterceptor.preHandle(request, new MockHttpServletResponse(), handler("tutorOnly")))
+                .isInstanceOf(ApplicationException.class)
+                .hasFieldOrPropertyWithValue("code", TokenExceptionCode.REQUIRED_BEARER_TOKEN);
     }
 
     @Test
@@ -81,19 +84,21 @@ class RoleInterceptorTest {
     }
 
     @Test
-    void role_클레임이_없는_레거시_토큰은_통과한다() throws Exception {
+    void role_클레임이_없는_토큰은_403_FORBIDDEN() throws Exception {
+        // 역할을 모르면 이 엔드포인트를 호출할 자격이 있는지 판단할 근거가 없다 — 통과시키면 fail-open.
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer legacy");
         given(bearerTokenExtractor.extract("Bearer legacy")).willReturn("legacy");
         given(tokenService.extractRole("legacy")).willReturn(null);
 
-        boolean result = roleInterceptor.preHandle(request, new MockHttpServletResponse(), handler("tutorOnly"));
-
-        assertThat(result).isTrue();
+        assertThatThrownBy(() -> roleInterceptor.preHandle(request, new MockHttpServletResponse(), handler("tutorOnly")))
+                .isInstanceOf(ApplicationException.class)
+                .hasFieldOrPropertyWithValue("code", TokenExceptionCode.FORBIDDEN);
     }
 
     @Test
-    void RequireRole이_없는_핸들러는_검사하지_않는다() throws Exception {
+    void RequireRole이_없는_핸들러는_역할을_검사하지_않는다() throws Exception {
+        // 인증은 AuthenticationInterceptor가 이미 보장했다 — 여기서는 역할 제한이 없다는 뜻일 뿐이다.
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
 

@@ -52,6 +52,16 @@ public class Lecture extends Schedule {
         return new LectureEnrollment(getId(), studentId);
     }
 
+    /**
+     * 이 강의의 강사인지 확인한다 — 아니면 {@code TUTOR_UNAUTHORIZED}(L2).
+     *
+     * <p>소유권은 도메인 불변식이므로 애그리거트가 스스로 지킨다. 서비스가 {@code getTutorId()}를
+     * 꺼내 비교하면 같은 규칙이 호출처마다 복제된다(ADR-0005).
+     */
+    public void requireTutor(Long tutorId) {
+        validateTutorAuthority(tutorId);
+    }
+
     public void update(Long tutorId, Schedule schedule, int capacity) {
         validateTutorAuthority(tutorId);
         validateCapacityNotBelowEnrolled(capacity);

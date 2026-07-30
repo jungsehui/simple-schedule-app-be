@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -158,12 +160,14 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
                 .set("studentId", 2L)
                 .sample();
 
-        Lecture lecture = mock(Lecture.class);
-        Tutor tutor = mock(Tutor.class);
+        // 진짜 Lecture를 쓴다 — mock이면 requireTutor()가 아무 검사도 하지 않아 이 테스트가
+        // 소유권 규칙을 전혀 가드하지 못한다(도메인 위임 전에는 getter stub으로 통했다).
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        Lecture lecture = Lecture.reconstitute(
+                1L, 0L, "소유권 검증용 강의", start, start.plusHours(1), "memo", ownerTutorId, 10, 0);
 
         given(pendingLectureEnrollmentRepository.getById(anyLong())).willReturn(pending);
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
-        given(lecture.getTutorId()).willReturn(ownerTutorId);
 
         // when & then
         assertThatThrownBy(() -> lectureEnrollmentService.acceptEnrollment(command))

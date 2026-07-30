@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.parent.presentation;
 
+import com.example.simplescheduleapp.common.auth.PublicEndpoint;
 import com.example.simplescheduleapp.common.auth.Role;
 import com.example.simplescheduleapp.common.auth.Token;
 import com.example.simplescheduleapp.common.auth.TokenService;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/** 회원가입은 아직 계정이 없는 요청이므로 토큰을 요구할 수 없다 (ADR-0005 화이트리스트). */
+@PublicEndpoint
 @RequiredArgsConstructor
 @RestController
 public class ParentController {
