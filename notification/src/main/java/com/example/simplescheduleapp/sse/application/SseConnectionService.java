@@ -113,7 +113,11 @@ public class SseConnectionService {
             try {
                 emitter.send(SseEmitter.event().name("heartbeat").data("연결 끊김 방지"));
                 redisClientManager.refreshConnection(memberId);
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException e) {
+                // IOException: 클라이언트 연결이 끊어져 전송 실패.
+                // IllegalStateException: emitter가 이미 완료(완료/타임아웃/에러 콜백 등)되어
+                //   "ResponseBodyEmitter has already completed"로 실패 — 재시도해도 영원히 실패하므로
+                //   여기서 정리하지 않으면 스케줄이 10초마다 이 예외를 영구히 반복한다.
                 emitter.complete();
                 clearSseConnectionResource(memberId);
             }
