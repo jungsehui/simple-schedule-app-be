@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,21 @@ public class CommonExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(MethodArgumentExceptionResponse.from(InternalServerExceptionCode.INVALID_INPUT_VALUE, errors));
+    }
+
+    /**
+     * 존재하지 않는 경로 → 404. 클라이언트 귀책이므로 500이 아니다.
+     *
+     * <p>이게 없으면 아래 {@code handleException}이 삼켜 <b>500 + 스택트레이스</b>가 나간다.
+     * 실제로 SSE 계약 변경 후 구 경로({@code /sse-stream/{memberId}})를 호출한 클라이언트가
+     * 404 대신 500을 받았고, 서버 로그에는 매 요청마다 ERROR 스택이 쌓였다.
+     */
+    @ExceptionHandler(value = NoResourceFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleNoResourceFound(NoResourceFoundException exception) {
+        log.warn("No handler for request. path: {}", exception.getResourcePath());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ExceptionResponse.from(InternalServerExceptionCode.RESOURCE_NOT_FOUND));
     }
 
     @ExceptionHandler(value = Exception.class)

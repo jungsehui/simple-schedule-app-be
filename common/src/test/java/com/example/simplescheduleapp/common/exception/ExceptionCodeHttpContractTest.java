@@ -45,6 +45,7 @@ class ExceptionCodeHttpContractTest {
                 arguments(InternalServerExceptionCode.UNKNOWN_EXCEPTION, HttpStatus.INTERNAL_SERVER_ERROR),
                 arguments(InternalServerExceptionCode.EXTERNAL_API_ERROR, HttpStatus.INTERNAL_SERVER_ERROR),
                 arguments(InternalServerExceptionCode.INVALID_INPUT_VALUE, HttpStatus.BAD_REQUEST),
+                arguments(InternalServerExceptionCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND),
                 arguments(DomainEventExceptionCode.DOMAIN_EVENT_NOT_FOUND, HttpStatus.NOT_FOUND),
                 arguments(DomainEventExceptionCode.DOMAIN_EVENT_NOT_SUPPORTED, HttpStatus.NOT_FOUND));
     }
