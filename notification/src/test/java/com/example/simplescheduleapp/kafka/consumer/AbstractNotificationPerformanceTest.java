@@ -6,13 +6,14 @@ import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.notification.application.NotificationDispatcher;
 import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;
-import com.example.simplescheduleapp.notification.client.CourseClient;
+import com.example.simplescheduleapp.notification.application.port.out.EnrolledStudentsPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StopWatch;
 
@@ -21,21 +22,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.LongStream;
 
-import static com.example.simplescheduleapp.support.ApplicationWithKafkaTest.PORT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.doAnswer;
 import static org.mockito.BDDMockito.given;
 
-@EmbeddedKafka(
-        topics = {KafkaTopics.COURSE_EVENT_TOPIC}, // 사용할 토픽 이름을 여기에 명시
-        brokerProperties = {
-                "listeners=PLAINTEXT://localhost:" + PORT
-        },
-        ports = {PORT}
-)
+// Boot 4 KRaft EmbeddedKafka는 랜덤 포트로 기동 — 앱의 bootstrap-servers를 그 브로커로 덮어쓴다. (ADR-0003 Stage 3)
+@EmbeddedKafka(topics = {KafkaTopics.COURSE_EVENT_TOPIC}, partitions = 1)
+@TestPropertySource(properties = {
+        "spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}"
+})
 // 처리량/타이밍(Thread.sleep, 500명 팬아웃)을 측정하는 성능 테스트 — 정확성 검증이 아니므로
-// CI 기본 test 태스크에서는 제외(@Tag("slow")). 고정 포트 EmbeddedKafka 경합도 함께 회피.
+// CI 기본 test 태스크에서는 제외(@Tag("slow")).
 @Tag("slow")
 @SpringBootTest(classes = NotificationApplication.class)
 public abstract class AbstractNotificationPerformanceTest {
@@ -51,7 +50,7 @@ public abstract class AbstractNotificationPerformanceTest {
     protected NotificationDispatcher notificationDispatcher;
 
     @MockitoBean
-    protected CourseClient courseClient;
+    protected EnrolledStudentsPort courseClient;
 
     protected StopWatch stopWatch;
     protected CountDownLatch latch;

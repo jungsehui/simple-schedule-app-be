@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# CI 패리티 게이트 (ADR-0003 Stage 0, linkareer 하우스스타일):
+# push 전에 CI와 동일한 스코프의 빌드+테스트를 로컬에서 통과시켜야 한다.
+# 활성화: ./gradlew installGitHooks   (core.hooksPath=.githooks)
+# 긴급 우회: git push --no-verify (사유를 커밋/PR에 남길 것)
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+echo "[pre-push] 통합 빌드+테스트 (SSA + GeekChat)..."
+./gradlew buildAll --quiet
+
+echo "[pre-push] OK"

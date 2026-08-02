@@ -1,18 +1,20 @@
 package com.example.simplescheduleapp.event;
 
 import com.example.simplescheduleapp.common.event.DomainEvent;
+import com.example.simplescheduleapp.common.event.EventStatus;
 import com.example.simplescheduleapp.common.kafka.topic.KafkaTopics;
 import com.example.simplescheduleapp.lecture.general.domain.Lecture;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@DiscriminatorValue("ENROLLMENT_CANCELED")
+/**
+ * 수강신청 취소 이벤트 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>아웃박스 영속은 {@code event/infrastructure/persistence}의 대응 엔티티가 담당한다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
 public class LectureEnrollmentCanceledEvent extends DomainEvent {
 
     private Long studentId;      // 취소한 학생 ID
@@ -24,8 +26,18 @@ public class LectureEnrollmentCanceledEvent extends DomainEvent {
         super(lecture.getId()); // targetDomainId = lectureId
 
         this.studentId = studentId;
-        this.tutorId = lecture.getTutor().getId();
+        this.tutorId = lecture.getTutorId();
         this.lectureTitle = lecture.getTitle();
+    }
+
+    /** DB 복원용 — 영속 매퍼 전용. */
+    public LectureEnrollmentCanceledEvent(Long id, String uuid, EventStatus status, Long targetDomainId,
+                                          String failReason, int retryCount,
+                                          Long studentId, Long tutorId, String lectureTitle) {
+        super(id, uuid, status, targetDomainId, failReason, retryCount);
+        this.studentId = studentId;
+        this.tutorId = tutorId;
+        this.lectureTitle = lectureTitle;
     }
 
     @Override

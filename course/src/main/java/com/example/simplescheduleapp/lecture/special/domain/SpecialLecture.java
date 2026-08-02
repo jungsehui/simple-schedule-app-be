@@ -3,50 +3,64 @@ package com.example.simplescheduleapp.lecture.special.domain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.schedule.domain.Schedule;
-import com.example.simplescheduleapp.student.domain.Student;
-import com.example.simplescheduleapp.tutor.domain.Tutor;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@DiscriminatorValue("SPECIAL_LECTURE")
-@Table(name = "special_lecture")
+/**
+ * 특강 — 순수 도메인 모델 (ADR-0004).
+ *
+ * <p>JPA/프레임워크 의존 0. 영속 매핑은 {@code infrastructure/persistence}의
+ * {@code SpecialLectureEntity}가 담당한다. 애그리게잇 간 참조는 ID(tutorId)로 한다(Phase A).
+ *
+ * <p>선착순 신청의 3차 방어선(낙관적 락)은 상위 Schedule의 version이 담당한다 —
+ * 매퍼의 version 왕복이 전제다.
+ */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
 public class SpecialLecture extends Schedule {
 
-    @ManyToOne
-    @JoinColumn(name = "tutor_id")
-    private Tutor tutor;
-
-    @Column(nullable = false)
+    private Long tutorId;
     private int capacity;
 
-    // 낙관적 락(@Version)은 부모 엔티티 Schedule에 정의되어 있다.
-    // JPA 제약상 엔티티 계층(@Inheritance)에서 @Version은 root entity에만 둘 수 있다.
-
-    public SpecialLecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Tutor tutor, int capacity) {
+    public SpecialLecture(String title, LocalDateTime startTime, LocalDateTime endTime, String memo, Long tutorId, int capacity) {
         super(title, startTime, endTime, memo);
-        this.tutor = tutor;
+        this.tutorId = tutorId;
         this.capacity = capacity;
     }
 
-    public SpecialLectureEnrollment enroll(Student student) {
-        return new SpecialLectureEnrollment(this, student);
+    private SpecialLecture(Long id, Long version, String title, LocalDateTime startTime, LocalDateTime endTime,
+                           String memo, Long tutorId, int capacity) {
+        super(id, version, title, startTime, endTime, memo);
+        this.tutorId = tutorId;
+        this.capacity = capacity;
     }
 
-    public void update(Tutor tutor, Schedule schedule, int capacity) {
-        validateTutorAuthority(tutor);
+    /** DB 복원용 재구성 팩토리 — 매퍼 전용. */
+    public static SpecialLecture reconstitute(Long id, Long version, String title, LocalDateTime startTime,
+                                              LocalDateTime endTime, String memo, Long tutorId, int capacity) {
+        return new SpecialLecture(id, version, title, startTime, endTime, memo, tutorId, capacity);
+    }
+
+    public SpecialLectureEnrollment enroll(Long studentId) {
+        return new SpecialLectureEnrollment(getId(), studentId);
+    }
+
+    /** 이 특강의 강사인지 확인한다 — 아니면 {@code TUTOR_UNAUTHORIZED}(L2). 소유권은 도메인 불변식이다(ADR-0005). */
+    public void requireTutor(Long tutorId) {
+        validateTutorAuthority(tutorId);
+    }
+
+    public void update(Long tutorId, Schedule schedule, int capacity) {
+        validateTutorAuthority(tutorId);
         updateSchedule(schedule);
         this.capacity = capacity;
     }
 
-    private void validateTutorAuthority(Tutor tutor) {
-        if (!this.tutor.getId().equals(tutor.getId())) {
+    private void validateTutorAuthority(Long tutorId) {
+        if (!this.tutorId.equals(tutorId)) {
             throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
         }
     }

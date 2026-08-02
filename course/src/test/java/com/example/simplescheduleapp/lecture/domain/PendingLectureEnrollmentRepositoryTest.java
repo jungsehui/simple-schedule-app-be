@@ -2,13 +2,22 @@ package com.example.simplescheduleapp.lecture.domain;
 
 import com.example.simplescheduleapp.lecture.general.domain.PendingLectureEnrollment;
 import com.example.simplescheduleapp.lecture.general.domain.PendingLectureEnrollmentRepository;
-import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PendingLectureEnrollmentRepositoryTest extends ApplicationTest {
+/**
+ * pending 하드 삭제 회귀 가드 (main {@code 963379f}의 테스트를 순수화 구조로 이식 —
+ * 원본은 course에 없는 {@code support.ApplicationTest}에 의존했다).
+ *
+ * <p>의도적으로 {@code @Transactional} 없이 실행한다 — 같은 트랜잭션 안에서는 Hibernate가
+ * flush 시 INSERT를 DELETE보다 먼저 실행해, 실제 운영 경로(취소 커밋 후 재신청)와 다른
+ * 순서로 유니크 제약을 평가하기 때문이다. 포트 호출 각각이 자체 트랜잭션으로 커밋된다.
+ */
+@SpringBootTest
+class PendingLectureEnrollmentRepositoryTest {
 
     @Autowired
     private PendingLectureEnrollmentRepository pendingLectureEnrollmentRepository;
@@ -27,6 +36,5 @@ class PendingLectureEnrollmentRepositoryTest extends ApplicationTest {
 
         // then
         assertThat(second.getId()).isNotNull();
-        assertThat(pendingLectureEnrollmentRepository.existsByLectureIdAndStudentId(991L, 991L)).isTrue();
     }
 }

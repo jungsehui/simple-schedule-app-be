@@ -22,10 +22,12 @@ spring:
       ddl-auto: create
 
   kafka:
+    # Boot 4 KRaft EmbeddedKafka는 랜덤 포트로 기동 — @EmbeddedKafka가 주입하는 실제 브로커 주소 사용.
+    # @EmbeddedKafka가 없는 컨텍스트(ApplicationTest 등)는 프로듀서를 지연 연결하므로 기본값으로 대체. (ADR-0003 Stage 3)
     producer:
-      bootstrap-servers: "localhost:49092"
+      bootstrap-servers: "${spring.embedded.kafka.brokers:localhost:9092}"
     consumer:
-      bootstrap-servers: "localhost:49092"
+      bootstrap-servers: "${spring.embedded.kafka.brokers:localhost:9092}"
       group-id: "ssa-course-server-group-test" # 테스트용 group-id는 분리하는 것이 좋음
 
 cors:

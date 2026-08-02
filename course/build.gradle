@@ -1,36 +1,33 @@
 plugins {
-	id 'java'
-	id 'java-library'
-	id 'org.springframework.boot' version "3.4.3"
-	id 'io.spring.dependency-management' version "1.1.7"
-}
-
-group = "com.example"
-version = "0.0.1-SNAPSHOT"
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    // 바운디드 컨텍스트 라이브러리 — 자체 bootJar 없음, :app이 조합 (ADR-0003 Stage 2)
+    id 'ssa.java-library'
 }
 
 dependencies {
-	// Common 모듈 의존
-	implementation project(':common')
-	testImplementation(testFixtures(project(':common')))
+    // Common 모듈 의존
+    implementation project(':common')
+    testImplementation(testFixtures(project(':common')))
 
-	// Actuator
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-	// Retry (for optimistic locking)
-	implementation 'org.springframework.retry:spring-retry'
-	implementation 'org.springframework.boot:spring-boot-starter-aop'
+    // 비밀번호 해싱 — 순수 자바 bcrypt. 도메인(Password VO)이 직접 사용하며,
+    // 프레임워크가 아닌 알고리즘 라이브러리라 도메인 순수성 규칙에 위배되지 않는다. (ADR-0004)
+    implementation libs.bcrypt
 
-	// DB 드라이버 — 로컬 dev는 MySQL, prod는 Supabase PostgreSQL (application-prod.yml)
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	runtimeOnly 'org.postgresql:postgresql'
-	runtimeOnly 'com.h2database:h2'
+    // 재시도·AOP·스케줄링은 common의 api(spring-retry/starter-aop)+SchedulingRetryConfig로 상속 (Stage 2)
 
-	// Configuration Processor (Lombok과 별개로 설정 파일 자동완성용)
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    // DB 마이그레이션 — prod 전용 활성, ddl-auto 폐기 경로 확보 (ADR-0003 Stage 0)
+    // Boot 4는 FlywayAutoConfiguration을 별도 spring-boot-flyway 모듈로 분리 — flyway-core만으론
+    // 마이그레이션이 아예 안 돈다. 스타터로 오토컨피그를 포함시킨다. (ADR-0003 Stage 3b)
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
+    // DB 드라이버 — 로컬 dev는 MySQL, prod는 Supabase PostgreSQL (application-prod.yml)
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+
+    // Configuration Processor (설정 파일 자동완성용)
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }

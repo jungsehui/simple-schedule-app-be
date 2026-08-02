@@ -7,6 +7,7 @@ import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -29,6 +30,17 @@ public class SseConnectionService {
     private static final long INITIAL_DELAY = 10L;
     private static final long PERIOD = 10L;
 
+    /**
+     * 알림 이벤트의 SSE {@code event:} 이름(고정).
+     *
+     * <p>SSE의 {@code event:} 필드는 <b>이벤트 타입 구분자</b>이고, 클라이언트는 그 이름으로
+     * 리스너를 등록한다({@code EventSource.addEventListener(name, ...)}, 또는 이름이 없을 때만
+     * {@code onmessage}). 여기에 강의 제목처럼 <b>런타임에 결정되는 값</b>을 넣으면 클라이언트가
+     * 이름을 미리 알 수 없어 어떤 리스너로도 수신할 수 없다. 그래서 이름은 고정하고
+     * 제목·본문은 데이터(JSON)로 보낸다.
+     */
+    private static final String NOTIFICATION_EVENT_NAME = "notification";
+
     @Qualifier(SSE_HEARTBEAT_SCHEDULER)
     private final TaskScheduler taskScheduler;
 
@@ -46,7 +58,9 @@ public class SseConnectionService {
         SseEmitter emitter = sseEmitterRepository.get(targetId);
 
         try {
-            emitter.send(SseEmitter.event().name(title).data(body));
+            emitter.send(SseEmitter.event()
+                    .name(NOTIFICATION_EVENT_NAME)
+                    .data(Map.of("title", title, "body", body), MediaType.APPLICATION_JSON));
             log.info("SSE 이벤트 전송 성공 - targetId: {}, title: {}, body: {}",
                     targetId, title, body);
         } catch (IOException e) {

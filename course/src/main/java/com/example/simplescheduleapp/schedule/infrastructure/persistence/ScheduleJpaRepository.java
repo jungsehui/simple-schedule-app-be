@@ -1,6 +1,5 @@
 package com.example.simplescheduleapp.schedule.infrastructure.persistence;
 
-import com.example.simplescheduleapp.schedule.domain.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,7 +7,9 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface ScheduleJpaRepository extends JpaRepository<Schedule, Long> {
+// 아래 조회는 전부 네이티브 SQL이라 엔티티 순수화(Schedule → ScheduleEntity)의 영향을 받지 않는다.
+// 포트가 List<Long>(ID)만 반환하므로 도메인 매핑도 불필요하다. (ADR-0004)
+public interface ScheduleJpaRepository extends JpaRepository<ScheduleEntity, Long> {
 
     // excludeScheduleId는 항상 non-null 값(제외 없음을 뜻하는 sentinel 포함)으로 바인딩된다.
     // (어댑터가 null -> sentinel 변환을 담당) 이전에는 native 쿼리에서

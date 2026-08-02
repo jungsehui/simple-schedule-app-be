@@ -1,0 +1,69 @@
+# 운영 프로파일 — 민감 값은 전부 환경변수 주입 (deploy/docker-compose.prod.yml, deploy/.env.example)
+# 단일 JVM: course+notification 통합. DB는 Supabase 단일 `ssa` 스키마(URL의 currentSchema=ssa로 주입).
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # course(10)+notification(5) 통합 — 단일 앱이라 15로 상한, geekchat(5)과 합쳐 Supabase 예산 내
+      maximum-pool-size: 15
+      connection-timeout: 30000
+      max-lifetime: 600000
+
+  jpa:
+    hibernate:
+      # TODO: Flyway 정착 후 validate로 전환
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  sql:
+    init:
+      mode: never
+
+  # ADR-0003 Stage 0/2: 단일 `ssa` 스키마를 baseline(V1)으로 동결, 신규 DDL은 V2+.
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
+
+  kafka:
+    producer:
+      bootstrap-servers: ${SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS}
+    consumer:
+      bootstrap-servers: ${SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS}
+      group-id: "ssa-server-group"
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+token:
+  secretKey: ${TOKEN_SECRETKEY}
+  accessTokenExpirationMillis: ${TOKEN_ACCESSTOKENEXPIRATIONMILLIS:86400000}
+
+# /internal API 공유 시크릿 가드 (InternalApiKeyFilter). 단일 JVM에선 내부 미사용이나 필터는 존치.
+internal:
+  api:
+    key: ${INTERNAL_API_KEY:}
+
+fcm:
+  key:
+    json: ${FCM_KEY_JSON}
+    url: https://www.googleapis.com/auth/firebase.messaging
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN

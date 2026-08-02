@@ -3,21 +3,30 @@ package com.example.simplescheduleapp.sse.application;
 import com.example.simplescheduleapp.redis.cache.RedisClientManager;
 import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
 import com.example.simplescheduleapp.support.UnitTest;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -92,5 +101,42 @@ class SseConnectionServiceTest extends UnitTest {
         // 새로 등록된(두 번째) 핸들은 아직 취소되면 안 된다.
         verify(scheduledFuture, times(1)).cancel(false);
         verify(secondScheduledFuture, never()).cancel(false);
+    }
+
+    @DisplayName("알림은 event 이름이 'notification'으로 고정되고, 제목·본문은 JSON 데이터로 실린다")
+    @Test
+    void 알림_이벤트는_이름이_고정이고_제목은_데이터에_들어간다() throws IOException {
+        // 이벤트 이름은 클라이언트가 리스너를 거는 타입 구분자다(addEventListener(name)).
+        // 여기에 강의 제목처럼 런타임 값을 넣으면 클라이언트가 이름을 미리 알 수 없어
+        // 어떤 리스너로도 알림을 받지 못한다 — 실제로 그런 상태였다.
+        Long memberId = 3L;
+        String title = "중등 수학 심화";
+        String body = "수강신청이 승인되었습니다";
+        SseEmitter emitter = mock(SseEmitter.class);
+        doReturn(emitter).when(sseEmitterRepository).get(memberId);
+
+        sseConnectionService.sendSseNotification(memberId, title, body);
+
+        ArgumentCaptor<SseEmitter.SseEventBuilder> captor =
+                ArgumentCaptor.forClass(SseEmitter.SseEventBuilder.class);
+        verify(emitter).send(captor.capture());
+        Set<ResponseBodyEmitter.DataWithMediaType> parts = captor.getValue().build();
+
+        String wireText = parts.stream()
+                .map(part -> String.valueOf(part.getData()))
+                .collect(Collectors.joining());
+
+        // 이름은 고정값이고, 제목이 이름 자리에 새어나오지 않는다
+        assertThat(wireText).contains("event:notification");
+        assertThat(wireText).doesNotContain("event:" + title);
+
+        // 제목·본문은 JSON 데이터로 간다
+        assertThat(parts)
+                .anySatisfy(part -> {
+                    assertThat(part.getData()).asInstanceOf(InstanceOfAssertFactories.MAP)
+                            .containsEntry("title", title)
+                            .containsEntry("body", body);
+                    assertThat(part.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON);
+                });
     }
 }

@@ -27,7 +27,7 @@ public class SpecialLectureEnrollmentService {
         SpecialLecture specialLecture = specialLectureRepository.getById(specialLectureId);
         Student student = studentRepository.getById(studentId);
         scheduleConflictValidator.validateNoStudentConflict(student.getId(), specialLecture.getStartTime(), specialLecture.getEndTime(), null);
-        SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student);
+        SpecialLectureEnrollment specialLectureEnrollment = specialLecture.enroll(student.getId());
         specialLectureRepository.save(specialLecture);
         return specialLectureEnrollmentRepository.save(specialLectureEnrollment);
     }

@@ -4,8 +4,9 @@ import com.example.simplescheduleapp.common.messaging.MessagePublisher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
 import com.example.simplescheduleapp.redis.topic.RedisChannels;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +25,7 @@ class RedisSseMessagePublisherTest {
     @BeforeEach
     void setUp() {
         messagePublisher = mock(MessagePublisher.class);
-        objectMapper = new ObjectMapper();
+        objectMapper = new JsonMapper();
         publisher = new RedisSseMessagePublisher(messagePublisher, objectMapper);
     }
 
@@ -50,7 +51,7 @@ class RedisSseMessagePublisherTest {
                 assertEquals(title, deserializedEvent.title());
                 assertEquals(body, deserializedEvent.body());
                 return true;
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 return false;
             }
         }));

@@ -11,7 +11,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 /**
- * {@code TutorRepository} 포트의 JPA 어댑터. 유니크 제약 위반을 도메인 예외로 번역. (ADR-0002 Stage 2)
+ * {@code TutorRepository} 포트의 JPA 어댑터. 도메인 ↔ 엔티티 매핑을 담당하고,
+ * 유니크 제약 위반을 도메인 예외로 번역. (ADR-0002 Stage 2 / ADR-0004)
  */
 @Repository
 @RequiredArgsConstructor
@@ -22,7 +23,7 @@ public class TutorRepositoryAdapter implements TutorRepository {
     @Override
     public Tutor save(Tutor member) {
         try {
-            return jpaRepository.save(member);
+            return TutorMapper.toDomain(jpaRepository.save(TutorMapper.toEntity(member)));
         } catch (DataIntegrityViolationException e) {
             throw new ApplicationException(MemberExceptionCode.DUPLICATED_USERNAME_PHONE);
         }
@@ -30,6 +31,6 @@ public class TutorRepositoryAdapter implements TutorRepository {
 
     @Override
     public Optional<Tutor> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(TutorMapper::toDomain);
     }
 }

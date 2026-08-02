@@ -7,11 +7,11 @@ import com.example.simplescheduleapp.lecture.general.domain.LectureRepository;
 import com.example.simplescheduleapp.schedule.domain.ScheduleRepository;
 import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
-import com.example.simplescheduleapp.support.ApplicationTest;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
 import com.example.simplescheduleapp.tutor.domain.TutorRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -27,12 +27,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * CAST 대상 타입이 아니라 실제 운영 흐름(POST /enrollments/accept)에서 500 에러를 유발했다
  * (H2/PostgreSQL은 CAST(... AS BIGINT)를 허용해 테스트에서 발견되지 않았던 결함).
  *
- * <p>이 테스트는 H2 기준으로 어댑터가 null -> sentinel(-1) 변환을 거쳐도 제외 여부에 따른
+ * <p>이 테스트는 H2 기준으로 어댑터가 null → sentinel(-1) 변환을 거쳐도 제외 여부에 따른
  * 결과가 여전히 올바른지 검증한다. MySQL의 CAST 문법 오류 자체는 H2로 재현할 수 없어(H2는
  * BIGINT CAST를 지원) docker exec 기반 수동 검증으로 별도 확인했다.
+ *
+ * <p>원본(main {@code 6ccf4a9})은 course에 없는 {@code support.ApplicationTest}를 상속하고
+ * 애그리거트 간 참조를 객체로 넘겼다. ADR-0004로 교차참조가 ID로 전환됐으므로 그 형태로 이식했다.
  */
 @Transactional
-class ScheduleRepositoryAdapterTest extends ApplicationTest {
+@SpringBootTest
+class ScheduleRepositoryAdapterTest {
 
     @Autowired
     private ScheduleRepository scheduleRepository;
@@ -54,9 +58,9 @@ class ScheduleRepositoryAdapterTest extends ApplicationTest {
         // given
         Tutor tutor = tutorRepository.save(new Tutor("tutor1", "Password123!", "튜터1", 30, "01011112222", 5));
         Lecture lecture1 = lectureRepository.save(new Lecture(
-                "강의1", LocalDateTime.of(2026, 8, 1, 10, 0), LocalDateTime.of(2026, 8, 1, 12, 0), null, tutor, 10));
+                "강의1", LocalDateTime.of(2026, 8, 1, 10, 0), LocalDateTime.of(2026, 8, 1, 12, 0), null, tutor.getId(), 10));
         Lecture lecture2 = lectureRepository.save(new Lecture(
-                "강의2", LocalDateTime.of(2026, 8, 1, 11, 0), LocalDateTime.of(2026, 8, 1, 13, 0), null, tutor, 10));
+                "강의2", LocalDateTime.of(2026, 8, 1, 11, 0), LocalDateTime.of(2026, 8, 1, 13, 0), null, tutor.getId(), 10));
 
         LocalDateTime windowStart = LocalDateTime.of(2026, 8, 1, 10, 30);
         LocalDateTime windowEnd = LocalDateTime.of(2026, 8, 1, 11, 30);
@@ -83,12 +87,12 @@ class ScheduleRepositoryAdapterTest extends ApplicationTest {
         Student student = studentRepository.save(new Student("student1", "Password123!", "학생1", 20, "01055556666", "테스트고"));
 
         Lecture lecture1 = lectureRepository.save(new Lecture(
-                "강의A", LocalDateTime.of(2026, 8, 1, 10, 0), LocalDateTime.of(2026, 8, 1, 12, 0), null, tutor, 10));
+                "강의A", LocalDateTime.of(2026, 8, 1, 10, 0), LocalDateTime.of(2026, 8, 1, 12, 0), null, tutor.getId(), 10));
         Lecture lecture2 = lectureRepository.save(new Lecture(
-                "강의B", LocalDateTime.of(2026, 8, 1, 11, 0), LocalDateTime.of(2026, 8, 1, 13, 0), null, tutor, 10));
+                "강의B", LocalDateTime.of(2026, 8, 1, 11, 0), LocalDateTime.of(2026, 8, 1, 13, 0), null, tutor.getId(), 10));
 
-        lectureEnrollmentRepository.save(new LectureEnrollment(lecture1, student));
-        lectureEnrollmentRepository.save(new LectureEnrollment(lecture2, student));
+        lectureEnrollmentRepository.save(new LectureEnrollment(lecture1.getId(), student.getId()));
+        lectureEnrollmentRepository.save(new LectureEnrollment(lecture2.getId(), student.getId()));
 
         LocalDateTime windowStart = LocalDateTime.of(2026, 8, 1, 10, 30);
         LocalDateTime windowEnd = LocalDateTime.of(2026, 8, 1, 11, 30);

@@ -1,0 +1,19 @@
+plugins {
+    // 유일한 부팅 모듈 — course/notification 라이브러리를 조합해 단일 JVM으로 실행 (ADR-0003 Stage 2)
+    id 'ssa.spring-boot-app'
+}
+
+dependencies {
+    // 기술 커널(spring-boot/jpa/kafka/redis api) — 부팅 모듈이 직접 의존해야 컴파일 클래스패스에 노출됨
+    // (course/notification은 common을 implementation으로 가려 :app으로 전이되지 않음)
+    implementation project(':common')
+
+    // 바운디드 컨텍스트 모듈을 라이브러리로 조합
+    implementation project(':course')
+    implementation project(':notification')
+
+    // 통합 컨텍스트 부팅 테스트 — EmbeddedKafka + H2, common testFixtures 재사용
+    testImplementation(testFixtures(project(':common')))
+    // FirebaseMessaging @MockitoBean 참조용 (런타임엔 notification 경유로 이미 포함, 컴파일만 필요)
+    testImplementation libs.firebase.admin
+}

@@ -1,61 +1,46 @@
 plugins {
-	// java-library, boot 등은 루트에서 적용했으므로 생략 가능
-	// test-fixtures는 common만의 기능이므로 명시
-	id 'java-test-fixtures'
-}
-
-group = "com.example"
-version = "0.0.1-SNAPSHOT"
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    // 공통 설정(java/boot/dep-mgmt/lombok/test/archunit)은 컨벤션 플러그인으로 이동 (ADR-0003 Stage 1)
+    id 'ssa.java-library'          // 라이브러리 모듈 — bootJar off, jar on
+    id 'java-test-fixtures'        // test-fixtures는 common만의 기능
 }
 
 dependencies {
-	// 하위 모듈로 전파되어야 하는 라이브러리 'api' 사용
-	api 'org.springframework.boot:spring-boot-starter-web'
-	api 'org.springframework.boot:spring-boot-starter-data-jpa'
-	api 'org.springframework.boot:spring-boot-starter-validation'
-	api 'org.springframework.kafka:spring-kafka'
-	api 'org.springframework.boot:spring-boot-starter-data-redis'
-	api 'org.redisson:redisson-spring-boot-starter:3.29.0'
-	api 'net.logstash.logback:logstash-logback-encoder:8.0'
+    // 하위 모듈로 전파되어야 하는 라이브러리 'api' 사용
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.springframework.kafka:spring-kafka'
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+    api libs.redisson.spring.boot.starter
+    api libs.logstash.logback.encoder
 
-	// Kafka Client
-	implementation 'org.apache.kafka:kafka-clients:3.7.1'
+    // 재시도는 Framework 7 네이티브(@EnableResilientMethods/@Retryable, spring-context 내장)로 이관 —
+    // 별도 spring-retry 의존 불필요 (Boot 4가 BOM에서 제거). (ADR-0003 Stage 3)
+    // AspectJ 스타터는 Boot 4에서 starter-aop→starter-aspectj로 리네임 (Redisson @Aspect 락에 필요).
+    api 'org.springframework.boot:spring-boot-starter-aspectj'
 
-	// JWT (내부 구현 상세는 implementation 권장, 단 DTO 등에서 쓴다면 api)
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    // Kafka Client
+    implementation libs.kafka.clients
 
-	// 하위 모듈의 테스트 코드에서도 사용할 수 있도록 'testFixturesApi' --> Spring Boot Test (@SpringBootTest)
-	testFixturesApi 'org.springframework.boot:spring-boot-starter-test'
+    // JWT (내부 구현 상세는 implementation)
+    implementation libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson
 
-	// Kafka Test (@EmbeddedKafka)
-	testFixturesApi 'org.springframework.kafka:spring-kafka-test'
+    // 하위 모듈의 테스트에서도 사용 — testFixturesApi (@SpringBootTest / @EmbeddedKafka / @WebMvcTest)
+    testFixturesApi 'org.springframework.boot:spring-boot-starter-test'
+    // Boot 4에서 @WebMvcTest 슬라이스가 별도 스타터로 분리됨 (ADR-0003 Stage 3)
+    testFixturesApi 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testFixturesApi 'org.springframework.kafka:spring-kafka-test'
+    testFixturesApi libs.fixture.monkey.starter
+    testFixturesApi libs.fixture.monkey.jakarta.validation
 
-	// Fixture Monkey
-	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.11'
-	testFixturesApi 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
+    // Lombok (Test Fixtures 컴파일 시 필요)
+    testFixturesCompileOnly 'org.projectlombok:lombok'
+    testFixturesAnnotationProcessor 'org.projectlombok:lombok'
 
-	// Lombok (Test Fixtures 컴파일 시 필요)
-	testFixturesCompileOnly 'org.projectlombok:lombok'
-	testFixturesAnnotationProcessor 'org.projectlombok:lombok'
-
-	// Fixture Monkey (내부 테스트용)
-	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.1.11'
-	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-api:1.1.11'
-	testFixturesImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.11'
-}
-
-// 라이브러리 역할을 하는 모듈이므로 bootJar(실행파일 생성)는 끄고 jar(라이브러리 생성)는 켬
-tasks.named('bootJar') {
-	enabled = false
-}
-
-tasks.named('jar') {
-	enabled = true
+    // Fixture Monkey (내부 테스트용)
+    testFixturesImplementation libs.fixture.monkey
+    testFixturesImplementation libs.fixture.monkey.api
+    testFixturesImplementation libs.fixture.monkey.jakarta.validation
 }

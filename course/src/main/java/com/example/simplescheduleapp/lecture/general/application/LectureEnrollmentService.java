@@ -6,6 +6,7 @@ import com.example.simplescheduleapp.event.LectureEnrollmentCanceledEvent;
 import com.example.simplescheduleapp.event.LectureEnrollmentRejectedEvent;
 import com.example.simplescheduleapp.event.LectureEnrollmentRequestedEvent;
 import com.example.simplescheduleapp.lecture.general.application.command.*;
+import com.example.simplescheduleapp.lecture.general.application.result.LectureEnrollmentDetail;
 import com.example.simplescheduleapp.lecture.general.domain.*;
 import com.example.simplescheduleapp.lecture.general.domain.service.PendingLectureEnrollmentService;
 import com.example.simplescheduleapp.lecture.general.exception.LectureEnrollmentExceptionCode;
@@ -18,8 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,29 +64,30 @@ public class LectureEnrollmentService {
         pendingLectureEnrollmentRepository.delete(pending);
     }
 
-    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @Retryable(includes = OptimisticLockingFailureException.class, maxRetries = 2, delay = 100)
     @Transactional
     public void cancelLectureEnrollment(LectureEnrollmentCancelCommand command) {
         LectureEnrollment lectureEnrollment = lectureEnrollmentRepository.getByLectureIdAndStudentId(command.lectureId(), command.studentId());
-        Lecture lecture = lectureEnrollment.getLecture();
+        // 애그리게잇 관통(enrollment→lecture) 대신 Lecture 애그리게잇을 리포지토리로 직접 로드 (ADR-0004 Phase A)
+        Lecture lecture = lectureRepository.getByLectureId(command.lectureId());
         lecture.cancel();
         lectureRepository.save(lecture);
         lectureEnrollmentRepository.delete(lectureEnrollment);
         eventPublisher.publishEvent(new LectureEnrollmentCanceledEvent(lecture, command.studentId()));
     }
 
-    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @Retryable(includes = OptimisticLockingFailureException.class, maxRetries = 2, delay = 100)
     @Transactional
     public Long acceptEnrollment(PendingAcceptCommand command) {
         try {
             PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
             Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
-            validateTutorOwnership(command.memberId(), lecture);
+            lecture.requireTutor(command.memberId());
             Student student = studentRepository.getById(pending.getStudentId());
             scheduleConflictValidator.validateNoStudentConflict(student.getId(), lecture.getStartTime(), lecture.getEndTime(), null);
             pending.accept();
             pendingLectureEnrollmentRepository.delete(pending);
-            LectureEnrollment lectureEnrollment = lecture.enroll(student);
+            LectureEnrollment lectureEnrollment = lecture.enroll(student.getId());
             lectureEnrollmentRepository.save(lectureEnrollment);
             eventPublisher.publishEvent(new LectureEnrollmentAcceptedEvent(lecture, student));
             return lectureEnrollment.getId();
@@ -100,30 +101,41 @@ public class LectureEnrollmentService {
     public void rejectEnrollment(PendingRejectCommand command) {
         PendingLectureEnrollment pending = pendingLectureEnrollmentRepository.getById(command.pendingId());
         Lecture lecture = lectureRepository.getByLectureId(pending.getLectureId());
-        validateTutorOwnership(command.memberId(), lecture);
+        lecture.requireTutor(command.memberId());
         Student student = studentRepository.getById(pending.getStudentId());
         pending.reject();
         pendingLectureEnrollmentRepository.delete(pending);
         eventPublisher.publishEvent(new LectureEnrollmentRejectedEvent(lecture, student));
     }
 
-    // Phase 3a: 토큰을 제시한 요청만 소유권 검증(memberId null = 무토큰 레거시 → 통과). 3b에서 필수로 전환.
-    private void validateTutorOwnership(Long memberId, Lecture lecture) {
-        if (memberId == null) {
-            return;
-        }
-        if (!lecture.getTutor().getId().equals(memberId)) {
-            throw new ApplicationException(LectureExceptionCode.TUTOR_UNAUTHORIZED);
-        }
-    }
 
     public List<Long> findStudentIdsByLectureId(Long lectureId) {
         return lectureEnrollmentRepository.findAllByLectureId(lectureId)
                 .orElse(List.of())
                 .stream()
-                .map(LectureEnrollment::getStudent) // 먼저 Student 객체를 가져오고
-                .filter(Objects::nonNull)           // null이 아닌 Student만 필터링
-                .map(Student::getId)                // 안전하게 ID를 가져옴
+                .map(LectureEnrollment::getStudentId) // ID 참조라 객체 순회 불필요 (ADR-0004 Phase A)
+                .filter(Objects::nonNull)
                 .toList();
+    }
+
+    /**
+     * 수강생 조회 화면용 상세 — 애그리게잇 간 참조가 ID이므로 관련 애그리게잇(Lecture·Student)을
+     * 애플리케이션 계층이 로드해 조립한다. 프레젠테이션은 도메인 그래프를 순회하지 않는다.
+     */
+    /**
+     * 강의의 수강생 명단. <b>해당 강의의 강사만</b> 볼 수 있다 (ADR-0005).
+     *
+     * <p>이전에는 인증조차 없어 강의 ID만 알면 누구나 수강생 명단을 조회할 수 있었다.
+     */
+    public LectureEnrollmentDetail getLectureEnrollmentDetail(Long memberId, Long lectureId) {
+        Lecture lecture = lectureRepository.getByLectureId(lectureId);
+        lecture.requireTutor(memberId);
+        List<LectureEnrollment> lectureEnrollments = getLectureEnrollments(lectureId);
+        List<Student> students = lectureEnrollments.stream()
+                .map(LectureEnrollment::getStudentId)
+                .filter(Objects::nonNull)
+                .map(studentRepository::getById)
+                .toList();
+        return new LectureEnrollmentDetail(lecture, students);
     }
 }

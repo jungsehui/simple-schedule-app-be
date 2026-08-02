@@ -13,8 +13,7 @@ import com.example.simplescheduleapp.student.domain.Student;
 import com.example.simplescheduleapp.student.domain.StudentRepository;
 import com.example.simplescheduleapp.support.ApplicationWithKafkaTest;
 import com.example.simplescheduleapp.tutor.domain.Tutor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.jupiter.api.AfterEach;
@@ -22,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +60,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
     }
 
     @Test
-    void 수강등록_수락_처리() throws JsonProcessingException {
+    void 수강등록_수락_처리() {
         // given
         long tutorId = 100L;
         long studentId = 2L;
@@ -80,10 +81,9 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         given(pendingLectureEnrollmentRepository.getById(anyLong())).willReturn(pending);
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
         given(studentRepository.getById(studentId)).willReturn(student);
-        given(lecture.enroll(student)).willReturn(enrollment);
+        given(lecture.enroll(studentId)).willReturn(enrollment);
         given(lecture.getTitle()).willReturn(lectureTitle);
-        given(lecture.getTutor()).willReturn(tutor);
-        given(tutor.getId()).willReturn(tutorId);
+        given(lecture.getTutorId()).willReturn(tutorId);
         given(student.getId()).willReturn(studentId);
 
         // when
@@ -108,7 +108,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
     }
 
     @Test
-    void 수강등록_거부_처리() throws JsonProcessingException {
+    void 수강등록_거부_처리() {
         // given
         long tutorId = 100L;
         long studentId = 2L;
@@ -129,8 +129,7 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
         given(studentRepository.getById(studentId)).willReturn(student);
         given(lecture.getTitle()).willReturn(lectureTitle);
-        given(lecture.getTutor()).willReturn(tutor);
-        given(tutor.getId()).willReturn(tutorId);
+        given(lecture.getTutorId()).willReturn(tutorId);
         given(student.getId()).willReturn(studentId); // 거부 메시지에도 학생 ID가 필요할 수 있으므로 추가
 
         // when
@@ -161,13 +160,14 @@ class TutorLectureEnrollmentServiceTest extends ApplicationWithKafkaTest {
                 .set("studentId", 2L)
                 .sample();
 
-        Lecture lecture = mock(Lecture.class);
-        Tutor tutor = mock(Tutor.class);
+        // 진짜 Lecture를 쓴다 — mock이면 requireTutor()가 아무 검사도 하지 않아 이 테스트가
+        // 소유권 규칙을 전혀 가드하지 못한다(도메인 위임 전에는 getter stub으로 통했다).
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        Lecture lecture = Lecture.reconstitute(
+                1L, 0L, "소유권 검증용 강의", start, start.plusHours(1), "memo", ownerTutorId, 10, 0);
 
         given(pendingLectureEnrollmentRepository.getById(anyLong())).willReturn(pending);
         given(lectureRepository.getByLectureId(1L)).willReturn(lecture);
-        given(lecture.getTutor()).willReturn(tutor);
-        given(tutor.getId()).willReturn(ownerTutorId);
 
         // when & then
         assertThatThrownBy(() -> lectureEnrollmentService.acceptEnrollment(command))

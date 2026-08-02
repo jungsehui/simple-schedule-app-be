@@ -64,8 +64,8 @@ public class RedisSpecialLectureEnrollmentService {
         try {
             SpecialLectureEnrollment enrollment = saveEnrollment(command);
             log.info("특강 신청이 완료되었습니다. 학생 ID {} 특강 ID {}.",
-                    enrollment.getStudent().getId(),
-                    enrollment.getSpecialLecture().getId());
+                    enrollment.getStudentId(),
+                    enrollment.getSpecialLectureId());
         } catch (Exception e) {
             // 보상: 어떤 실패든 Redis 카운터 복구
             log.error("DB 저장 실패 .. Redis 보상 트랜잭션 수행. cause: {} message: {}",

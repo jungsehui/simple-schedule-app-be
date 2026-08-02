@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 /**
- * {@code ConsultationRepository} 포트의 JPA 어댑터. 도메인은 포트에만 의존하고,
- * Spring Data 세부는 여기에 격리된다. (ADR-0002 Stage 2)
+ * {@code ConsultationRepository} 포트의 JPA 어댑터 (ADR-0004).
+ * <p>Spring Data/JPA 세부와 도메인↔엔티티 매핑(참석자 합성 포함)을 여기에 격리한다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -19,11 +19,11 @@ public class ConsultationRepositoryAdapter implements ConsultationRepository {
 
     @Override
     public Consultation save(Consultation consultation) {
-        return jpaRepository.save(consultation);
+        return ConsultationMapper.toDomain(jpaRepository.save(ConsultationMapper.toEntity(consultation)));
     }
 
     @Override
     public Optional<Consultation> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(ConsultationMapper::toDomain);
     }
 }

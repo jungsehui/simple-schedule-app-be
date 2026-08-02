@@ -4,7 +4,6 @@ import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
 import com.example.simplescheduleapp.fcm.domain.FcmTokenRepository;
 import com.example.simplescheduleapp.fcm.exception.FcmTokenExceptionCode;
-import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
@@ -46,12 +45,14 @@ public class FcmServiceFailureTest extends ApplicationTest {
     private Long tutorId = 1L;
     private Long studentId = 2L;
     private FcmToken fcmToken;
-    private NotificationRequest event;
+    // fcm이 소유한 입력 계약. 실패 기록은 실제 FcmFailureRecorderAdapter(포트 구현)를 거쳐
+    // FailedNotificationRepository에 저장되므로 아래 단정은 그대로 유효하다. (ADR-0004)
+    private FcmSendRequest event;
 
     @BeforeEach
     void setUp() {
         fcmToken = new FcmToken(studentId, "test-token");
-        event = new NotificationRequest(tutorId, studentId, "제목", "내용");
+        event = new FcmSendRequest(tutorId, studentId, "제목", "내용");
 
         given(fcmTokenRepository.getByMemberId(studentId)).willReturn(fcmToken);
     }
@@ -103,7 +104,7 @@ public class FcmServiceFailureTest extends ApplicationTest {
     @Test
     void FCM_토큰이_없으면_즉시_실패_처리하고_DB에_저장한다_호출_1회() {
         // given
-        NotificationRequest event = new NotificationRequest(tutorId, studentId, "제목", "내용");
+        FcmSendRequest event = new FcmSendRequest(tutorId, studentId, "제목", "내용");
         given(fcmTokenRepository.getByMemberId(studentId)).willReturn(null); // 토큰이 없는 상황
 
         // when

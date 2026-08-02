@@ -21,13 +21,14 @@ public class CommonExceptionHandler {
     @ExceptionHandler(value = ApplicationException.class)
     public ResponseEntity<ExceptionResponse> handleApplicationException(ApplicationException exception) {
         ExceptionCode code = exception.getCode();
-        if (code.getHttpStatus().is5xxServerError()) {
+        HttpStatus status = toHttpStatus(code.getKind());
+        if (status.is5xxServerError()) {
             log.error("ApplicationException occurred. code: {}, message: {}", code.getCode(), code.getMessage(), exception);
         } else {
             log.warn("ApplicationException occurred. code: {}, message: {}", code.getCode(), code.getMessage());
         }
         return ResponseEntity
-                .status(code.getHttpStatus())
+                .status(status)
                 .body(ExceptionResponse.from(code));
     }
 
@@ -52,5 +53,20 @@ public class CommonExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ExceptionResponse.from(InternalServerExceptionCode.UNKNOWN_EXCEPTION));
+    }
+
+    /**
+     * {@link ErrorKind} → HTTP 상태 변환 — 이 매핑은 웹 어댑터인 여기에만 존재한다.
+     * switch는 망라형(exhaustive)이라 새 ErrorKind 추가 시 컴파일 에러로 매핑 누락을 잡는다.
+     */
+    private static HttpStatus toHttpStatus(ErrorKind kind) {
+        return switch (kind) {
+            case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
+            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case CONFLICT -> HttpStatus.CONFLICT;
+            case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 }

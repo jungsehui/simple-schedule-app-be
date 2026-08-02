@@ -36,7 +36,22 @@ public class TokenService {
     }
 
     public Long extractMemberId(String token) {
-        return parseClaims(token).get(MEMBER_ID_CLAIM, Long.class);
+        Claims claims = parseClaims(token);
+        Long memberId = claims.get(MEMBER_ID_CLAIM, Long.class);
+        if (memberId != null) {
+            return memberId;
+        }
+        // 관용 파서(ADR-0003 Stage 0): 계정 통합(Stage 5) 후 발급되는 토큰은 sub에 계정 id를 담는다.
+        // 숫자가 아닌 sub(GeekChat UUID 토큰 등)는 이 서비스의 식별자가 아니므로 null.
+        String subject = claims.getSubject();
+        if (subject == null) {
+            return null;
+        }
+        try {
+            return Long.parseLong(subject);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public Role extractRole(String token) {

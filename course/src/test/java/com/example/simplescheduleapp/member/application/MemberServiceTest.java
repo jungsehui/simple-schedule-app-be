@@ -10,14 +10,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
+// 순수 단위 테스트(@Mock/@InjectMocks) — Spring 컨텍스트 불필요. MockitoExtension이 @Mock을 처리한다.
+// (SpringExtension은 @Mock을 주입하지 않아 NPE — Boot 4의 Spring Test에서 표면화)
+@ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
 
     @InjectMocks
