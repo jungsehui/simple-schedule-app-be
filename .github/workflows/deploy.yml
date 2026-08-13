@@ -188,11 +188,15 @@ jobs:
 
       # 배포가 실제로 살아났는지 확인한다. 위 단계까지 성공해도 nginx가 백엔드에 닿지
       # 못하면 전면 502이므로, 여기서 잡지 않으면 초록 배포로 장애가 나간다.
+      # URL을 반드시 따옴표로 감쌀 것 — 서버 로그인 셸이 zsh이고, zsh는 따옴표 없는 `?`를
+      # 글로브 패턴으로 해석해 "no matches found"로 명령 자체를 실행하지 않는다(bash와 다름).
+      # 2026-08-13 배포에서 이것 때문에 curl이 아예 돌지 않아 000이 나왔고, 운영은 멀쩡한데
+      # 스모크만 거짓 실패했다.
       - name: Smoke test (배포 성공 판정)
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             'for i in 1 2 3 4 5 6; do
-               code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/lectures/search?keyword=smoke || echo 000)
+               code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost/lectures/search?keyword=smoke" || echo 000)
                # 401 = 인증 게이트까지 도달(정상). 5xx/000 = nginx가 백엔드에 못 닿음
                if [ "$code" = "401" ]; then echo "smoke OK (401 — 게이트 도달)"; exit 0; fi
                echo "attempt $i: HTTP $code — 10s 후 재시도"; sleep 10
