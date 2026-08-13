@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.notification.application.strategy;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.notification.exception.NotificationTypeExceptionCode;
 import org.springframework.stereotype.Component;
 
@@ -12,17 +11,17 @@ import java.util.Map;
 @Component
 public class NotificationStrategyFactory {
 
-    private final Map<LectureEventType, NotificationStrategy> notificationStrategies;
+    private final Map<NotificationEventType, NotificationStrategy> notificationStrategies;
 
     public NotificationStrategyFactory(List<NotificationStrategy> strategies) {
-        this.notificationStrategies = new EnumMap<>(LectureEventType.class);
+        this.notificationStrategies = new EnumMap<>(NotificationEventType.class);
 
         for (NotificationStrategy strategy : strategies) {
             notificationStrategies.put(strategy.getSupportType(), strategy);
         }
     }
 
-    public NotificationStrategy getStrategy(LectureEventType type) {
+    public NotificationStrategy getStrategy(NotificationEventType type) {
         NotificationStrategy strategy = notificationStrategies.get(type);
 
         if (strategy == null) {

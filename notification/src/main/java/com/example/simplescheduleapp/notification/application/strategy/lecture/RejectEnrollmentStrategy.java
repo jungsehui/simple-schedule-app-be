@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.notification.application.strategy.lecture;
 
-import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
-import com.example.simplescheduleapp.common.kafka.LectureEventType;
+import com.example.simplescheduleapp.notification.application.strategy.NotificationCommand;
+import com.example.simplescheduleapp.notification.application.strategy.NotificationEventType;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.NotificationFacade;
 import lombok.RequiredArgsConstructor;
@@ -16,18 +16,18 @@ public class RejectEnrollmentStrategy implements NotificationStrategy {
     private final NotificationFacade notificationFacade;
 
     @Override
-    public LectureEventType getSupportType() {
-        return LectureEventType.ENROLLMENT_REJECTED;
+    public NotificationEventType getSupportType() {
+        return NotificationEventType.ENROLLMENT_REJECTED;
     }
 
     @Override
-    public void handle(KafkaLectureEventMessage message) {
+    public void handle(NotificationCommand command) {
         // 학생(studentId)에게 발송
         notificationFacade.sendNotification(
-                message.tutorId(),            // Sender: 강사
-                List.of(message.studentId()), // Target: 학생
-                message.lectureTitle(),
-                message.details()
+                command.tutorId(),            // Sender: 강사
+                List.of(command.studentId()), // Target: 학생
+                command.lectureTitle(),
+                command.details()
         );
     }
 }
