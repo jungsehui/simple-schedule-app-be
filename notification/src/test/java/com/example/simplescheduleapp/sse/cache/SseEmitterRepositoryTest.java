@@ -2,6 +2,7 @@ package com.example.simplescheduleapp.sse.cache;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
+import com.example.simplescheduleapp.sse.infrastructure.SseEmitterRepository;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

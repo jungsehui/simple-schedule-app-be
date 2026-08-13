@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.cache;
 
 import com.example.simplescheduleapp.common.redis.presence.PresenceManager;
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisClientManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
-import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisClientManager;
+import com.example.simplescheduleapp.sse.infrastructure.SseEmitterRepository;
 import com.example.simplescheduleapp.support.UnitTest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;

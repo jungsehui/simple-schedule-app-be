@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.redis.subscriber;
+package com.example.simplescheduleapp.sse.infrastructure.redis;
 
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.sse.application.SseConnectionService;

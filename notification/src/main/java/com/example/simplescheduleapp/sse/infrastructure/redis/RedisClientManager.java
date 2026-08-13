@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.redis.cache;
+package com.example.simplescheduleapp.sse.infrastructure.redis;
 
 import com.example.simplescheduleapp.common.redis.presence.PresenceManager;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisSseMessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

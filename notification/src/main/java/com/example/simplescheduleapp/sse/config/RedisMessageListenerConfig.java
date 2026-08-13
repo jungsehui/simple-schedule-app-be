@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.config;
 
-import com.example.simplescheduleapp.redis.subscriber.RedisSseMessageSubscriber;
-import com.example.simplescheduleapp.redis.topic.RedisChannels;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisSseMessageSubscriber;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisChannels;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

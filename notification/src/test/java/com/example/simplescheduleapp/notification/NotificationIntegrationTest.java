@@ -15,7 +15,7 @@ import com.example.simplescheduleapp.notification.application.port.out.EnrolledS
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.sse.application.SseConnectionPublisher;
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisClientManager;
 import com.google.api.core.ApiFutures;
 import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.*;

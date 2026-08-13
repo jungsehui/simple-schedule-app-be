@@ -1,7 +1,6 @@
 package com.example.simplescheduleapp.fcm.infrastructure;
 
 import com.example.simplescheduleapp.fcm.domain.FcmToken;
-import com.example.simplescheduleapp.fcm.utils.FcmUtils;
 import com.google.api.core.ApiFuture;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;

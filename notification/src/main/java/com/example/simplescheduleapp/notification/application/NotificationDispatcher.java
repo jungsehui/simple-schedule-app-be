@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.notification.application;
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
 import com.example.simplescheduleapp.sse.application.SseConnectionPublisher;
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisClientManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.kafka.consumer;
+package com.example.simplescheduleapp.notification.infrastructure;
 
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerConfig;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;

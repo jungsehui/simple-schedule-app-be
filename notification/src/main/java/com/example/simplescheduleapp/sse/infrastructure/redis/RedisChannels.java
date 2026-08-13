@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.redis.topic;
+package com.example.simplescheduleapp.sse.infrastructure.redis;
 
 public class RedisChannels {
 

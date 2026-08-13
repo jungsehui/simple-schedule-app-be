@@ -1,8 +1,8 @@
 package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
-import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisClientManager;
+import com.example.simplescheduleapp.sse.infrastructure.SseEmitterRepository;
 import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
