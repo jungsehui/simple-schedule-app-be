@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.notification.infrastructure;
 
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
-import com.example.simplescheduleapp.notification.schedule.NotificationRetryService;
+import com.example.simplescheduleapp.notification.application.NotificationRetryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

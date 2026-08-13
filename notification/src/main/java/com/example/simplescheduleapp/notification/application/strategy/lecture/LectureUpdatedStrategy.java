@@ -1,8 +1,8 @@
-package com.example.simplescheduleapp.notification.strategy.lecture;
+package com.example.simplescheduleapp.notification.application.strategy.lecture;
 
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
-import com.example.simplescheduleapp.notification.strategy.NotificationStrategy;
+import com.example.simplescheduleapp.notification.application.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.NotificationFacade;
 import com.example.simplescheduleapp.notification.application.port.out.EnrolledStudentsPort;
 import com.example.simplescheduleapp.notification.application.port.out.GetEnrolledStudentInfosResponse;

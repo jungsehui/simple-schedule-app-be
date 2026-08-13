@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.notification.schedule;
+package com.example.simplescheduleapp.notification.application;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;

@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.notification.strategy;
+package com.example.simplescheduleapp.notification.application.strategy;
 
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
