@@ -101,7 +101,27 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://<host>/login           
 # 4) 구 컨테이너가 정말 사라졌는지 확인 (--remove-orphans가 처리하지만 검증한다)
 docker ps -a --filter name=ssa-course --filter name=ssa-notification --format '{{.Names}}'
 #    빈 출력이 정상. 남아 있으면 포트/네트워크를 물고 있을 수 있으므로 docker rm -f 로 정리
+
+# 5) nginx가 실제로 백엔드에 닿는지 (아래 ⚠️ nginx 함정 참고)
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost/lectures/search?keyword=a
+#    401 = 정상(게이트 도달). 502/504면 nginx가 옛 upstream IP를 물고 있는 것 → docker restart ssa-nginx
 ```
+
+> ### ⚠️ nginx는 배포로 갱신되지 않는다 (2026-08-02 릴리스에서 두 번 물림)
+>
+> `docker compose up -d`는 **이미지와 환경이 그대로면 nginx 컨테이너를 재생성하지 않는다.** 설정은 볼륨 마운트라 파일만 새것으로 바뀌고, 프로세스는 옛 설정을 메모리에 들고 있다. 여기서 두 가지가 각각 터졌다:
+>
+> | 증상 | 원인 |
+> |---|---|
+> | **전면 502/504** | nginx는 `upstream`의 호스트명을 **기동 시 1회만** 해석한다(`resolver` 미지정). 토폴로지가 바뀌어 앱이 새 IP로 뜨면 사라진 옛 IP로 계속 연결을 시도한다 |
+> | **특정 경로만 이상 동작** | 설정 파일은 갱신됐는데 프로세스가 재적용하지 않음. 이번엔 `location /sse-stream/`(트레일링 슬래시) 수정이 먹지 않아 새 SSE 경로가 301로 리다이렉트됐다 |
+>
+> `deploy.yml`에 **nginx restart + 스모크 판정**을 추가해(2026-08-02) 자동화했다. `reload`가 아니라 `restart`인 이유는 upstream DNS 재해석까지 필요하기 때문이다. 수동 배포 시에는 직접:
+> ```bash
+> docker exec ssa-nginx nginx -t && docker restart ssa-nginx
+> ```
+>
+> 교훈: **nginx conf를 고치는 변경은 배포만으로 반영됐다고 가정하지 말고 반드시 실제 요청으로 확인**할 것. 설정 파일을 `docker exec ... grep`으로 보면 새 내용이 보이므로 파일 확인만으로는 구별되지 않는다.
 
 3. **서버 `.env`는 CD가 건드리지 않는다** — `scp`는 `docker-compose.prod.yml`과 `nginx/`만 복사한다(`deploy.yml:163`). 위 §병합 전 3의 값들이 반영돼 있지 않으면 컨테이너가 부팅 실패하거나(DB URL 없음) 조용히 오작동한다(CORS 패턴 없음 → 채팅 403).
 
