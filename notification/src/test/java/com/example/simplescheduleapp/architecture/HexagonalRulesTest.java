@@ -5,6 +5,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 
@@ -49,4 +50,17 @@ class HexagonalRulesTest {
                             "io.jsonwebtoken..",
                             "com.fasterxml.jackson..")
                     .because("도메인 코어는 순수 자바여야 한다 — 외부 기술은 어댑터에서만"));
+
+    /**
+     * 모든 프로덕션 클래스는 레이어 패키지 안에 있어야 한다.
+     *
+     * <p>기존 규칙이 `..domain..`만 검사해서, 레이어 밖 클래스(redis/·kafka/consumer·strategy 등)는
+     * 아예 규칙의 사각지대였다 — freeze 0이 "구조가 깨끗하다"를 뜻하지 않았다.
+     * exception 패키지는 course 모듈과 동일한 관행이라 의도적으로 허용한다.
+     */
+    @ArchTest
+    static final ArchRule classes_should_live_in_a_layer = freeze(
+            classes().that().resideOutsideOfPackages("..architecture..", "..exception..")
+                    .should().resideInAnyPackage("..domain..", "..application..", "..infrastructure..", "..presentation..", "..config..")
+                    .because("레이어 밖 클래스는 의존성 규칙 검사를 통째로 우회한다"));
 }
