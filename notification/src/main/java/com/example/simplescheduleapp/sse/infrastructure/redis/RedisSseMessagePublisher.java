@@ -1,8 +1,7 @@
-package com.example.simplescheduleapp.redis.publisher;
+package com.example.simplescheduleapp.sse.infrastructure.redis;
 
 import com.example.simplescheduleapp.common.messaging.MessagePublisher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.redis.topic.RedisChannels;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

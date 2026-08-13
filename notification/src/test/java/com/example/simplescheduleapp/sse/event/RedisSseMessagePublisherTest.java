@@ -2,8 +2,8 @@ package com.example.simplescheduleapp.sse.event;
 
 import com.example.simplescheduleapp.common.messaging.MessagePublisher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.redis.publisher.RedisSseMessagePublisher;
-import com.example.simplescheduleapp.redis.topic.RedisChannels;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.sse.infrastructure.redis.RedisChannels;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;

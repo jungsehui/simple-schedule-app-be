@@ -1,4 +1,4 @@
-package com.example.simplescheduleapp.fcm.utils;
+package com.example.simplescheduleapp.fcm.infrastructure;
 
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
