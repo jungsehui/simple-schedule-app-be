@@ -2,6 +2,7 @@ package com.example.simplescheduleapp.sse.infrastructure.redis;
 
 import com.example.simplescheduleapp.common.messaging.MessagePublisher;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
+import com.example.simplescheduleapp.sse.application.port.out.SseMessagePublisher;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -11,11 +12,12 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @RequiredArgsConstructor
 @Configuration
-public class RedisSseMessagePublisher {
+public class RedisSseMessagePublisher implements SseMessagePublisher {
 
     private final MessagePublisher messagePublisher;
     private final ObjectMapper objectMapper;
 
+    @Override
     public void publish(NotificationRequest event) {
         try {
             String json = objectMapper.writeValueAsString(event);

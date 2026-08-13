@@ -1,8 +1,8 @@
-package com.example.simplescheduleapp.sse.cache;
+package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
-import com.example.simplescheduleapp.sse.infrastructure.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.application.SseEmitterRegistry;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +11,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class SseEmitterRepositoryTest extends ApplicationTest {
+class SseEmitterRegistryTest extends ApplicationTest {
 
     @Autowired
-    private SseEmitterRepository sseEmitterRepository;
+    private SseEmitterRegistry sseEmitterRegistry;
 
     @Test
     void save_후_get_으로_동일한_emitter_반환() {
@@ -23,10 +23,10 @@ class SseEmitterRepositoryTest extends ApplicationTest {
         SseEmitter emitter = new SseEmitter();
 
         // when
-        sseEmitterRepository.save(memberId, emitter);
+        sseEmitterRegistry.save(memberId, emitter);
 
         // then
-        SseEmitter result = sseEmitterRepository.get(memberId);
+        SseEmitter result = sseEmitterRegistry.get(memberId);
         assertThat(result).isEqualTo(emitter);
     }
 
@@ -36,7 +36,7 @@ class SseEmitterRepositoryTest extends ApplicationTest {
         Long memberId = 999L;
 
         // expect
-        assertThatThrownBy(() -> sseEmitterRepository.get(memberId))
+        assertThatThrownBy(() -> sseEmitterRegistry.get(memberId))
                 .isInstanceOf(ApplicationException.class)
                 .hasMessageContaining(SseExceptionCode.SSE_NOT_FOUND.getMessage());
     }
@@ -46,13 +46,13 @@ class SseEmitterRepositoryTest extends ApplicationTest {
         // given
         Long memberId = 2L;
         SseEmitter emitter = new SseEmitter();
-        sseEmitterRepository.save(memberId, emitter);
+        sseEmitterRegistry.save(memberId, emitter);
 
         // when
-        sseEmitterRepository.delete(memberId);
+        sseEmitterRegistry.delete(memberId);
 
         // then
-        assertThatThrownBy(() -> sseEmitterRepository.get(memberId))
+        assertThatThrownBy(() -> sseEmitterRegistry.get(memberId))
                 .isInstanceOf(ApplicationException.class)
                 .hasMessageContaining(SseExceptionCode.SSE_NOT_FOUND.getMessage());
     }

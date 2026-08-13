@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.NotificationApplication;
 import com.example.simplescheduleapp.notification.application.event.NotificationRequest;
-import com.example.simplescheduleapp.sse.infrastructure.redis.RedisSseMessagePublisher;
+import com.example.simplescheduleapp.sse.application.port.out.SseMessagePublisher;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ class SseConnectionPublisherTest extends ApplicationTest {
     private SseConnectionPublisher sseConnectionPublisher;
 
     @MockitoBean
-    private RedisSseMessagePublisher redisSseMessagePublisher;
+    private SseMessagePublisher sseMessagePublisher;
 
     @Test
     void SSE_Service_의_publishSseNotification_호출_시_발행되는지_테스트() {
@@ -31,7 +31,7 @@ class SseConnectionPublisherTest extends ApplicationTest {
         sseConnectionPublisher.publishSseNotification(message);
 
         // then
-        verify(redisSseMessagePublisher).publish(
+        verify(sseMessagePublisher).publish(
                 new NotificationRequest(
                         message.senderId(),
                         message.targetId(),
