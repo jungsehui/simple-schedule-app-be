@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
-import com.example.simplescheduleapp.sse.infrastructure.redis.RedisClientManager;
-import com.example.simplescheduleapp.sse.infrastructure.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.application.port.out.SseClientPresence;
+import com.example.simplescheduleapp.sse.application.SseEmitterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,10 +40,10 @@ class SseHeartbeatLifecycleTest {
     TaskScheduler taskScheduler;
 
     @Mock
-    SseEmitterRepository sseEmitterRepository;
+    SseEmitterRegistry sseEmitterRegistry;
 
     @Mock
-    RedisClientManager redisClientManager;
+    SseClientPresence sseClientPresence;
 
     @Mock
     ScheduledFuture<Object> firstHeartbeat;
