@@ -20,13 +20,13 @@ import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
         importOptions = {ImportOption.DoNotIncludeTests.class, ImportOption.DoNotIncludeJars.class})
 class HexagonalRulesTest {
 
-    // 1. 레이어 방향: domain은 application/presentation/config를 알지 못한다
+    // 1. 레이어 방향: domain은 application/presentation/infrastructure/config를 알지 못한다
     @ArchTest
     static final ArchRule domain_should_not_depend_on_outer_layers = freeze(
             noClasses().that().resideInAPackage("..domain..")
                     .should().dependOnClassesThat()
-                    .resideInAnyPackage("..application..", "..presentation..", "..config..")
-                    .because("도메인은 유스케이스·웹·설정 계층을 몰라야 한다 (의존성 역전)"));
+                    .resideInAnyPackage("..application..", "..presentation..", "..infrastructure..", "..config..")
+                    .because("도메인은 유스케이스·웹·인프라·설정 계층을 몰라야 한다 (의존성 역전)"));
 
     // 2. application은 presentation을 알지 못한다 (요청/응답 DTO는 presentation 소유)
     @ArchTest
@@ -34,6 +34,14 @@ class HexagonalRulesTest {
             noClasses().that().resideInAPackage("..application..")
                     .should().dependOnClassesThat().resideInAPackage("..presentation..")
                     .because("유스케이스 계층은 전달 메커니즘(웹)과 독립적이어야 한다"));
+
+    // 2-1. application은 infrastructure를 알지 못한다 (구현 세부는 포트를 통해 역전)
+    //      기존 위반(예: FcmService의 FcmMessageSender)은 freeze 스토어에 동결 — 신규 결합만 차단.
+    @ArchTest
+    static final ArchRule application_should_not_depend_on_infrastructure = freeze(
+            noClasses().that().resideInAPackage("..application..")
+                    .should().dependOnClassesThat().resideInAPackage("..infrastructure..")
+                    .because("유스케이스 계층은 구현 세부(인프라)와 독립적이어야 한다 (의존성 역전)"));
 
     // 3. 도메인 순수성(목표 상태): 프레임워크·외부 기술이 도메인에 침투하지 않는다.
     //    현재 위반(예: fcm.domain.service의 FirebaseMessaging)은 freeze 스토어에 동결 — 신규 침투만 차단.
