@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -82,6 +84,44 @@ public class CommonExceptionHandler {
     @ExceptionHandler(value = HttpMessageNotReadableException.class)
     public ResponseEntity<ExceptionResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException exception) {
         log.warn("Request body is not readable: {}", exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ExceptionResponse.from(InternalServerExceptionCode.INVALID_INPUT_VALUE));
+    }
+
+    /**
+     * 요청 바인딩 실패 → 400. 필수 쿼리 파라미터·헤더·쿠키·경로 변수 누락이 여기로 온다.
+     *
+     * <p>{@code ServletRequestBindingException} 한 타입으로 그 계열 전체를 덮는다 —
+     * {@code MissingServletRequestParameterException}, {@code MissingRequestHeaderException},
+     * {@code MissingPathVariableException}이 모두 이 하위다. 종류마다 핸들러를 다는 대신
+     * 상위 하나로 받는 이유는, 새 하위 예외가 생겨도 자동으로 400이 되기 때문이다.
+     *
+     * <p>이게 없으면 {@code handleException}이 삼켜 <b>500 + ERROR 스택</b>이 나갔다.
+     * {@code GET /me/schedules}에 {@code from}/{@code to} 없이 요청하면 재현된다(실측: 500).
+     */
+    @ExceptionHandler(value = ServletRequestBindingException.class)
+    public ResponseEntity<ExceptionResponse> handleServletRequestBinding(ServletRequestBindingException exception) {
+        log.warn("Request binding failed: {}", exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ExceptionResponse.from(InternalServerExceptionCode.INVALID_INPUT_VALUE));
+    }
+
+    /**
+     * 타입이 맞지 않는 파라미터 → 400. {@code ?from=어제}처럼 변환 자체가 불가능한 값이다.
+     *
+     * <p>{@code MethodArgumentTypeMismatchException}의 상위인 {@code TypeMismatchException}으로
+     * 받아 바인딩 경로 전반의 타입 오류를 함께 덮는다.
+     *
+     * <p>변환 실패 상세(기대 타입·전달값)는 응답에 싣지 않는다 — 내부 타입 구조가 드러난다.
+     */
+    @ExceptionHandler(value = TypeMismatchException.class)
+    public ResponseEntity<ExceptionResponse> handleTypeMismatch(TypeMismatchException exception) {
+        log.warn("Parameter type mismatch: propertyName={}, requiredType={}",
+                exception.getPropertyName(), exception.getRequiredType());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
