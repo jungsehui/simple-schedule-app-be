@@ -5,6 +5,7 @@ import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureReposi
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,5 +26,12 @@ public class SpecialLectureRepositoryAdapter implements SpecialLectureRepository
     @Override
     public Optional<SpecialLecture> findById(Long id) {
         return jpaRepository.findById(id).map(SpecialLectureMapper::toDomain);
+    }
+
+    @Override
+    public List<SpecialLecture> findAllOrderByStartTime() {
+        return jpaRepository.findAllByOrderByStartTimeAsc().stream()
+                .map(SpecialLectureMapper::toDomain)
+                .toList();
     }
 }

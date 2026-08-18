@@ -3,6 +3,7 @@ package com.example.simplescheduleapp.lecture.special.domain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureExceptionCode;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,6 +17,15 @@ public interface SpecialLectureRepository {
     SpecialLecture save(SpecialLecture specialLecture);
 
     Optional<SpecialLecture> findById(Long id);
+
+    /**
+     * 특강 목록 — 시작 시각 오름차순.
+     *
+     * <p>정렬을 포트 계약에 박아 둔다. 목록 화면은 "다음에 열리는 특강"을 먼저 보여주는 것이
+     * 유일하게 쓸모 있는 순서인데, 정렬을 어댑터 재량에 맡기면 DB가 반환 순서를 바꿀 때
+     * 화면이 조용히 흔들린다.
+     */
+    List<SpecialLecture> findAllOrderByStartTime();
 
     default SpecialLecture getById(Long id) {
         return findById(id).orElseThrow(() -> new ApplicationException(SpecialLectureExceptionCode.SPECIAL_LECTURE_NOT_FOUND));

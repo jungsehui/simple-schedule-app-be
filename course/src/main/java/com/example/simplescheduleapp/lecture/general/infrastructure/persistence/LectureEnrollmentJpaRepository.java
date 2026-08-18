@@ -10,4 +10,6 @@ interface LectureEnrollmentJpaRepository extends JpaRepository<LectureEnrollment
     List<LectureEnrollmentEntity> findAllByLectureId(Long lectureId);
 
     Optional<LectureEnrollmentEntity> findByLectureIdAndStudentId(Long lectureId, Long studentId);
+
+    List<LectureEnrollmentEntity> findAllByStudentId(Long studentId);
 }
