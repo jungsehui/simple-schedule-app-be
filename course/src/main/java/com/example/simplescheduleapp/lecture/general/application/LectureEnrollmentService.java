@@ -50,6 +50,23 @@ public class LectureEnrollmentService {
         return pending.getId();
     }
 
+    /**
+     * 이 학생이 <b>확정 수강 중인</b> 강의 목록.
+     *
+     * <p>대기 중({@code PendingLectureEnrollment})은 포함하지 않는다 — 확정과 대기는 학생이
+     * 취할 수 있는 동작이 다르고(취소 경로부터 다른 엔드포인트다), 한 목록에 섞으면 클라이언트가
+     * 상태 필드로 다시 갈라야 한다. 대기 목록이 필요해지면 별도 조회로 낸다.
+     *
+     * <p>쿼리는 두 번이다: 수강등록에서 강의 ID를 모으고, 그 ID들로 강의를 한 번에 가져온다.
+     * 강의를 한 건씩 조회하면 수강 수만큼 쿼리가 늘어난다(N+1).
+     */
+    public List<Lecture> findEnrolledLectures(Long studentId) {
+        List<Long> lectureIds = lectureEnrollmentRepository.findAllByStudentId(studentId).stream()
+                .map(LectureEnrollment::getLectureId)
+                .toList();
+        return lectureRepository.findAllByIdsOrderByStartTime(lectureIds);
+    }
+
     public List<LectureEnrollment> getLectureEnrollments(Long lectureId) {
         List<LectureEnrollment> lectureEnrollments = lectureEnrollmentRepository.getAllByLectureId(lectureId);
         if (lectureEnrollments == null || lectureEnrollments.isEmpty()) {

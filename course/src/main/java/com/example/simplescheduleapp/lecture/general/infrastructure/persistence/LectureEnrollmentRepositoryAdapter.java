@@ -42,4 +42,11 @@ public class LectureEnrollmentRepositoryAdapter implements LectureEnrollmentRepo
         return jpaRepository.findByLectureIdAndStudentId(lectureId, studentId)
                 .map(LectureEnrollmentMapper::toDomain);
     }
+
+    @Override
+    public List<LectureEnrollment> findAllByStudentId(Long studentId) {
+        return jpaRepository.findAllByStudentId(studentId).stream()
+                .map(LectureEnrollmentMapper::toDomain)
+                .toList();
+    }
 }
