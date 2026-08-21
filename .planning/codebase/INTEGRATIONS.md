@@ -95,10 +95,10 @@ In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is expose
 
 ## CI/CD & Deployment
 
-**CI:** `.github/workflows/ci.yml` — on push/PR to `main`/`develop`: JDK 21 (Temurin), Gradle build cache, `./gradlew :common:build :course:build :notification:build --parallel`; test reports uploaded as artifacts on failure; `playground`/`ngrinder` excluded
+**CI:** `.github/workflows/ci.yml` — on push/PR to `main`/`develop`: JDK 21 (Temurin), Gradle build cache, `./gradlew buildAll` (root `build.gradle.kts` task, `dependsOn(":common:build", ":course:build", ":notification:build", ":app:build")` plus the geekchat composite build; run sequentially, no `--parallel`, to avoid `@EmbeddedKafka` port collisions); test reports uploaded as artifacts on failure; `playground`/`ngrinder` excluded
 
-**CD:** `.github/workflows/deploy.yml` (manual `workflow_dispatch`, env choice `prod`/`stage`):
-1. Matrix build (`course`, `notification`) → `./gradlew :<module>:bootJar` → Docker image (`course/Dockerfile`, `notification/Dockerfile`, non-root `spring` user) → push to GHCR (`ghcr.io/<owner>/ssa-<module>:<sha>` and `:latest`)
+**CD:** `.github/workflows/deploy.yml` (manual `workflow_dispatch` or push to `main`, env choice `prod`/`stage`):
+1. Matrix build (`app`, `geekchat`) → `app` runs `./gradlew :app:bootJar` then builds `app/Dockerfile`; `geekchat` has no Gradle task (its multi-stage `geekchat/Dockerfile` runs its own Gradle build inside the container) → push to GHCR (`ghcr.io/<owner>/ssa-<module>:<sha>` and `:latest`, non-root user)
 2. Deploy job: brings up a WireGuard tunnel (secrets `WG_PRIVATE_KEY`, `WG_ADDRESS`, `WG_PEER_PUBLIC_KEY`, `WG_PRESHARED_KEY`, `WG_ENDPOINT`, `WG_ALLOWED_IPS`), SSHes to the server (`DEPLOY_SSH_KEY`, `DEPLOY_SSH_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`), syncs `deploy/docker-compose.prod.yml` + `deploy/nginx/` to `/opt/ssa/`, then `docker compose -f docker-compose.prod.yml --env-file .env pull && up -d`
 
 **Hosting:** single self-hosted server behind WireGuard; nginx reverse proxy (`deploy/nginx/nginx.conf` — rate limit 20 r/s + burst 40, gzip, security headers, `server_tokens off`) is the only exposed service (port 80; 443/TLS marked TODO in `deploy/docker-compose.prod.yml`)
@@ -109,8 +109,8 @@ In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is expose
 - `spring.datasource.*` for the single `:app` JVM; Redis `localhost:6379`; Kafka `localhost:9092` (via `common/src/main/resources/application-common-local.yml`); `fcm.key.json`/`fcm.key.url`; `token.secretKey`/`token.accessTokenExpirationMillis`; `cors.allowed-origins`
 
 **Production (env vars via `deploy/docker-compose.prod.yml` + server-side `.env`; template `deploy/.env.example`):**
-- `GHCR_OWNER`, `IMAGE_TAG`, `MYSQL_ROOT_PASSWORD`, `COURSE_DB_USER`, `COURSE_DB_PASSWORD`, `NOTIFICATION_DB_USER`, `NOTIFICATION_DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `JWT_ACCESS_EXPIRATION_MS`, `CORS_ALLOWED_ORIGINS`
-- FCM service-account JSON lives only on the server at `deploy/secrets/fcm-service-account.json` (mounted read-only into the notification container)
+- `GHCR_OWNER`, `IMAGE_TAG`, `SSA_DB_URL`, `SSA_DB_USER`, `SSA_DB_PASSWORD` (Supabase PostgreSQL, single `ssa` schema), `GEEKCHAT_DB_HOST/PORT/NAME/USERNAME/PASSWORD/SCHEMA`, `REDIS_PASSWORD`, `JWT_SECRET`, `JWT_ACCESS_EXPIRATION_MS`, `INTERNAL_API_KEY`, `CORS_ALLOWED_ORIGINS`
+- FCM service-account JSON lives only on the server at `deploy/secrets/fcm-service-account.json` (mounted read-only into the `app` container, which hosts `notification`)
 
 **Secrets location:**
 - FCM JSON: gitignored, classpath-loaded locally, volume-mounted in prod

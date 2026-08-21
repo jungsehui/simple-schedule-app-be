@@ -138,9 +138,9 @@
 - Limit: Notification throughput is serialized; a slow FCM/SSE handler backs up the whole topic. (Error handling itself is solid: 2 retries + `DeadLetterRecorder` DLQ, manual-immediate acks, `KafkaIdempotencyFilter` dedupe — `KafkaConsumerConfig.java:41-48`.)
 - Scaling path: Partition the topic by lectureId/memberId and raise concurrency; the retry scheduler (`notification/src/main/java/com/example/simplescheduleapp/notification/infrastructure/NotificationRetryScheduler.java`, moved out of the now-removed `notification/schedule/` package) already handles failed sends.
 
-**Prod host is a single 4 vCPU / 8GB box running 8 containers:**
-- Current capacity: mem limits in `deploy/docker-compose.prod.yml` total ~5.6GB across nginx/course/notification/2×MySQL/Redis/Kafka/Zookeeper.
-- Limit: No headroom for a second app replica; MySQL and Kafka compete for the same disk.
+**Prod host is a single 4 vCPU / 8GB box running 6 containers:**
+- Current capacity: mem limits in `deploy/docker-compose.prod.yml` total ~5.0GB across nginx/app/geekchat/Redis/Kafka/Zookeeper (prod DB is external Supabase PostgreSQL, not a container).
+- Limit: No headroom for a second app replica.
 - Scaling path: Documented in `deploy/README.md`; acceptable for current scale, revisit before prod load testing.
 
 ## Dependencies at Risk

@@ -18,7 +18,7 @@ ssa/  (rootProject.name = "simple-schedule-app")
 │       │   ├── aop/                  # AopForTransaction (lock-wraps-transaction helper)
 │       │   ├── auth/                 # Token, TokenService, TokenProperty, BearerTokenExtractor, Auth, AuthArgumentResolver, AuthConfig, TokenExceptionCode
 │       │   ├── config/               # AsyncConfig (@EnableAsync), CorsConfig, JpaConfig (@EnableJpaAuditing)
-│       │   ├── domain/               # BaseDomain, SoftDeletedDomain (@MappedSuperclass)
+│       │   ├── persistence/          # BaseDomain, SoftDeletedDomain (@MappedSuperclass)
 │       │   ├── event/                # DomainEvent, DomainEventRepository, EventStatus + exception/, mapper/, outbox/, producer/
 │       │   ├── exception/            # ApplicationException, ExceptionCode, CommonExceptionHandler, InternalServerExceptionCode + response/
 │       │   └── kafka/                # KafkaLectureEventMessage, LectureEventType + consumer/(+idempotency/), deadletter/, producer/, topic/

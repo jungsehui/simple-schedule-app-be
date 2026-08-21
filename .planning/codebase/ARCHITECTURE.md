@@ -128,7 +128,7 @@ Verify with: `git log --oneline develop..feature/query-performance-tuning` (24 c
 - Subclasses: `Lecture` (`@DiscriminatorValue("LECTURE")`, table `lecture`, adds `tutor`, `capacity`, `enrolledCount`; `course/src/main/java/com/example/simplescheduleapp/lecture/general/domain/Lecture.java`), `SpecialLecture` (`@DiscriminatorValue("SPECIAL_LECTURE")`, table `special_lecture`; `course/src/main/java/com/example/simplescheduleapp/lecture/special/domain/SpecialLecture.java`), `Consultation` (`@DiscriminatorValue("CONSULTATION")`; `course/src/main/java/com/example/simplescheduleapp/consultation/domain/Consultation.java`). `SpecialLecture` extends `Schedule` directly, not `Lecture`.
 - Soft delete on the base: `@SQLRestriction(DELETED_DATE_IS_NULL)` + `@SQLDelete(... SET deleted_date = CURRENT_TIMESTAMP ...)` — deletes become UPDATEs and every query auto-filters deleted rows for the whole hierarchy.
 
-**BaseDomain / SoftDeletedDomain (`common/src/main/java/com/example/simplescheduleapp/common/domain/`):**
+**BaseDomain / SoftDeletedDomain (`common/src/main/java/com/example/simplescheduleapp/common/persistence/`):**
 - Purpose: `@MappedSuperclass` auditing base (`BaseDomain`, enabled via `@EnableJpaAuditing` in `common/src/main/java/com/example/simplescheduleapp/common/config/JpaConfig.java`) and soft-delete timestamp (`SoftDeletedDomain extends BaseDomain`).
 
 ## Entry Points

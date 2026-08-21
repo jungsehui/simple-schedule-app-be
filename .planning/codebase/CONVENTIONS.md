@@ -81,8 +81,8 @@ public class Lecture extends Schedule {
 ```
 - Inheritance for shared schedule behavior: `Lecture extends Schedule` with `@Inheritance(strategy = InheritanceType.JOINED)` + `@DiscriminatorColumn(name = "type")` on `course/src/main/java/com/example/simplescheduleapp/schedule/domain/Schedule.java`.
 - **No `@Version`/optimistic locking exists on this branch** (removed on the query-performance-tuning line; special-lecture concurrency is handled via Redis counter + DB unique constraint — see Transaction Patterns).
-- Soft delete: `Schedule` uses `@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE schedule_id = ?")` + `@SQLRestriction(DELETED_DATE_IS_NULL)` (constant from `common/src/main/java/com/example/simplescheduleapp/common/SqlRestrictionClause.java`) and extends `common/src/main/java/com/example/simplescheduleapp/common/domain/SoftDeletedDomain.java`.
-- Auditing: `common/src/main/java/com/example/simplescheduleapp/common/domain/BaseDomain.java` is a `@MappedSuperclass` with `@CreatedDate`/`@LastModifiedDate` + `AuditingEntityListener`. `SoftDeletedDomain extends BaseDomain` adds `deletedDate`.
+- Soft delete: `Schedule` uses `@SQLDelete(sql = "UPDATE schedule SET deleted_date = CURRENT_TIMESTAMP WHERE schedule_id = ?")` + `@SQLRestriction(DELETED_DATE_IS_NULL)` (constant from `common/src/main/java/com/example/simplescheduleapp/common/SqlRestrictionClause.java`) and extends `common/src/main/java/com/example/simplescheduleapp/common/persistence/SoftDeletedDomain.java`.
+- Auditing: `common/src/main/java/com/example/simplescheduleapp/common/persistence/BaseDomain.java` is a `@MappedSuperclass` with `@CreatedDate`/`@LastModifiedDate` + `AuditingEntityListener`. `SoftDeletedDomain extends BaseDomain` adds `deletedDate`.
 
 **Commands (`application/command`, records):**
 ```java

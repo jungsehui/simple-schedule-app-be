@@ -1,5 +1,7 @@
 # notification 모듈 Clean Architecture 정리
 
+> 상태: 실행 완료. 현재 코드에는 `SseEmitterRegistry`(이 문서의 `SseEmitterRepository`가 리네임됨)만 존재하고 `sse/cache` 패키지는 없으며, 레이어 밖 클래스는 20개가 아니라 7개(`config`/`exception`)뿐이다. 이 문서는 기록으로 보존한다. 아래 실측 근거는 실행 전 시점 값이다.
+
 ## Context
 
 ADR-0004가 도메인은 순수화했지만(ArchUnit freeze 0, 도메인 프레임워크 import 0) **모듈 구조는 절반만 정리됐다.** notification 모듈에는 레이어(`domain`/`application`/`infrastructure`/`presentation`) 밖에 있는 클래스가 **20개** 있고, ArchUnit 규칙이 `..domain..` 패키지만 검사하므로 **이 20개는 규칙의 사각지대**다. freeze 0은 "구조가 깨끗하다"가 아니라 "검사 대상이 아니다"였다.
