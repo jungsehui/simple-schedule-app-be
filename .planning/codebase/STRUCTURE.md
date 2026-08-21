@@ -18,18 +18,18 @@ ssa/  (rootProject.name = "simple-schedule-app")
 │       │   ├── aop/                  # AopForTransaction (lock-wraps-transaction helper)
 │       │   ├── auth/                 # Token, TokenService, TokenProperty, BearerTokenExtractor, Auth, AuthArgumentResolver, AuthConfig, TokenExceptionCode
 │       │   ├── config/               # AsyncConfig (@EnableAsync), CorsConfig, JpaConfig (@EnableJpaAuditing)
-│       │   ├── domain/               # BaseDomain, SoftDeletedDomain (@MappedSuperclass)
+│       │   ├── persistence/          # BaseDomain, SoftDeletedDomain (@MappedSuperclass)
 │       │   ├── event/                # DomainEvent, DomainEventRepository, EventStatus + exception/, mapper/, outbox/, producer/
 │       │   ├── exception/            # ApplicationException, ExceptionCode, CommonExceptionHandler, InternalServerExceptionCode + response/
 │       │   └── kafka/                # KafkaLectureEventMessage, LectureEventType + consumer/(+idempotency/), deadletter/, producer/, topic/
 │       ├── main/resources/           # application-common-{local,test}.yml (FCM credential json is untracked/gitignored)
 │       └── testFixtures/java/com/example/simplescheduleapp/support/
 │                                     # ApplicationTest, ApplicationWithKafkaTest, CommonExceptionTest, MockTestSupport, MonkeySupport, UnitTest
-├── course/                   # Boot server :8080 → course_db; Kafka group ssa-course-server-group
+├── course/                   # Bounded-context library (no own bootJar) → assembled into :app as a single JVM on :8080 (ADR-0003 Stage 2); Kafka group ssa-course-server-group
 │   ├── build.gradle          # :common, redisson-spring-boot-starter, mysql, h2, ...
 │   └── src/
 │       ├── main/java/com/example/simplescheduleapp/
-│       │   ├── CourseApplication.java
+│       │   │                 # CourseApplication.java moved to src/test/ (test-only bootstrap) — production entry point is app/src/main/java/.../SsaApplication.java
 │       │   ├── config/               # RedisTemplateConfig, RedissonConfig
 │       │   ├── consultation/         # domain/ application/ presentation/
 │       │   ├── event/                # LectureEnrollment{Requested,Accepted,Rejected,Canceled}Event, LectureUpdatedEvent + mapper/CourseDomainEventMapper
@@ -44,26 +44,21 @@ ssa/  (rootProject.name = "simple-schedule-app")
 │       │   └── tutor/                # domain/(+service/) application/(+command/) presentation/(+request/,response/)
 │       ├── main/resources/           # application.yml + application-{local,test,stage,prod}.yml
 │       └── test/java/com/example/simplescheduleapp/   # lecture/application/, member/{application,domain/entity,presentation}/
-├── notification/             # Boot server :8081 → notification_db; Kafka group ssa-notification-server-group
+├── notification/             # Bounded-context library (no own bootJar) → assembled into :app as a single JVM on :8080 (ADR-0003 Stage 2; :8081 no longer exists); Kafka group ssa-notification-server-group
 │   ├── build.gradle          # :common, spring-data-redis, firebase-admin, spring-retry, spring-aop, ...
 │   └── src/
 │       ├── main/java/com/example/simplescheduleapp/
-│       │   ├── NotificationApplication.java
-│       │   ├── config/               # RedisTemplateConfig, ThreadPoolConfig
-│       │   ├── fcm/                  # application/ config/ domain/(+service/) exception/ presentation/ utils/
-│       │   ├── kafka/consumer/       # NotificationKafkaConsumer (single listener → strategy dispatch)
+│       │   │                 # NotificationApplication.java moved to src/test/ (test-only bootstrap) — production entry point is app/src/main/java/.../SsaApplication.java
+│       │   ├── config/               # ThreadPoolConfig
+│       │   ├── fcm/                  # application/(+port/out/) config/ domain/ exception/ infrastructure/(+persistence/) presentation/
 │       │   ├── notification/
-│       │   │   ├── application/      # NotificationDispatcher, NotificationFacade + event/
-│       │   │   ├── client/           # CourseClient (RestClient → course /internal) + config/(ClientConfig, ClientProperties), response/
-│       │   │   ├── config/           # RetryConfig, SchedulerConfig
-│       │   │   ├── domain/           # FailedNotification, NotificationType
+│       │   │   ├── application/      # NotificationDispatcher, NotificationFacade, NotificationRetryService + event/, port/out/, strategy/(NotificationStrategy, NotificationStrategyFactory + lecture/*Strategy, 5 impls)
+│       │   │   ├── domain/           # FailedNotification, FailedNotificationRepository, NotificationType
 │       │   │   ├── exception/
-│       │   │   ├── schedule/         # NotificationRetryScheduler, NotificationRetryService
-│       │   │   └── strategy/         # NotificationStrategy, NotificationStrategyFactory + lecture/*Strategy (5 impls)
-│       │   ├── redis/                # cache/ publisher/ subscriber/ topic/ — SSE fan-out via Redis pub-sub
-│       │   └── sse/                  # application/(SseConnectionService, SseConnectionPublisher) cache/(SseEmitterRepository) config/ exception/ presentation/(+response/)
-│       ├── main/resources/           # application.yml + application-{local,test,stage,prod}.yml; client.course-server-internal-url
-│       └── test/java/com/example/simplescheduleapp/   # fcm/, kafka/{consumer,event,infra}/, notification/schedule/, sse/
+│       │   │   └── infrastructure/   # NotificationKafkaConsumer, NotificationRetryScheduler, FcmFailureRecorderAdapter + persistence/
+│       │   └── sse/                  # application/(SseConnectionService, SseConnectionPublisher, SseEmitterRegistry + port/out/) config/ exception/ infrastructure/redis/(RedisClientManager, RedisChannels, RedisSseMessagePublisher, RedisSseMessageSubscriber) presentation/(+response/)
+│       ├── main/resources/           # application-test.yml only — application.yml/-local/-stage/-prod removed; runtime config moved to app/src/main/resources (ADR-0003 Stage 2)
+│       └── test/java/com/example/simplescheduleapp/   # fcm/application/, kafka/{consumer,event/{mock,outbox,producer},infra/{consumer,deadletter}}/, notification/{application/strategy/lecture,domain,infrastructure}/, sse/{application,infrastructure/redis,presentation}/
 ├── playground/               # Experiments & load-test assets — NOT part of course/notification runtime
 │   ├── build.gradle
 │   ├── docker-compose-*.yml  # thread-pool/virtual-thread block/non-block, single-thread, influxdb, ngrinder, special-lecture concurrent-enrollment scenarios
@@ -83,24 +78,24 @@ ssa/  (rootProject.name = "simple-schedule-app")
     └── build.gradle          # groovy plugin + org.ngrinder:ngrinder-core:3.5.9; no source files at this tip
 ```
 
-Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github/workflows/deploy.yml`, `deploy/nginx/`, `course/Dockerfile`, `notification/Dockerfile`. Tracked `.github/` currently contains only `PULL_REQUEST_TEMPLATE.md`.
+**Historical snapshot (2026-07-02 analysis), superseded:** at the time, `.github/workflows/deploy.yml`, `deploy/nginx/`, `course/Dockerfile`, `notification/Dockerfile` were uncommitted on the `chore/ai-infra-cicd` working tree, and tracked `.github/` contained only `PULL_REQUEST_TEMPLATE.md`. All of these are now committed; `course/Dockerfile`/`notification/Dockerfile` no longer exist and were replaced by `app/Dockerfile`/`geekchat/Dockerfile` (ADR-0003 Stage 2).
 
 ## Directory Purposes
 
 **`common/` (module):**
-- Purpose: Shared library consumed by both boot servers via `implementation project(':common')`; not deployable on its own.
+- Purpose: Shared library consumed by both `course` and `notification` (bounded-context libraries, no own bootJar) via `implementation project(':common')`; not deployable on its own.
 - Contains: JWT auth, base JPA classes, exception framework, transactional-outbox + Kafka event publishing, Kafka consumer plumbing (idempotency filter, consume history, dead-letter), shared test fixtures (`java-test-fixtures`).
 - Key files: `common/src/main/java/com/example/simplescheduleapp/common/exception/ApplicationException.java`, `common/src/main/java/com/example/simplescheduleapp/common/event/outbox/EventRecorder.java`, `common/src/main/java/com/example/simplescheduleapp/common/kafka/consumer/KafkaIdempotencyFilter.java`, `common/src/testFixtures/java/com/example/simplescheduleapp/support/ApplicationTest.java`.
 
 **`course/` (module):**
-- Purpose: Primary business boot server — people (member/tutor/student/parent), lectures (general + special), enrollment workflow, consultations, schedules; publishes all Kafka events.
+- Purpose: Primary business bounded-context library (no own bootJar; assembled into `:app` — ADR-0003 Stage 2) — people (member/tutor/student/parent), lectures (general + special), enrollment workflow, consultations, schedules; publishes all Kafka events.
 - Contains: One package per bounded context, each split `domain/`, `application/` (+`command/`), `presentation/` (+`request/`, `response/`), `exception/`; plus `event/` (DomainEvent subtypes + mapper), `redis/` (locks), `config/`.
-- Key files: `course/src/main/java/com/example/simplescheduleapp/CourseApplication.java`, `course/src/main/java/com/example/simplescheduleapp/lecture/general/application/LectureEnrollmentService.java`, `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/RedisSpecialLectureEnrollmentService.java`, `course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`.
+- Key files: `course/src/test/java/com/example/simplescheduleapp/CourseApplication.java` (test-only bootstrap; production entry point is `app/src/main/java/com/example/simplescheduleapp/SsaApplication.java`), `course/src/main/java/com/example/simplescheduleapp/lecture/general/application/LectureEnrollmentService.java`, `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/RedisSpecialLectureEnrollmentService.java`, `course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`.
 
 **`notification/` (module):**
-- Purpose: Notification-delivery boot server — consumes Kafka events, chooses SSE (connected) vs FCM (push) delivery, retries failures, exposes FCM-token and SSE endpoints, calls `course` internally over REST.
-- Contains: `fcm/`, `sse/`, `kafka/consumer/`, `notification/` (dispatch + client + strategy + retry), `redis/` (pub-sub fan-out), `config/`.
-- Key files: `notification/src/main/java/com/example/simplescheduleapp/NotificationApplication.java`, `notification/src/main/java/com/example/simplescheduleapp/kafka/consumer/NotificationKafkaConsumer.java`, `notification/src/main/java/com/example/simplescheduleapp/notification/strategy/NotificationStrategyFactory.java`, `notification/src/main/java/com/example/simplescheduleapp/notification/client/CourseClient.java`.
+- Purpose: Notification-delivery bounded-context library (no own bootJar; assembled into `:app` — ADR-0003 Stage 2) — consumes Kafka events, chooses SSE (connected) vs FCM (push) delivery, retries failures, exposes FCM-token and SSE endpoints, calls `course` internally over REST.
+- Contains: `fcm/`, `sse/` (application + config + exception + infrastructure/redis + presentation), `notification/` (application: dispatch + strategy + retry; domain; infrastructure: Kafka consumer + retry scheduler), `config/`.
+- Key files: `notification/src/test/java/com/example/simplescheduleapp/NotificationApplication.java` (test-only bootstrap; production entry point is `app/src/main/java/com/example/simplescheduleapp/SsaApplication.java`), `notification/src/main/java/com/example/simplescheduleapp/notification/infrastructure/NotificationKafkaConsumer.java`, `notification/src/main/java/com/example/simplescheduleapp/notification/application/strategy/NotificationStrategyFactory.java`. (`notification/src/main/java/com/example/simplescheduleapp/notification/client/CourseClient.java` no longer exists — deleted in ADR-0003 Stage 2, commit `45c694b`; see `app/src/main/java/com/example/simplescheduleapp/integration/InProcessEnrolledStudentsAdapter.java` for its replacement.)
 
 **`playground/` (module):**
 - Purpose: Isolated experimentation sandbox — reproduces the `REQUIRES_NEW` deadlock, benchmarks async models (single-thread vs thread-pool vs virtual-thread), and stores load-test infrastructure (k6, grafana, nGrinder controller data, scenario docker-composes). Treat as documentation-via-code.
@@ -113,14 +108,14 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 ## Key File Locations
 
 **Entry Points:**
-- `course/src/main/java/com/example/simplescheduleapp/CourseApplication.java`: course server (8080).
-- `notification/src/main/java/com/example/simplescheduleapp/NotificationApplication.java`: notification server (8081).
+- `app/src/main/java/com/example/simplescheduleapp/SsaApplication.java`: the sole production entry point — single JVM on `:8080`, assembling `course` + `notification` as libraries (ADR-0003 Stage 2).
+- `course/src/test/java/com/example/simplescheduleapp/CourseApplication.java`, `notification/src/test/java/com/example/simplescheduleapp/NotificationApplication.java`: test-only bootstraps for running each module's own test suite in isolation — not deployed; `:8080`/`:8081` here are moot (neither module ships a server).
 
 **Configuration:**
 - `settings.gradle`: module list; `build.gradle` (root): shared plugin versions + `subprojects {}` (Java 21, Lombok, `java-library`, JUnit platform).
 - `course/build.gradle`, `notification/build.gradle`, `common/build.gradle`, `playground/build.gradle`, `ngrinder/build.gradle`: per-module dependencies.
-- `course/src/main/resources/application.yml` (+ `-local`, `-test`, `-stage`, `-prod`): port 8080, `course_db`, Hikari max 21, Kafka group `ssa-course-server-group`, `cors.allowed-origins`.
-- `notification/src/main/resources/application.yml` (+ same suffixes): port 8081, `notification_db`, `open-in-view: false`, Kafka group `ssa-notification-server-group`, `fcm.key.json`, `client.course-server-internal-url: http://localhost:8080/internal`.
+- `course/src/main/resources/application.yml` and `notification/src/main/resources/application.yml` no longer exist (each module keeps only `application-test.yml` — ADR-0003 Stage 2).
+- `app/src/main/resources/application.yml` (+ `application-prod.yml`): port 8080, single `ssa` schema (local MySQL / prod Supabase PostgreSQL), Hikari max 21 (local) / 15 (prod), Kafka group `ssa-server-group`, `open-in-view: false`, `fcm.key.json`, `cors.allowed-origins`. `:8081` no longer exists.
 - `common/src/main/resources/application-common-{local,test}.yml`: shared config fragments (activated via `spring.profiles.group`).
 - `docker-compose.yml` (root): local infra with healthchecks on both DBs and Redis.
 
@@ -131,7 +126,7 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 
 **Testing:**
 - `course/src/test/java/com/example/simplescheduleapp/`: `lecture/application/`, `member/{application,domain/entity,presentation}/` tests.
-- `notification/src/test/java/com/example/simplescheduleapp/`: `fcm/application/`, `kafka/{consumer,event/{mock,outbox,producer},infra/{consumer,deadletter}}/`, `notification/schedule/`, `sse/{application,cache,event}/` tests.
+- `notification/src/test/java/com/example/simplescheduleapp/`: `fcm/application/`, `kafka/{consumer,event/{mock,outbox,producer},infra/{consumer,deadletter}}/`, `notification/{application/strategy/lecture,domain,infrastructure}/`, `sse/{application,infrastructure/redis,presentation}/` tests.
 - `common/src/testFixtures/java/com/example/simplescheduleapp/support/`: `ApplicationTest`, `ApplicationWithKafkaTest`, `CommonExceptionTest`, `MockTestSupport`, `MonkeySupport` (Fixture Monkey), `UnitTest` — consumed by both suites via `testImplementation(testFixtures(project(':common')))`.
 - `playground/src/test/java/com/example/playground/requiresnewdeadlock/`: manual deadlock repro.
 
@@ -145,13 +140,13 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 - Requests/Responses: `{Action}Request.java` / `{Action}Response.java` records in `presentation/request|response/`, bridged by `toCommand()` and static `from()`/`of()`.
 - Exception codes: `{Domain}ExceptionCode.java` enum implementing `ExceptionCode`, one per bounded context.
 - Events: `{Entity}{PastTenseAction}Event.java` (`LectureEnrollmentRequestedEvent`, `LectureUpdatedEvent`) in `course/src/main/java/com/example/simplescheduleapp/event/`.
-- Strategies: `{Action}{Entity}Strategy.java` (`AcceptEnrollmentStrategy`) under `notification/.../notification/strategy/lecture/`.
+- Strategies: `{Action}{Entity}Strategy.java` (`AcceptEnrollmentStrategy`) under `notification/.../notification/application/strategy/lecture/`.
 - Internal (service-to-service) controllers: `{Feature}InternalController.java` mapped under `/internal/**`.
 - Tests: `{ClassUnderTest}Test.java`; scenario-suffixed suites where useful (`FcmServiceFailureTest`, `RequiresNewDeadLockOccurTest`).
 
 **Directories / Packages:**
 - Package-by-feature at module top level, then package-by-layer within each feature (`domain`, `application`, `presentation`, `exception`, plus `application/command`, `presentation/request`, `presentation/response`, `domain/service`).
-- Base package for both boot modules: `com.example.simplescheduleapp` (singular "app", no "back"); `common` uses `com.example.simplescheduleapp.common`. The skeleton package `com.example.simplescheduleappback` exists only on `main` and is dead.
+- Base package for both `course` and `notification`: `com.example.simplescheduleapp` (singular "app", no "back"); `common` uses `com.example.simplescheduleapp.common`. The skeleton package `com.example.simplescheduleappback` exists only on `main` and is dead.
 
 ## Where to Add New Code
 
@@ -163,20 +158,20 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 **New Kafka event / notification type:**
 1. Add the enum constant to `LectureEventType` (`common/src/main/java/com/example/simplescheduleapp/common/kafka/LectureEventType.java`).
 2. Add a `DomainEvent` subtype in `course/src/main/java/com/example/simplescheduleapp/event/` and handle it in `CourseDomainEventMapper` (`course/src/main/java/com/example/simplescheduleapp/event/mapper/CourseDomainEventMapper.java`).
-3. Add a `NotificationStrategy` implementation under `notification/src/main/java/com/example/simplescheduleapp/notification/strategy/lecture/` implementing `getSupportType()` for the new enum — it auto-registers in `NotificationStrategyFactory` via list injection; no factory edits.
+3. Add a `NotificationStrategy` implementation under `notification/src/main/java/com/example/simplescheduleapp/notification/application/strategy/lecture/` implementing `getSupportType()` for the new enum — it auto-registers in `NotificationStrategyFactory` via list injection; no factory edits.
 
 **New REST endpoint:**
 - Extend the feature's existing `presentation/{Feature}Controller.java`, or add a new controller in that `presentation/` package; DTOs go in `presentation/request|response/` with `toCommand()`/`from()`.
-- For service-to-service-only endpoints, follow `LectureEnrollmentInternalController` (`course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`): `Internal` suffix + `/internal/**` path, separate from the public controller. The consuming side belongs in `notification/src/main/java/com/example/simplescheduleapp/notification/client/` next to `CourseClient`.
+- For service-to-service-only endpoints, follow `LectureEnrollmentInternalController` (`course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`): `Internal` suffix + `/internal/**` path, separate from the public controller. **`notification/src/main/java/com/example/simplescheduleapp/notification/client/` no longer exists** (it held `CourseClient`, deleted in ADR-0003 Stage 2, commit `45c694b`) — for a `course`-consuming port from `notification`, define the port in the consuming module's `application/port/out/` (e.g. `notification/src/main/java/com/example/simplescheduleapp/notification/application/port/out/EnrolledStudentsPort.java`) and implement it as a composition-root adapter in `app/src/main/java/com/example/simplescheduleapp/integration/` (e.g. `InProcessEnrolledStudentsAdapter.java`), the only place allowed to depend on both bounded contexts.
 
 **Shared cross-cutting utility:**
-- Add under `common/src/main/java/com/example/simplescheduleapp/common/` — both boot modules pick it up automatically. Do not duplicate logic in `course` and `notification`.
+- Add under `common/src/main/java/com/example/simplescheduleapp/common/` — both `course` and `notification` pick it up automatically. Do not duplicate logic in `course` and `notification`.
 
 **New distributed-lock use case:**
 - Annotate the method with `@RedissonDistributedLock(key = "...")` (`course/src/main/java/com/example/simplescheduleapp/redis/lock/RedissonDistributedLock.java`); `RedissonDistributedLockAop` handles acquire/release. This mechanism exists only in `course`; if `notification` needs it, promote the `redis/aop` + `redis/lock` packages into `common` rather than copying.
 
 **New test:**
-- Integration: extend `ApplicationTest` or `ApplicationWithKafkaTest` (`common/src/testFixtures/java/com/example/simplescheduleapp/support/`). Unit: `UnitTest`/`MockTestSupport`. Test data: `MonkeySupport` (Fixture Monkey). Fixtures flow through `testImplementation(testFixtures(project(':common')))` in both boot modules' build files.
+- Integration: extend `ApplicationTest` or `ApplicationWithKafkaTest` (`common/src/testFixtures/java/com/example/simplescheduleapp/support/`). Unit: `UnitTest`/`MockTestSupport`. Test data: `MonkeySupport` (Fixture Monkey). Fixtures flow through `testImplementation(testFixtures(project(':common')))` in both `course`'s and `notification`'s build files.
 
 ## Special Directories
 
@@ -194,8 +189,8 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 **`gradle/wrapper/`, `gradlew`, `gradlew.bat`:**
 - Purpose: Gradle wrapper bootstrap. Committed: Yes.
 
-**`common/src/main/resources/ssa-fcm-firebase-adminsdk-fbsvc-*.json`, `notification/src/main/resources/ssa-fcm-firebase-adminsdk-fbsvc-*.json`:**
-- Purpose: Firebase service-account credentials for FCM (referenced by `fcm.key.json` in `notification/src/main/resources/application.yml`). Gitignored by filename in the root `.gitignore`.
+**`common/src/main/resources/ssa-fcm-firebase-adminsdk-fbsvc-*.json`, `app/src/main/resources/ssa-fcm-firebase-adminsdk-fbsvc-*.json`:**
+- Purpose: Firebase service-account credentials for FCM (referenced by `fcm.key.json` in `app/src/main/resources/application.yml` — moved from `notification/src/main/resources/application.yml`, which no longer exists, ADR-0003 Stage 2). Gitignored by filename in the root `.gitignore`.
 - Generated: No (provisioned per environment). Committed: No — never read or commit their contents.
 
 **`.omc/`:**

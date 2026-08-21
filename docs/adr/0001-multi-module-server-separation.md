@@ -2,6 +2,7 @@
 
 - 상태: 채택됨 (feature/server-separation → develop 머지 완료)
 - 날짜: 2025-08 (기록일: 2026-07-02)
+- Superseded: [ADR-0003](0003-modular-monolith-consolidation.md)(단일 JVM 모듈러 모놀리스 통합)가 이 분리 결정을 대체함. course/notification은 이제 `:app` 단일 JVM이 조합하는 라이브러리 모듈이며, 아래 본문(포트 8080/8081 분리 등)은 그 시점의 결정 기록으로 보존한다.
 
 ## 맥락
 단일 Spring Boot 앱에서 수강신청 트래픽(동시성 제어)과 알림 전송(SSE 롱커넥션, FCM 외부 API 지연)이 서로 자원을 간섭했다. 부하 특성이 다른 두 책임을 분리해 독립 배포·확장이 필요했다.

@@ -36,8 +36,7 @@ class AcceptEnrollmentStrategyTest extends UnitTest {
     @DisplayName("ENROLLMENT_ACCEPTED 이벤트를 지원한다")
     void 지원_이벤트_종류() {
         assertThat(acceptEnrollmentStrategy.getSupportType()).isEqualTo(NotificationEventType.ENROLLMENT_ACCEPTED);
-        assertThat(acceptEnrollmentStrategy.supports(NotificationEventType.ENROLLMENT_ACCEPTED)).isTrue();
-        assertThat(acceptEnrollmentStrategy.supports(NotificationEventType.ENROLLMENT_REJECTED)).isFalse();
+        assertThat(acceptEnrollmentStrategy.getSupportType()).isNotEqualTo(NotificationEventType.ENROLLMENT_REJECTED);
     }
 
     @Test
