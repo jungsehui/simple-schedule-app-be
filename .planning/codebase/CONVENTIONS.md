@@ -2,7 +2,7 @@
 
 **Analysis Date:** 2026-07-02
 
-> **Source branch:** This analysis is based on branch **`chore/ai-infra-cicd`** (built directly on **`feature/query-performance-tuning`** — the active development line, 270 Java files). The repo's `main` branch contains only the original single-module skeleton and is NOT representative. All paths below are repository-relative on that branch. Modules declared in `settings.gradle`: `common` (INFRA library), `course` and `notification` (BOOT servers), `playground` and `ngrinder` (load-/experiment-testing, excluded from CI).
+> **Source branch:** This analysis is based on branch **`chore/ai-infra-cicd`** (built directly on **`feature/query-performance-tuning`** — the active development line, 270 Java files). The repo's `main` branch contains only the original single-module skeleton and is NOT representative. All paths below are repository-relative on that branch. Modules declared in `settings.gradle.kts`: `common` (INFRA library), `course` and `notification` (bounded-context libraries, no own bootJar), `app` (BOOT — the sole executable module, ADR-0003 Stage 2), `playground` and `ngrinder` (load-/experiment-testing, excluded from CI).
 
 ## Naming Patterns
 

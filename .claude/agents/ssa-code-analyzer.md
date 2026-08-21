@@ -17,7 +17,7 @@ model: sonnet
 
 ## 필수 사전 지식
 - 시작 전에 `.planning/codebase/ARCHITECTURE.md`와 `STRUCTURE.md`를 읽을 것
-- 모듈 경계: common(공유 라이브러리), course/notification(바운디드 컨텍스트 라이브러리, 자체 bootJar 없음) — `:app`이 단일 JVM(:8080)으로 조합 (ADR-0003 Stage 2, `:8081`은 더 이상 존재하지 않음)
+- 모듈 경계: common(공유 라이브러리)과 course/notification(바운디드 컨텍스트 라이브러리, 자체 bootJar 없음)을 `:app`이 단일 JVM(:8080)으로 조합한다 (ADR-0003 Stage 2, `:8081`은 더 이상 존재하지 않음)
 - 모듈 간 동기 호출은 course의 `/internal/**` REST뿐
 
 ## 출력 형식

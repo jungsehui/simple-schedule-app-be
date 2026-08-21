@@ -23,11 +23,11 @@ Verify with: `git log --oneline develop..feature/query-performance-tuning` (24 c
 **Overall:** Layered architecture (Presentation → Application → Domain) inside package-by-feature bounded contexts. As of ADR-0003 Stage 2 (single-JVM modular monolith), `course` and `notification` are **bounded-context library modules with no own bootJar** — they are assembled by the `:app` module into **one Spring Boot process on port 8080** (`:8081` no longer exists), alongside a shared library module (`common`), integrated asynchronously via **Kafka with a transactional outbox**.
 
 **Key Characteristics:**
-- Multi-module Gradle build (`settings.gradle` groups them: INFRA = `common`; BOOT = `course`, `notification`; TEST = `playground`, `ngrinder`). Java 21 toolchain, Spring Boot 3.4.3, Lombok applied to every subproject from the root `build.gradle`.
-- Package-by-feature inside each boot module: `course` has `com.example.simplescheduleapp.{member,tutor,student,parent,lecture.general,lecture.special,consultation,schedule,event,redis,config}`; `notification` has `com.example.simplescheduleapp.{fcm,sse,kafka,notification,redis,config}`.
+- Multi-module Gradle build (`settings.gradle.kts` groups them: INFRA = `common`; bounded-context libraries (no own bootJar) = `course`, `notification`; BOOT = `app` (the sole executable module, ADR-0003 Stage 2); TOOLS = `playground`, `ngrinder`). Java 21 toolchain, Spring Boot 3.4.3, Lombok applied to every subproject from the root `build.gradle`.
+- Package-by-feature inside each bounded-context module: `course` has `com.example.simplescheduleapp.{member,tutor,student,parent,lecture.general,lecture.special,consultation,schedule,event,redis,config}`; `notification` has `com.example.simplescheduleapp.{fcm,sse,notification,config}` (the root-level `kafka/` and `redis/` packages no longer exist — see Data Flow / SSE emitter lifecycle below for their new locations).
 - Each feature slice splits into `domain/`, `application/` (+ `command/`), `presentation/` (+ `request/`, `response/`), `exception/` sub-packages.
 - Rich domain model — entities carry behavior (`Lecture.enroll()`, `Lecture.cancel()`, `SpecialLecture.enroll()`, `Schedule.validatePastTime()`), not anemic data holders.
-- Separate database per boot module (`course_db` on MySQL 3306, `notification_db` on MySQL 3307 per root `docker-compose.yml`); modules never touch each other's tables.
+- Single shared database for the `:app` JVM (local MySQL schema `ssa` on 3306; prod Supabase PostgreSQL schema `ssa` — ADR-0003 Stage 2). The root `docker-compose.yml` still starts separate `course_db`/`notification_db` MySQL containers (3306/3307) from the pre-Stage-2 topology, but `app`'s local config only connects to the `ssa` schema on 3306; the `notification_db` container is unused local infra left over from before the merge.
 - Cross-service consistency via domain events + outbox + Kafka (single topic), never distributed transactions.
 - Concurrency-heavy special-lecture enrollment uses a 4-layer defense (Redis atomic counter → transactional DB write → DB unique constraint → Redis compensating transaction); a general-purpose Redisson fair-lock AOP exists separately.
 
@@ -48,7 +48,7 @@ Verify with: `git log --oneline develop..feature/query-performance-tuning` (24 c
 - Location: e.g. `course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureController.java`, `.../presentation/request/LectureCreateRequest.java`, `.../presentation/response/LectureCreateResponse.java`
 - Contains: Controllers; records with `toCommand()` / static `from()`/`of()` factory methods.
 - Depends on: Application layer services + command objects.
-- Used by: External HTTP clients; `LectureEnrollmentInternalController` is used by the `notification` service via `CourseClient`.
+- Used by: External HTTP clients; `LectureEnrollmentInternalController` was used by `notification` via `CourseClient` in the pre-ADR-0003 3-process topology (see the superseded note under Data Flow) — `notification` is no longer a separate service.
 
 **Application (`application/`):**
 - Purpose: Use-case orchestration — transaction boundaries, repository coordination, domain-event publication.
@@ -64,11 +64,11 @@ Verify with: `git log --oneline develop..feature/query-performance-tuning` (24 c
 - Depends on: `common` module base classes and exception types only.
 - Used by: Application layer.
 
-**Infrastructure / cross-cutting (`common` module + per-module `config/`, `redis/`, `kafka/`, `fcm/`, `sse/`):**
+**Infrastructure / cross-cutting (`common` module + per-module `config/`, `redis/`, `fcm/`, `sse/`):**
 - Purpose: Auth, exception handling, outbox + Kafka plumbing, Redis locks/pub-sub, FCM push, SSE connections.
-- Location: `common/src/main/java/com/example/simplescheduleapp/common/**`, `course/src/main/java/com/example/simplescheduleapp/redis/**`, `notification/src/main/java/com/example/simplescheduleapp/{fcm,sse,redis}/**`
+- Location: `common/src/main/java/com/example/simplescheduleapp/common/**`, `course/src/main/java/com/example/simplescheduleapp/redis/**`, `notification/src/main/java/com/example/simplescheduleapp/{fcm,sse}/**` (`notification`'s root-level `redis/` package no longer exists; Redis pub-sub now lives under `sse/infrastructure/redis/`)
 - Contains: `AuthArgumentResolver`, `CommonExceptionHandler`, `KafkaEventProducer`, `EventRecorder`/`EventRecordListener`, `RedissonDistributedLockAop`, FCM services, `SseConnectionService`.
-- Used by: Both boot modules via `implementation project(':common')`.
+- Used by: Both bounded-context modules (`course`, `notification`) via `implementation project(':common')`, assembled together into `:app`.
 
 ## Data Flow
 
@@ -90,13 +90,13 @@ Verify with: `git log --oneline develop..feature/query-performance-tuning` (24 c
 8. Strategy → `NotificationFacade`/`NotificationDispatcher` (`notification/src/main/java/com/example/simplescheduleapp/notification/application/`) → real-time SSE push if the user is connected (`SseConnectionService`, Redis pub-sub fan-out via `notification/src/main/java/com/example/simplescheduleapp/sse/infrastructure/redis/RedisSseMessagePublisher.java` and `RedisSseMessageSubscriber.java`), else FCM push (`notification/src/main/java/com/example/simplescheduleapp/fcm/application/`). Failures are recorded as `FailedNotification` (`notification/src/main/java/com/example/simplescheduleapp/notification/domain/FailedNotification.java`) and resent by `NotificationRetryScheduler` (`notification/src/main/java/com/example/simplescheduleapp/notification/infrastructure/`) / `NotificationRetryService` (`notification/src/main/java/com/example/simplescheduleapp/notification/application/`).
 9. On listener failure the message is not acknowledged; failures route to dead-letter recording (`common/src/main/java/com/example/simplescheduleapp/common/kafka/deadletter/DeadLetter.java`, `DeadLetterRecorder.java`, `DeadLetterRepository.java`).
 
-**Synchronous server-to-server call (notification → course):**
+**Synchronous server-to-server call (notification → course) — superseded, 3-process-era description kept for history:** As of ADR-0003 Stage 2 (commit `45c694b`), `course` and `notification` run in the same `:app` JVM and this HTTP round-trip no longer happens; `app/src/main/java/com/example/simplescheduleapp/integration/InProcessEnrolledStudentsAdapter.java` now implements `EnrolledStudentsPort` with a direct in-process call instead. The paragraphs below describe the pre-Stage-2 mechanism they replaced.
 
 - `CourseClient.getEnrolledStudentInfosByLectureId()` (`notification/src/main/java/com/example/simplescheduleapp/notification/client/CourseClient.java`) issues `GET /lectures/{lectureId}/student-ids` on a Spring `RestClient` whose base URL comes from `client.course-server-internal-url` = `http://localhost:8080/internal` (`notification/src/main/resources/application.yml`, bound by `ClientProperties`/`ClientConfig` in `notification/src/main/java/com/example/simplescheduleapp/notification/client/config/`). 4xx/5xx responses are translated to `ApplicationException(InternalServerExceptionCode.EXTERNAL_API_ERROR)`.
 - Server side: `LectureEnrollmentInternalController` (`course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`) maps `GET /internal/lectures/{lectureId}/student-ids` and returns `GetEnrolledStudentInfosResponse`. The `Internal` suffix + `/internal` path prefix is the convention for service-to-service endpoints, kept separate from the public `LectureEnrollmentController`.
 
 **State Management:**
-- Persistent state: per-module MySQL (JPA/Hibernate, `ddl-auto: update`), no shared schema.
+- Persistent state: single shared schema `ssa` for the `:app` JVM (JPA/Hibernate, `ddl-auto: update`; local MySQL, prod Supabase PostgreSQL — ADR-0003 Stage 2). `course` and `notification` entities coexist in this one schema with no table-name collisions.
 - Ephemeral/coordination state: shared Redis (`redis:7.2`, container `sse-redis`, port 6379) — SSE emitter registry, SSE pub-sub fan-out, special-lecture capacity counters, Redisson locks.
 - Integration bus: single Kafka topic `COURSE_EVENT_TOPIC` (Confluent `cp-kafka:7.3.2` + `cp-zookeeper:7.3.2` in root `docker-compose.yml`, broker on 9092); at-least-once delivery + consumer-side dedup table = effectively-once processing.
 - `spring.jpa.open-in-view: false` is set explicitly, repo-wide, to prevent connection-pool exhaustion from long-lived SSE emitters (`app/src/main/resources/application.yml` — `course`/`notification` no longer have their own `application.yml`, ADR-0003 Stage 2). Hikari pool is capped at 21 (local) / 15 (prod) for the single JVM.

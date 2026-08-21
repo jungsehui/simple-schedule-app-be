@@ -29,7 +29,7 @@ ssa/  (rootProject.name = "simple-schedule-app")
 │   ├── build.gradle          # :common, redisson-spring-boot-starter, mysql, h2, ...
 │   └── src/
 │       ├── main/java/com/example/simplescheduleapp/
-│       │   ├── CourseApplication.java
+│       │   │                 # CourseApplication.java moved to src/test/ (test-only bootstrap) — production entry point is app/src/main/java/.../SsaApplication.java
 │       │   ├── config/               # RedisTemplateConfig, RedissonConfig
 │       │   ├── consultation/         # domain/ application/ presentation/
 │       │   ├── event/                # LectureEnrollment{Requested,Accepted,Rejected,Canceled}Event, LectureUpdatedEvent + mapper/CourseDomainEventMapper
@@ -83,7 +83,7 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 ## Directory Purposes
 
 **`common/` (module):**
-- Purpose: Shared library consumed by both boot servers via `implementation project(':common')`; not deployable on its own.
+- Purpose: Shared library consumed by both `course` and `notification` (bounded-context libraries, no own bootJar) via `implementation project(':common')`; not deployable on its own.
 - Contains: JWT auth, base JPA classes, exception framework, transactional-outbox + Kafka event publishing, Kafka consumer plumbing (idempotency filter, consume history, dead-letter), shared test fixtures (`java-test-fixtures`).
 - Key files: `common/src/main/java/com/example/simplescheduleapp/common/exception/ApplicationException.java`, `common/src/main/java/com/example/simplescheduleapp/common/event/outbox/EventRecorder.java`, `common/src/main/java/com/example/simplescheduleapp/common/kafka/consumer/KafkaIdempotencyFilter.java`, `common/src/testFixtures/java/com/example/simplescheduleapp/support/ApplicationTest.java`.
 
@@ -146,7 +146,7 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 
 **Directories / Packages:**
 - Package-by-feature at module top level, then package-by-layer within each feature (`domain`, `application`, `presentation`, `exception`, plus `application/command`, `presentation/request`, `presentation/response`, `domain/service`).
-- Base package for both boot modules: `com.example.simplescheduleapp` (singular "app", no "back"); `common` uses `com.example.simplescheduleapp.common`. The skeleton package `com.example.simplescheduleappback` exists only on `main` and is dead.
+- Base package for both `course` and `notification`: `com.example.simplescheduleapp` (singular "app", no "back"); `common` uses `com.example.simplescheduleapp.common`. The skeleton package `com.example.simplescheduleappback` exists only on `main` and is dead.
 
 ## Where to Add New Code
 
@@ -165,13 +165,13 @@ Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github
 - For service-to-service-only endpoints, follow `LectureEnrollmentInternalController` (`course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`): `Internal` suffix + `/internal/**` path, separate from the public controller. The consuming side belongs in `notification/src/main/java/com/example/simplescheduleapp/notification/client/` next to `CourseClient`.
 
 **Shared cross-cutting utility:**
-- Add under `common/src/main/java/com/example/simplescheduleapp/common/` — both boot modules pick it up automatically. Do not duplicate logic in `course` and `notification`.
+- Add under `common/src/main/java/com/example/simplescheduleapp/common/` — both `course` and `notification` pick it up automatically. Do not duplicate logic in `course` and `notification`.
 
 **New distributed-lock use case:**
 - Annotate the method with `@RedissonDistributedLock(key = "...")` (`course/src/main/java/com/example/simplescheduleapp/redis/lock/RedissonDistributedLock.java`); `RedissonDistributedLockAop` handles acquire/release. This mechanism exists only in `course`; if `notification` needs it, promote the `redis/aop` + `redis/lock` packages into `common` rather than copying.
 
 **New test:**
-- Integration: extend `ApplicationTest` or `ApplicationWithKafkaTest` (`common/src/testFixtures/java/com/example/simplescheduleapp/support/`). Unit: `UnitTest`/`MockTestSupport`. Test data: `MonkeySupport` (Fixture Monkey). Fixtures flow through `testImplementation(testFixtures(project(':common')))` in both boot modules' build files.
+- Integration: extend `ApplicationTest` or `ApplicationWithKafkaTest` (`common/src/testFixtures/java/com/example/simplescheduleapp/support/`). Unit: `UnitTest`/`MockTestSupport`. Test data: `MonkeySupport` (Fixture Monkey). Fixtures flow through `testImplementation(testFixtures(project(':common')))` in both `course`'s and `notification`'s build files.
 
 ## Special Directories
 

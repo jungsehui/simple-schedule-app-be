@@ -34,12 +34,11 @@ In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is expose
 ## Data Storage
 
 **Databases:**
-- MySQL 8.0, one database per service (database-per-service pattern):
-  - `course` → `jdbc:mysql://localhost:3306/course_db` (`course/src/main/resources/application.yml`)
-  - `notification` → `jdbc:mysql://localhost:3307/notification_db` (`notification/src/main/resources/application.yml`)
-  - Local containers defined in root `docker-compose.yml` (`course_mysql`, `notification_mysql`); prod containers in `deploy/docker-compose.prod.yml`
-  - Hikari: `maximum-pool-size: 21`, `connection-timeout: 30000`, `max-lifetime: 600000` (both services)
-  - JPA: `hibernate.ddl-auto: update` (local), `create` (test); `notification` sets `spring.jpa.open-in-view: false` explicitly to prevent connection exhaustion from long-lived SSE Emitters (inline comment in its `application.yml`)
+- Single shared database for the `:app` JVM (ADR-0003 Stage 2 — `course` and `notification` no longer have their own database):
+  - `app` → local MySQL 8.0 `jdbc:mysql://localhost:3306/ssa` / prod Supabase PostgreSQL schema `ssa` (`app/src/main/resources/application.yml`, `application-prod.yml`)
+  - The root `docker-compose.yml` still starts separate `course_mysql`/`notification_mysql` containers (3306/3307) from the pre-Stage-2 topology, but `app`'s local config only connects to the `ssa` schema on 3306; `deploy/docker-compose.prod.yml` has no MySQL containers at all (Supabase is externally managed)
+  - Hikari: `maximum-pool-size: 21` (local) / `15` (prod)
+  - JPA: `hibernate.ddl-auto: update`; `spring.jpa.open-in-view: false` is set repo-wide to prevent connection exhaustion from long-lived SSE Emitters (`app/src/main/resources/application.yml`)
 - H2 in-memory for tests — `course/src/main/resources/application-test.yml` (`jdbc:h2:mem:testdb`, `H2Dialect`); `runtimeOnly com.h2database:h2` in `course`, `notification`, `playground`
 
 **Caching / Distributed Locking (Redis):**
@@ -107,7 +106,7 @@ In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is expose
 ## Environment Configuration
 
 **Local (yml-based, root `docker-compose.yml` supplies infra):**
-- `spring.datasource.*` per service; Redis `localhost:6379`; Kafka `localhost:9092` (via `common/src/main/resources/application-common-local.yml`); `fcm.key.json`/`fcm.key.url` (notification); `token.secretKey`/`token.accessTokenExpirationMillis`; `client.course-server-internal-url`; `cors.allowed-origins`
+- `spring.datasource.*` for the single `:app` JVM; Redis `localhost:6379`; Kafka `localhost:9092` (via `common/src/main/resources/application-common-local.yml`); `fcm.key.json`/`fcm.key.url`; `token.secretKey`/`token.accessTokenExpirationMillis`; `cors.allowed-origins`
 
 **Production (env vars via `deploy/docker-compose.prod.yml` + server-side `.env`; template `deploy/.env.example`):**
 - `GHCR_OWNER`, `IMAGE_TAG`, `MYSQL_ROOT_PASSWORD`, `COURSE_DB_USER`, `COURSE_DB_PASSWORD`, `NOTIFICATION_DB_USER`, `NOTIFICATION_DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `JWT_ACCESS_EXPIRATION_MS`, `CORS_ALLOWED_ORIGINS`
