@@ -1,10 +1,9 @@
-package com.example.simplescheduleapp.notification.schedule;
+package com.example.simplescheduleapp.notification.infrastructure;
 
 import com.example.simplescheduleapp.fcm.application.FcmService;
 import com.example.simplescheduleapp.notification.domain.FailedNotification;
 import com.example.simplescheduleapp.notification.domain.FailedNotificationRepository;
 import com.example.simplescheduleapp.notification.domain.NotificationType;
-import com.example.simplescheduleapp.notification.infrastructure.NotificationRetryScheduler;
 import com.example.simplescheduleapp.support.ApplicationTest;
 import com.google.api.core.ApiFutures;
 import lombok.extern.slf4j.Slf4j;
