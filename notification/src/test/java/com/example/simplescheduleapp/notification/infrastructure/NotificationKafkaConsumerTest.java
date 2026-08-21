@@ -1,11 +1,13 @@
 package com.example.simplescheduleapp.notification.infrastructure;
 
+import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationCommand;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationEventType;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationStrategyFactory;
+import com.example.simplescheduleapp.notification.exception.NotificationTypeExceptionCode;
 import com.example.simplescheduleapp.support.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -19,10 +21,12 @@ import org.springframework.kafka.support.Acknowledgment;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * 인바운드 어댑터의 Kafka DTO 변환 검증.
@@ -82,5 +86,25 @@ class NotificationKafkaConsumerTest extends UnitTest {
                 .containsExactly(Arrays.stream(LectureEventType.values())
                         .map(LectureEventType::name)
                         .toArray(String[]::new));
+    }
+
+    @Test
+    @DisplayName("type이 null이면 전략을 타지 않고 NOTIFICATION_TYPE_NOT_FOUND로 실패한다")
+    void 타입_null이면_예외() {
+        KafkaLectureEventMessage message = KafkaLectureEventMessage.create(
+                "uuid-null", null, 1L, 2L, 3L, "제목", "내용");
+
+        assertThatThrownBy(() -> notificationKafkaConsumer.consumeNotificationEvent(message, ack, 0))
+                .isInstanceOf(ApplicationException.class)
+                .satisfies(e -> assertThat(((ApplicationException) e).getCode())
+                        .isEqualTo(NotificationTypeExceptionCode.NOTIFICATION_TYPE_NOT_FOUND));
+
+        verifyNoInteractions(notificationStrategyFactory, notificationStrategy, ack);
+    }
+
+    @Test
+    @DisplayName("NotificationEventType과 LectureEventType의 상수 개수가 같다 — 한쪽에만 추가되면 이 테스트가 잡는다")
+    void 이벤트_종류_개수_대조() {
+        assertThat(NotificationEventType.values()).hasSameSizeAs(LectureEventType.values());
     }
 }
