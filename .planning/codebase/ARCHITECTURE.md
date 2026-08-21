@@ -179,11 +179,11 @@ SAGA-style compensation rather than 2PC — Redis and DB counts reconcile throug
 - `CommonExceptionHandler` (`common/src/main/java/com/example/simplescheduleapp/common/exception/CommonExceptionHandler.java`) handles `ApplicationException` (log level driven by 5xx-ness), bean-validation `MethodArgumentNotValidException` (field-error map), and a catch-all; response shapes live in `common/src/main/java/com/example/simplescheduleapp/common/exception/response/`.
 - `DataIntegrityViolationException` is caught at the service layer and mapped to domain codes (see the `switch` in `RedisSpecialLectureEnrollmentService`), never leaked to the generic handler.
 - Kafka failures: unacked → dead-letter path (`common/src/main/java/com/example/simplescheduleapp/common/kafka/deadletter/`); downstream send failures → `FailedNotification` rows retried by `NotificationRetryScheduler` (retry/scheduler config in `notification/src/main/java/com/example/simplescheduleapp/notification/config/RetryConfig.java`, `SchedulerConfig.java`).
-- `CourseClient` maps any 4xx/5xx from the internal call to `InternalServerExceptionCode.EXTERNAL_API_ERROR`.
+- `CourseClient` used to map any 4xx/5xx from the internal call to `InternalServerExceptionCode.EXTERNAL_API_ERROR` — this class is deleted (ADR-0003 Stage 2, see the superseded note under Data Flow); the in-process `InProcessEnrolledStudentsAdapter` has no equivalent 4xx/5xx translation because there is no HTTP call to translate.
 
 ## Cross-Cutting Concerns
 
-**Logging:** SLF4J via Lombok `@Slf4j`; INFO try/success pairs with IDs (see `KafkaEventProducer`, `LectureEnrollmentInternalController`, `CourseClient`), ERROR/WARN with context on failure; Korean messages common in domain-level logs.
+**Logging:** SLF4J via Lombok `@Slf4j`; INFO try/success pairs with IDs (see `KafkaEventProducer`, `LectureEnrollmentInternalController`), ERROR/WARN with context on failure; Korean messages common in domain-level logs.
 
 **Validation:** Bean Validation on request DTOs (`spring-boot-starter-validation` via `common`); domain invariants enforced in entity constructors/methods (`Schedule.validatePastTime()`, `Lecture.validateCanIncreaseEnrolledCount()`, `PendingLectureEnrollmentService`).
 
