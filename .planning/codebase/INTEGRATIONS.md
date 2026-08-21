@@ -6,15 +6,14 @@
 
 ## Service Topology
 
-Independent Spring Boot services in one Gradle multi-module repo (`settings.gradle`):
+**As of ADR-0003 Stage 2 (single-JVM modular monolith), `course` and `notification` are bounded-context library modules with no own bootJar — they no longer run as independent Spring Boot services.** `:app` assembles both into one process on port 8080; `:8081` no longer exists.
 
 | Module | Port | Database | Kafka consumer group | Purpose |
 |---|---|---|---|---|
-| `course` | 8080 | MySQL `localhost:3306/course_db` | `ssa-course-server-group` | Lectures, enrollments, members, schedules |
-| `notification` | 8081 | MySQL `localhost:3307/notification_db` | `ssa-notification-server-group` | SSE streams + FCM push |
+| `app` | 8080 | Local MySQL `localhost:3306/ssa` (single schema) / prod Supabase PostgreSQL (schema `ssa`) | `ssa-server-group` | Single JVM assembling `course` (lectures, enrollments, members, schedules) + `notification` (SSE streams + FCM push) |
 | `playground` | 8082 | MySQL `localhost:3308/test` (test profile) | `test-ssa-group` | Performance experiments only, not deployed |
 
-In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is exposed; `deploy/nginx/conf.d/ssa.conf` routes `/sse-stream/` and `/fcm/` to `notification:8081`, everything else to `course:8080`, and returns 403 for `/internal/`.
+In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is exposed. `deploy/nginx/conf.d/ssa.conf` routes everything except `/chat/**` (GeekChat, a separate JVM process) to a single `ssa_backend` upstream (`app:8080`) — including `/sse-stream` and `/fcm/` — and returns 403 for `/internal/`. There is no `notification:8081` upstream.
 
 ## APIs & External Services
 
@@ -50,7 +49,7 @@ In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is expose
   - Lock implementations: `course/src/main/java/com/example/simplescheduleapp/redis/lock/RedissonDistributedLock.java`, `redis/lock/SimpleRedisLock.java`
   - Annotation-driven AOP: `redis/aop/RedissonDistributedLockAop.java` + `redis/aop/CustomSpringELParser.java` (SpEL-resolved lock keys)
   - Applied to limited-seat enrollment: `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/RedisSpecialLectureEnrollmentService.java`, `lecture/special/application/SpecialLectureRedisClient.java`
-- `notification` uses Redis for SSE-related client state: `notification/src/main/java/com/example/simplescheduleapp/redis/cache/RedisClientManager.java`
+- `notification` uses Redis for SSE-related client state: `notification/src/main/java/com/example/simplescheduleapp/sse/infrastructure/redis/RedisClientManager.java` (moved from the now-removed `redis/cache/` package)
 
 **File Storage:**
 - Not used (no S3/GCS/blob clients)
@@ -66,13 +65,13 @@ In production (`deploy/docker-compose.prod.yml`), only nginx (port 80) is expose
   - Topics/messages: `common/.../common/kafka/topic/KafkaTopics.java`, `KafkaDomainEventMessage.java`, `KafkaLectureEventMessage.java`, `LectureEventType.java`
 - Transactional outbox pattern in `common/src/main/java/com/example/simplescheduleapp/common/event/`: `DomainEvent.java` + `DomainEventRepository.java` + `EventStatus.java` (persisted events), `outbox/EventRecorder.java` + `outbox/EventRecordListener.java` (record within transaction), `producer/KafkaEventProducer.java` + `producer/EventProducerListener.java` + `producer/EventAsyncTaskExecutorConfig.java` (async publish after commit), `mapper/DomainEventMapper.java` + `DomainEventMapperFactory.java`
 - Producers: `course` publishes lecture-enrollment lifecycle events (`course/src/main/java/com/example/simplescheduleapp/event/` — `LectureEnrollmentRequestedEvent`, `LectureEnrollmentAcceptedEvent`, `LectureEnrollmentRejectedEvent`, `LectureEnrollmentCanceledEvent`, `LectureUpdatedEvent`, `mapper/CourseDomainEventMapper.java`)
-- Consumer: `notification/src/main/java/com/example/simplescheduleapp/kafka/consumer/NotificationKafkaConsumer.java` — consumes course events to create notifications (SSE + FCM)
+- Consumer: `notification/src/main/java/com/example/simplescheduleapp/notification/infrastructure/NotificationKafkaConsumer.java` — consumes course events to create notifications (SSE + FCM)
 
 ## Real-time / Streaming to Clients (SSE)
 
-- `notification` serves Server-Sent Events: `notification/src/main/java/com/example/simplescheduleapp/sse/presentation/SseController.java`, `sse/application/SseConnectionService.java`, `sse/cache/SseEmitterRepository.java`
-- nginx is tuned for it (`deploy/nginx/conf.d/ssa.conf` `/sse-stream/` block: `proxy_buffering off`, `proxy_read_timeout 1h`, HTTP/1.1 keep-alive)
-- `spring.jpa.open-in-view: false` in `notification/src/main/resources/application.yml` guards the connection pool against long-lived emitters
+- `notification` serves Server-Sent Events: `notification/src/main/java/com/example/simplescheduleapp/sse/presentation/SseController.java`, `sse/application/SseConnectionService.java`, `sse/application/SseEmitterRegistry.java` (renamed from `SseEmitterRepository`, moved out of the now-removed `sse/cache/` package)
+- nginx is tuned for it (`deploy/nginx/conf.d/ssa.conf` `/sse-stream` block: `proxy_buffering off`, `proxy_read_timeout 1h`, HTTP/1.1 keep-alive)
+- `spring.jpa.open-in-view: false` in `app/src/main/resources/application.yml` guards the connection pool against long-lived emitters (`notification/src/main/resources/application.yml` no longer exists, ADR-0003 Stage 2)
 
 ## Authentication & Identity
 

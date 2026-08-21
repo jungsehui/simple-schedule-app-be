@@ -119,10 +119,10 @@
 - Safe modification: Settle the strategy before touching this path — it already has three abandoned alternates (Redisson AOP, `SimpleRedisLock`, the deleted Kafka variant). A periodic reconciliation job (Redis counter vs. `COUNT(*)` of enrollments) would bound the damage of any leak.
 
 **SSE connection registry: one emitter per member, silent overwrite (Severity: Medium):**
-- Files: `notification/src/main/java/com/example/simplescheduleapp/sse/cache/SseEmitterRepository.java`, `notification/src/main/java/com/example/simplescheduleapp/sse/application/SseConnectionService.java`
-- Why fragile: `SseEmitterRepository` maps `memberId → SseEmitter` (`SseEmitterRepository.java:15-19`). A second connection from the same member (e.g., second browser tab) overwrites the first without completing it — the orphaned emitter stays open up to the 1-hour timeout (`SseConnectionService.java:25`) holding a servlet async context, its heartbeat still firing, while notifications reach only the newest connection. Cross-instance routing exists via Redis pub/sub (`notification/src/main/java/com/example/simplescheduleapp/redis/publisher/RedisSseMessagePublisher.java`, `redis/subscriber/RedisSseMessageSubscriber.java`), but the map itself is unbounded in-memory state.
+- Files: `notification/src/main/java/com/example/simplescheduleapp/sse/application/SseEmitterRegistry.java` (renamed from `SseEmitterRepository`, moved out of the now-removed `sse/cache/` package), `notification/src/main/java/com/example/simplescheduleapp/sse/application/SseConnectionService.java`
+- Why fragile: `SseEmitterRegistry` maps `memberId → SseEmitter` (`SseEmitterRegistry.java:27`, `save()`). A second connection from the same member (e.g., second browser tab) overwrites the first without completing it — the orphaned emitter stays open up to the 1-hour timeout (`SseConnectionService.java` — `DEFAULT_TIMEOUT`) holding a servlet async context, its heartbeat still firing, while notifications reach only the newest connection. Cross-instance routing exists via Redis pub/sub (`notification/src/main/java/com/example/simplescheduleapp/sse/infrastructure/redis/RedisSseMessagePublisher.java`, `RedisSseMessageSubscriber.java` — the root-level `redis/{publisher,subscriber}/` package no longer exists), but the map itself is unbounded in-memory state.
 - Safe modification: On `save`, complete any existing emitter for that member (or support a list per member); pair with the heartbeat-cancellation fix under Known Bugs.
-- Test coverage: `notification/src/test/java/com/example/simplescheduleapp/sse/cache/SseEmitterRepositoryTest.java` exists but does not cover the overwrite scenario.
+- Test coverage: `notification/src/test/java/com/example/simplescheduleapp/sse/application/SseEmitterRegistryTest.java` exists but does not cover the overwrite scenario.
 
 ## Scaling Limits
 
@@ -134,7 +134,7 @@
 **Kafka consumer concurrency is 1:**
 - Current capacity: `factory.setConcurrency(1)` in `common/src/main/java/com/example/simplescheduleapp/common/kafka/consumer/KafkaConsumerConfig.java:39`; single topic (`KafkaTopics.COURSE_EVENT_TOPIC`), `KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1`, single broker.
 - Limit: Notification throughput is serialized; a slow FCM/SSE handler backs up the whole topic. (Error handling itself is solid: 2 retries + `DeadLetterRecorder` DLQ, manual-immediate acks, `KafkaIdempotencyFilter` dedupe — `KafkaConsumerConfig.java:41-48`.)
-- Scaling path: Partition the topic by lectureId/memberId and raise concurrency; the retry scheduler (`notification/src/main/java/com/example/simplescheduleapp/notification/schedule/`) already handles failed sends.
+- Scaling path: Partition the topic by lectureId/memberId and raise concurrency; the retry scheduler (`notification/src/main/java/com/example/simplescheduleapp/notification/infrastructure/NotificationRetryScheduler.java`, moved out of the now-removed `notification/schedule/` package) already handles failed sends.
 
 **Prod host is a single 4 vCPU / 8GB box running 8 containers:**
 - Current capacity: mem limits in `deploy/docker-compose.prod.yml` total ~5.6GB across nginx/course/notification/2×MySQL/Redis/Kafka/Zookeeper.
@@ -186,8 +186,8 @@
 - Priority: High — write the failing test first, then add the locking fix.
 
 **No tests for Redis counter loss/rehydration or SSE duplicate connections (Severity: Medium):**
-- What's not tested: Missing-key behavior in `SpecialLectureRedisClient`; emitter-overwrite behavior in `SseEmitterRepository`.
-- Files: `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/SpecialLectureRedisClient.java`, `notification/src/test/java/com/example/simplescheduleapp/sse/cache/SseEmitterRepositoryTest.java`
+- What's not tested: Missing-key behavior in `SpecialLectureRedisClient`; emitter-overwrite behavior in `SseEmitterRegistry`.
+- Files: `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/SpecialLectureRedisClient.java`, `notification/src/test/java/com/example/simplescheduleapp/sse/application/SseEmitterRegistryTest.java`
 - Priority: Medium.
 
 ---

@@ -51,8 +51,8 @@ notification/src/test/java/com/example/simplescheduleapp/
   kafka/event/producer/   KafkaEventProducerTest
   kafka/infra/consumer/   KafkaIdempotencyFilterTest
   kafka/infra/deadletter/ DeadLetterRecorderTest
-  notification/           NotificationIntegrationTest, schedule/NotificationRetrySchedulerFailureTest
-  sse/                    SseConnectionPublisherTest, cache/{RedisClientManagerTest, SseEmitterRepositoryTest}, event/RedisSseMessagePublisherTest
+  notification/           NotificationIntegrationTest, infrastructure/{NotificationRetrySchedulerFailureTest, NotificationKafkaConsumerTest}, application/strategy/lecture/{AcceptEnrollmentStrategyTest, LectureUpdatedStrategyTest}
+  sse/                    application/{SseConnectionPublisherTest, SseConnectionServiceTest, SseHeartbeatLifecycleTest, SseEmitterRegistryTest}, infrastructure/redis/{RedisClientManagerTest, RedisSseMessagePublisherTest}, presentation/SseAuthFailureContractTest
 playground/src/test/java/com/example/playground/requiresnewdeadlock/    <- deadlock reproduction tests
 ```
 

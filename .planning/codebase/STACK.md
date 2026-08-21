@@ -29,8 +29,8 @@
 | Module | Role | Boot app? |
 |---|---|---|
 | `common` | Shared library (web/JPA/validation/Kafka/JWT + test fixtures) | No (`bootJar` disabled, plain `jar` enabled in `common/build.gradle`) |
-| `course` | Course/lecture/member REST server (port 8080) | Yes |
-| `notification` | Notification server: SSE + FCM (port 8081) | Yes |
+| `course` | Course/lecture/member bounded-context library — no own port, assembled into `:app` (ADR-0003 Stage 2) | No (`bootJar` disabled; `:app` is the sole bootable module) |
+| `notification` | Notification bounded-context library: SSE + FCM — no own port, assembled into `:app` (ADR-0003 Stage 2; `:8081` no longer exists) | No (`bootJar` disabled; `:app` is the sole bootable module) |
 | `playground` | Performance/load-test sandbox (port 8082, standalone — no `common` dependency) | Yes |
 | `ngrinder` | nGrinder load-test scripts (Groovy) — `ngrinder/build.gradle` only, **no `src/` directory exists** | N/A |
 
@@ -71,14 +71,13 @@ Root `build.gradle` declares plugin versions with `apply false` and applies `jav
 
 **Infrastructure:**
 - `com.mysql:mysql-connector-j` (`runtimeOnly` in `course`, `notification`, `playground`) — MySQL driver, version via Boot BOM
-- HikariCP (via Boot) — tuned in `course/src/main/resources/application.yml` and `notification/src/main/resources/application.yml`: `maximum-pool-size: 21`, `connection-timeout: 30000`, `max-lifetime: 600000`
+- HikariCP (via Boot) — tuned in `app/src/main/resources/application.yml` (local, `maximum-pool-size: 21`) and `app/src/main/resources/application-prod.yml` (prod, `maximum-pool-size: 15`); `course/src/main/resources/application.yml` and `notification/src/main/resources/application.yml` no longer exist (ADR-0003 Stage 2 — runtime config moved to `:app`)
 - `org.ngrinder:ngrinder-core:3.5.9` (`ngrinder/build.gradle`) — load-test scripting
 
 ## Configuration
 
 **Profiles:** `local` (default active), `stage`, `test`, `prod`.
-- `course/src/main/resources/application.yml` — base config: port 8080, MySQL `localhost:3306/course_db`, Redis `localhost:6379`, Kafka consumer group `ssa-course-server-group`, `cors.allowed-origins: http://localhost:3000`; profile group `local` → includes `common-local`
-- `notification/src/main/resources/application.yml` — port 8081, MySQL `localhost:3307/notification_db`, `spring.jpa.open-in-view: false` (commented: prevents connection exhaustion from SSE Emitters), `fcm.key.json`/`fcm.key.url`, `client.course-server-internal-url: http://localhost:8080/internal`
+- `course/src/main/resources/application.yml` and `notification/src/main/resources/application.yml` no longer exist — each module keeps only `application-test.yml` (ADR-0003 Stage 2). Base runtime config lives in `app/src/main/resources/application.yml`: `server.port: 8080`, MySQL `localhost:3306/ssa` (single schema), Redis `localhost:6379`, Kafka consumer group `ssa-server-group`, `cors.allowed-origins: http://localhost:3000`, `spring.jpa.open-in-view: false`, `fcm.key.json`/`fcm.key.url`; profile group `local` → includes `common-local`
 - `common/src/main/resources/application-common-local.yml` / `application-common-test.yml` — shared Kafka bootstrap servers (`localhost:9092` local, `localhost:49092` test) and JWT `token.secretKey` / `token.accessTokenExpirationMillis` (86400000 ms = 24h)
 - `course/src/main/resources/application-test.yml` — H2, Flyway disabled, test Kafka group `ssa-course-server-group-test`
 - `notification/src/main/resources/application-test.yml` — **empty file** (inherits from `common-test` via profile group)
