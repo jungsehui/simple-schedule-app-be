@@ -2,7 +2,7 @@
 
 **Analysis Date:** 2026-07-02
 
-> **Branch note:** This analysis is based on branch `feature/query-performance-tuning` (develop + 24 commits; a superset of `develop`). The `main` branch is only a skeleton and does NOT reflect the real codebase. The working tree analyzed also includes CI/CD infrastructure additions from `chore/ai-infra-cicd` (built on top of `feature/query-performance-tuning`): `.github/workflows/`, `course/Dockerfile`, `notification/Dockerfile`, `deploy/`.
+> **Branch note:** This analysis was performed on 2026-07-02 against branch `feature/query-performance-tuning` (develop + 24 commits; a superset of `develop`), when `main` was only a skeleton that did not reflect the real codebase. **As of the 2026-08-21 release (`9bd135f`), `main` is a release branch containing the full application — `origin/main`'s tree is identical to `origin/develop`.** The working tree analyzed at the time also included CI/CD infrastructure additions from `chore/ai-infra-cicd` (built on top of `feature/query-performance-tuning`): `.github/workflows/`, `course/Dockerfile`, `notification/Dockerfile`, `deploy/` — those two Dockerfiles were later superseded by `app/Dockerfile` and `geekchat/Dockerfile` (ADR-0003 Stage 2).
 
 ## Languages
 

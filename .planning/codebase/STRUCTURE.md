@@ -78,7 +78,7 @@ ssa/  (rootProject.name = "simple-schedule-app")
     └── build.gradle          # groovy plugin + org.ngrinder:ngrinder-core:3.5.9; no source files at this tip
 ```
 
-Uncommitted on the `chore/ai-infra-cicd` working tree (not yet in git): `.github/workflows/deploy.yml`, `deploy/nginx/`, `course/Dockerfile`, `notification/Dockerfile`. Tracked `.github/` currently contains only `PULL_REQUEST_TEMPLATE.md`.
+**Historical snapshot (2026-07-02 analysis), superseded:** at the time, `.github/workflows/deploy.yml`, `deploy/nginx/`, `course/Dockerfile`, `notification/Dockerfile` were uncommitted on the `chore/ai-infra-cicd` working tree, and tracked `.github/` contained only `PULL_REQUEST_TEMPLATE.md`. All of these are now committed; `course/Dockerfile`/`notification/Dockerfile` no longer exist and were replaced by `app/Dockerfile`/`geekchat/Dockerfile` (ADR-0003 Stage 2).
 
 ## Directory Purposes
 

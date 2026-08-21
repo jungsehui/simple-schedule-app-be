@@ -80,8 +80,8 @@
 - Fix approach: Delete the unused lock classes (they remain in git history) or document why they're retained.
 
 **Deploy packaging nits (Severity: Low):**
-- Issue: `course/Dockerfile` and `notification/Dockerfile` copy `build/libs/*-SNAPSHOT.jar` — the glob breaks the moment versioning moves off `-SNAPSHOT` (`version = "0.0.1-SNAPSHOT"` in `build.gradle:16`). `.github/workflows/deploy.yml` offers a `stage` environment input, but `application-stage.yml` is empty and `deploy/docker-compose.prod.yml` is the only compose — "stage" deploys prod config.
-- Files: `course/Dockerfile`, `notification/Dockerfile`, `.github/workflows/deploy.yml`
+- Issue: `app/Dockerfile` copies `build/libs/*-SNAPSHOT.jar` (`app/Dockerfile:8`) — the glob breaks the moment versioning moves off `-SNAPSHOT` (`version = "0.0.1-SNAPSHOT"` in `buildSrc/src/main/kotlin/ssa.java-common.gradle.kts:14`, the shared convention plugin `app` applies via `ssa.spring-boot-app`). `.github/workflows/deploy.yml` offers a `stage` environment input, but `application-stage.yml` is empty and `deploy/docker-compose.prod.yml` is the only compose — "stage" deploys prod config.
+- Files: `app/Dockerfile`, `.github/workflows/deploy.yml`
 - Fix approach: Copy the jar by explicit name via a build arg; either implement a real stage config or remove the input option.
 
 ## Performance Bottlenecks

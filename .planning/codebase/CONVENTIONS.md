@@ -199,7 +199,7 @@ Real examples: `refactor: 유니크 제약 조건으로 도메인 서비스 해�
 
 **Toolchain:** Java 21 (`JavaLanguageVersion.of(21)` in every module), Spring Boot 3.4.3, Gradle wrapper committed (`gradlew`). Redisson 3.29.0 (course), Firebase Admin 9.2.0 + spring-retry + AOP starter (notification), MySQL connector for prod / H2 for tests (`runtimeOnly` in both server modules).
 
-**CI/CD:** `.github/workflows/ci.yml` runs `./gradlew :common:build :course:build :notification:build --parallel` on JDK 21 (temurin) for PRs and pushes to `main`/`develop`; `playground`/`ngrinder` are deliberately excluded from CI (load-test only; tests run against H2/`@EmbeddedKafka`, so no external services are needed). `.github/workflows/deploy.yml` handles deployment; Dockerfiles at `course/Dockerfile` and `notification/Dockerfile`, nginx config under `deploy/nginx/conf.d/`.
+**CI/CD:** `.github/workflows/ci.yml` runs `./gradlew buildAll` (root `build.gradle.kts` task, `dependsOn(":common:build", ":course:build", ":notification:build", ":app:build")` plus the geekchat composite build; sequential, no `--parallel`) on JDK 21 (temurin) for PRs and pushes to `main`/`develop`; `playground`/`ngrinder` are deliberately excluded from CI (load-test only; tests run against H2/`@EmbeddedKafka`, so no external services are needed). `.github/workflows/deploy.yml` handles deployment; Dockerfiles at `app/Dockerfile` (course+notification, single JVM) and `geekchat/Dockerfile`, nginx config under `deploy/nginx/conf.d/`.
 
 ---
 
