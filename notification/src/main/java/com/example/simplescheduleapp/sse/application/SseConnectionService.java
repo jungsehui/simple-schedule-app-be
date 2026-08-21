@@ -1,8 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
-import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.application.port.out.SseClientPresence;
 import com.example.simplescheduleapp.sse.exception.SseExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +43,8 @@ public class SseConnectionService {
     @Qualifier(SSE_HEARTBEAT_SCHEDULER)
     private final TaskScheduler taskScheduler;
 
-    private final SseEmitterRepository sseEmitterRepository;
-    private final RedisClientManager redisClientManager;
+    private final SseEmitterRegistry sseEmitterRegistry;
+    private final SseClientPresence sseClientPresence;
 
     /**
      * 커넥션별 하트비트 스케줄 핸들. 한 논리적 커넥션의 자원은 emitter·Redis 구독·하트비트 3가지이며,
@@ -55,7 +54,7 @@ public class SseConnectionService {
     private final Map<Long, ScheduledFuture<?>> heartbeats = new ConcurrentHashMap<>();
 
     public void sendSseNotification(Long targetId, String title, String body) {
-        SseEmitter emitter = sseEmitterRepository.get(targetId);
+        SseEmitter emitter = sseEmitterRegistry.get(targetId);
 
         try {
             emitter.send(SseEmitter.event()
@@ -65,7 +64,7 @@ public class SseConnectionService {
                     targetId, title, body);
         } catch (IOException e) {
             log.error("targetId: {} 에게 SSE 이벤트 전송 실패: {}", targetId, body);
-            sseEmitterRepository.delete(targetId);
+            sseEmitterRegistry.delete(targetId);
             throw new ApplicationException(SseExceptionCode.SSE_SEND_FAILED);
         }
     }
@@ -76,8 +75,8 @@ public class SseConnectionService {
         cancelHeartbeat(memberId);
 
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
-        sseEmitterRepository.save(memberId, emitter);
-        redisClientManager.subscribeClient(memberId);
+        sseEmitterRegistry.save(memberId, emitter);
+        sseClientPresence.subscribeClient(memberId);
 
         // 콜백 등록 (중복 코드 제거를 위해 clearSseConnectionResource 메서드 활용)
         emitter.onCompletion(() -> clearSseConnectionResource(memberId));
@@ -108,8 +107,8 @@ public class SseConnectionService {
     /** 한 논리적 커넥션의 자원 3종(하트비트 스케줄·emitter·Redis 구독)을 모두 해제한다. */
     private void clearSseConnectionResource(Long memberId) {
         cancelHeartbeat(memberId);
-        sseEmitterRepository.delete(memberId);
-        redisClientManager.unsubscribeClient(memberId);
+        sseEmitterRegistry.delete(memberId);
+        sseClientPresence.unsubscribeClient(memberId);
         log.debug("SSE 자원 해제 완료 - memberId: {}", memberId);
     }
 
@@ -126,7 +125,7 @@ public class SseConnectionService {
         ScheduledFuture<?> heartbeat = taskScheduler.scheduleAtFixedRate(() -> {
             try {
                 emitter.send(SseEmitter.event().name("heartbeat").data("연결 끊김 방지"));
-                redisClientManager.refreshConnection(memberId);
+                sseClientPresence.refreshConnection(memberId);
             } catch (IOException | IllegalStateException e) {
                 // IOException: 클라이언트 연결이 끊어져 전송 실패.
                 // IllegalStateException: emitter가 이미 완료(완료/타임아웃/에러 콜백 등)되어

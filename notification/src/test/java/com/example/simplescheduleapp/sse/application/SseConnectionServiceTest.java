@@ -1,7 +1,7 @@
 package com.example.simplescheduleapp.sse.application;
 
-import com.example.simplescheduleapp.redis.cache.RedisClientManager;
-import com.example.simplescheduleapp.sse.cache.SseEmitterRepository;
+import com.example.simplescheduleapp.sse.application.port.out.SseClientPresence;
+import com.example.simplescheduleapp.sse.application.SseEmitterRegistry;
 import com.example.simplescheduleapp.support.UnitTest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
@@ -40,10 +40,10 @@ class SseConnectionServiceTest extends UnitTest {
     private TaskScheduler taskScheduler;
 
     @Mock
-    private SseEmitterRepository sseEmitterRepository;
+    private SseEmitterRegistry sseEmitterRegistry;
 
     @Mock
-    private RedisClientManager redisClientManager;
+    private SseClientPresence sseClientPresence;
 
     @Mock
     private ScheduledFuture<?> scheduledFuture;
@@ -78,10 +78,10 @@ class SseConnectionServiceTest extends UnitTest {
 
         // then: 하트비트 스케줄이 취소되고, SSE 자원(레포지토리 엔트리·Redis 구독)이 해제되어야 한다.
         verify(scheduledFuture, times(1)).cancel(false);
-        verify(sseEmitterRepository, times(1)).delete(memberId);
-        verify(redisClientManager, times(1)).unsubscribeClient(memberId);
+        verify(sseEmitterRegistry, times(1)).delete(memberId);
+        verify(sseClientPresence, times(1)).unsubscribeClient(memberId);
         // send()가 이미 완료 상태에서 실패했으므로 refreshConnection까지는 도달하지 않는다.
-        verify(redisClientManager, never()).refreshConnection(memberId);
+        verify(sseClientPresence, never()).refreshConnection(memberId);
     }
 
     @DisplayName("동일 memberId로 재연결하면 이전 커넥션의 하트비트 스케줄을 취소한다")
@@ -113,7 +113,7 @@ class SseConnectionServiceTest extends UnitTest {
         String title = "중등 수학 심화";
         String body = "수강신청이 승인되었습니다";
         SseEmitter emitter = mock(SseEmitter.class);
-        doReturn(emitter).when(sseEmitterRepository).get(memberId);
+        doReturn(emitter).when(sseEmitterRegistry).get(memberId);
 
         sseConnectionService.sendSseNotification(memberId, title, body);
 

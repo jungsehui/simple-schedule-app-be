@@ -12,4 +12,6 @@ interface LectureJpaRepository extends JpaRepository<LectureEntity, Long> {
     List<LectureEntity> findByKeyword(String keyword);
 
     List<LectureEntity> findAllByTutorId(Long id);
+
+    List<LectureEntity> findAllByIdInOrderByStartTimeAsc(List<Long> ids);
 }

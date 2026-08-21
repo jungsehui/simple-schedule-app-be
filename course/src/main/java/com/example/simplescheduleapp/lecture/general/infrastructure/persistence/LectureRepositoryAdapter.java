@@ -38,4 +38,14 @@ public class LectureRepositoryAdapter implements LectureRepository {
     public List<Lecture> findAllByTutorId(Long id) {
         return jpaRepository.findAllByTutorId(id).stream().map(LectureMapper::toDomain).toList();
     }
+
+    @Override
+    public List<Lecture> findAllByIdsOrderByStartTime(List<Long> ids) {
+        // Hibernate가 빈 IN을 알아서 처리하므로 이 가드가 없어도 깨지지는 않는다(H2로 확인).
+        // 왕복 한 번을 아끼려는 것뿐이다 — 수강신청이 없는 학생의 첫 화면이 이 경로다.
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findAllByIdInOrderByStartTimeAsc(ids).stream().map(LectureMapper::toDomain).toList();
+    }
 }
