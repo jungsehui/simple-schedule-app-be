@@ -88,6 +88,14 @@ public final class FreezeStoreIntegrity {
             referencedFiles.add(storedRules.getProperty(key));
         }
 
+        // 빈 스토어면 아래 두 단언이 공집합끼리 비교라 무효 통과한다. 초록불의 뜻이
+        // "검사했고 깨끗하다"가 아니라 "검사할 것이 없다"가 되는 것인데, 그게 바로 이 검사가
+        // 막으려는 부류의 사고다. declaredDescriptions 가드와 대칭으로 막는다.
+        assertThat(storedDescriptions)
+                .as("stored.rules에 엔트리가 하나도 없다. 스토어가 비면 아래 대조가 공집합끼리 비교라 "
+                        + "무효 통과한다. 스토어가 지워졌거나 커밋에서 누락됐는지 확인하라")
+                .isNotEmpty();
+
         Set<String> declaredDescriptions = declaredRuleDescriptions(ruleHolders);
         assertThat(declaredDescriptions)
                 .as("규칙 선언 클래스를 하나도 못 읽었다. ruleHolders 인자가 잘못됐을 가능성이 높다")
