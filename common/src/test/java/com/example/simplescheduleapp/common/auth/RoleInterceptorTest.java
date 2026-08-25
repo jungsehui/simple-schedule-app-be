@@ -83,8 +83,16 @@ class RoleInterceptorTest {
                 .hasFieldOrPropertyWithValue("code", TokenExceptionCode.FORBIDDEN);
     }
 
+    /**
+     * 역할 <b>부재</b>는 역할 <b>불일치</b>와 다른 코드를 낸다.
+     *
+     * <p>둘 다 403이지만 클라이언트가 취해야 할 행동이 정반대다 — 부재는 재인증(판단 근거가 없는
+     * 토큰), 불일치는 세션 유지 + "권한 없음" 표시다. 전에는 둘 다 T6이라 구분할 수 없었고,
+     * 그래서 "403이면 재인증"으로 처리하면 정상 로그인한 TUTOR가 STUDENT 전용 엔드포인트를
+     * 호출하는 순간 강제 로그아웃됐다.
+     */
     @Test
-    void role_클레임이_없는_토큰은_403_FORBIDDEN() throws Exception {
+    void role_클레임이_없는_토큰은_불일치와_다른_코드를_낸다() throws Exception {
         // 역할을 모르면 이 엔드포인트를 호출할 자격이 있는지 판단할 근거가 없다 — 통과시키면 fail-open.
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer legacy");
@@ -93,7 +101,20 @@ class RoleInterceptorTest {
 
         assertThatThrownBy(() -> roleInterceptor.preHandle(request, new MockHttpServletResponse(), handler("tutorOnly")))
                 .isInstanceOf(ApplicationException.class)
-                .hasFieldOrPropertyWithValue("code", TokenExceptionCode.FORBIDDEN);
+                .hasFieldOrPropertyWithValue("code", TokenExceptionCode.REQUIRED_ROLE_CLAIM);
+    }
+
+    /**
+     * 두 원인이 같은 코드로 되돌아가는 회귀를 막는다.
+     *
+     * <p>위 두 테스트가 각각 자기 코드를 단정하지만, 그것만으로는 <b>둘이 서로 달라야 한다</b>는
+     * 성질이 고정되지 않는다. 누군가 양쪽을 같은 값으로 되돌리면 개별 단정도 함께 바뀌어 통과할
+     * 수 있다. 이 테스트는 그 경우에 실패한다.
+     */
+    @Test
+    void 역할_부재와_역할_불일치는_서로_다른_코드여야_한다() {
+        assertThat(TokenExceptionCode.REQUIRED_ROLE_CLAIM.getCode())
+                .isNotEqualTo(TokenExceptionCode.FORBIDDEN.getCode());
     }
 
     @Test

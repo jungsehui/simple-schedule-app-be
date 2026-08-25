@@ -44,7 +44,8 @@ public class RoleInterceptor implements HandlerInterceptor {
         Role role = tokenService.extractRole(token);
         if (role == null) {
             // 역할 클레임이 없으면 이 엔드포인트를 호출할 자격이 있는지 판단할 근거가 없다 — 재로그인 필요.
-            throw new ApplicationException(TokenExceptionCode.FORBIDDEN);
+            // 아래 역할 불일치(T6)와 코드를 나눈다: 이쪽만 재인증이고, 저쪽은 세션이 멀쩡하다.
+            throw new ApplicationException(TokenExceptionCode.REQUIRED_ROLE_CLAIM);
         }
 
         boolean hasRole = Arrays.asList(requireRole.value()).contains(role);
