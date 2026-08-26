@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Locale;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -69,5 +71,39 @@ class UsernameTest {
     void null은_거부한다() {
         assertThatThrownBy(() -> Username.of(null))
                 .isInstanceOf(ApplicationException.class);
+    }
+
+    /**
+     * 정준 생성자로도 규칙을 우회할 수 없다.
+     *
+     * <p>record는 정준 생성자를 private으로 만들 수 없으므로, 그 경로가 열려 있으면
+     * of()를 우회해 규칙 밖 값이 들어온다 — 이 클래스의 존재 이유가 무너지는 자리다.
+     */
+    @DisplayName("정준 생성자도 규칙을 검사한다 — of()를 우회할 수 없다")
+    @Test
+    void 정준_생성자도_규칙을_검사한다() {
+        assertThatThrownBy(() -> new Username("Abc12"))   // 정규화 안 된 값
+                .isInstanceOf(ApplicationException.class);
+        assertThatThrownBy(() -> new Username("ab"))
+                .isInstanceOf(ApplicationException.class);
+    }
+
+    /**
+     * 로케일에 따라 소문자화 결과가 달라지면 안 된다.
+     *
+     * <p>튀르키예어 로케일에서 "ADMIN".toLowerCase()는 "admın"(dotless i)이 되어 규칙을
+     * 통과하지 못한다. 이 저장소에는 로케일 고정 설정이 없으므로 JVM 기본 로케일에
+     * 의존하면 배포 환경에 따라 동작이 갈린다.
+     */
+    @DisplayName("로케일과 무관하게 정규화한다")
+    @Test
+    void 로케일과_무관하게_정규화한다() {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr"));
+            assertThat(Username.of("ADMIN").value()).isEqualTo("admin");
+        } finally {
+            Locale.setDefault(original);
+        }
     }
 }

@@ -3,7 +3,7 @@ package com.example.simplescheduleapp.member.domain;
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.member.exception.MemberExceptionCode;
 
-import java.util.Objects;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -28,21 +28,31 @@ public record Username(String value) {
     private static final Pattern PATTERN = Pattern.compile("^(?=.*[a-z])[a-z0-9_]{3,20}$");
 
     /**
+     * 불변식: value는 항상 정규화된 상태로 규칙을 만족한다.
+     *
+     * <p>record의 정준 생성자는 record보다 좁게 만들 수 없어 {@code new Username(...)}을
+     * 막을 수 없다. 그래서 여기서 검증한다 — {@code of()}를 거치지 않은 생성도 규칙을
+     * 통과해야 한다. 이 클래스의 존재 이유가 "of()를 우회하는 경로 차단"이므로 이 구멍을
+     * 열어 두면 클래스가 자기 목적을 배반한다.
+     */
+    public Username {
+        if (value == null || !PATTERN.matcher(value).matches()) {
+            throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_FORMAT);
+        }
+    }
+
+    /**
      * 검증하고 정규화한다. <b>정규화가 검증보다 먼저다</b> — 대문자를 먼저 거부하면
      * "대문자 입력은 소문자로 받아 준다"는 규칙이 성립하지 않는다.
+     *
+     * <p>{@link Locale#ROOT}로 소문자화한다 — JVM 기본 로케일에 맡기면 튀르키예어(tr) 로케일에서
+     * {@code "ADMIN".toLowerCase()}가 {@code "admın"}(dotless i, U+0131)이 되어 배포 환경에 따라
+     * 같은 입력의 통과 여부가 갈린다.
      */
     public static Username of(String raw) {
         if (raw == null) {
             throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_FORMAT);
         }
-        String normalized = raw.toLowerCase();
-        if (!PATTERN.matcher(normalized).matches()) {
-            throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_FORMAT);
-        }
-        return new Username(normalized);
-    }
-
-    public Username {
-        Objects.requireNonNull(value);
+        return new Username(raw.toLowerCase(Locale.ROOT));
     }
 }
