@@ -86,6 +86,8 @@ class UsernameTest {
                 .isInstanceOf(ApplicationException.class);
         assertThatThrownBy(() -> new Username("ab"))
                 .isInstanceOf(ApplicationException.class);
+        assertThatThrownBy(() -> new Username(null))
+                .isInstanceOf(ApplicationException.class);
     }
 
     /**

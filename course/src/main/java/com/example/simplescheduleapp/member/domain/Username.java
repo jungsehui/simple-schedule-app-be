@@ -7,7 +7,8 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
- * 로그인 식별자. <b>규칙의 단일 원천이다</b> — 요청 DTO의 {@code @Pattern}은 이것의 미러다.
+ * 로그인 식별자. <b>규칙의 단일 원천이다.</b> 요청 DTO의 {@code @Pattern}은 이 규칙을 미러링해야
+ * 한다(실제로 동기화돼 있는지는 DTO 쪽 코드에서 확인한다. 이 클래스는 그 배선 자체를 보장하지 않는다).
  *
  * <p><b>왜 값 객체인가.</b> 규칙이 요청 DTO에만 있으면 DTO를 거치지 않는 경로(내부 호출,
  * 테스트, 향후 account 백필)가 규칙을 우회한다. 정규화도 마찬가지다 — 한 군데서만 하면
