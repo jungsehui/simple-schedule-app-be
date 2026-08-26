@@ -1,10 +1,10 @@
-# username 규칙 통일과 레거시 계정 폐기 — 실행 계획
+# username 규칙 통일과 레거시 해시 소거 — 실행 계획
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 통합 username 규칙을 도메인 불변식으로 세우고, 비밀번호를 아무도 모르는 레거시 계정 6건을 참조 무결성을 지키며 폐기한다.
+**Goal:** 통합 username 규칙을 도메인 불변식으로 세우고, 레거시(무염 SHA-256) 해시를 0으로 만들어 `{sha256}` 매처 제거의 길을 연다.
 
-**Architecture:** username 규칙을 `Member` 도메인에 두고(현재는 요청 DTO에만 있다) 저장 전 소문자 정규화를 강제한다. 레거시 계정 폐기는 Flyway 마이그레이션으로 하되, 이 저장소는 애그리거트 간 참조가 **ID 참조라 DB FK 제약이 없으므로**(ADR-0004 Phase A) 종속 행을 명시적으로 함께 지운다.
+**Architecture:** username 규칙을 `Member` 도메인 값 객체에 두고(현재는 요청 DTO에만 있다) 저장 전 소문자 정규화를 강제한다. 레거시 해시는 **계정을 지우지 않고 비밀번호 재설정으로** 소거한다 — 삭제하면 강사 전원이 레거시라 강의·수강신청까지 연쇄로 사라진다.
 
 **Tech Stack:** Spring Boot 4.1 / Java 21 / Gradle 멀티모듈 / Flyway(운영 전용) / PostgreSQL(운영)·MySQL(로컬)·H2(테스트)
 
@@ -14,7 +14,7 @@ ADR-0003 Stage 5는 독립 배포 가능한 세 덩어리다. **이 계획은 �
 
 | | 내용 | 이 계획 |
 |---|---|---|
-| ① | 레거시 계정 폐기 + username 규칙 통일 | **여기** |
+| ① | username 규칙 통일 + 레거시 해시 소거 | **여기** |
 | ② | `account` 테이블 신설·백필·듀얼라이트 | 별도 계획 |
 | ③ | JWT 통일 + `T9` + Spring Security 전환 | 별도 계획 |
 
@@ -24,7 +24,8 @@ ADR-0003 Stage 5는 독립 배포 가능한 세 덩어리다. **이 계획은 �
 
 - **통합 username 규칙(오너 승인): `^(?=.*[a-z])[a-z0-9_]{3,20}$`** — 소문자·숫자·밑줄만, 3~20자, 영문자 최소 1자
 - **입력은 거부가 아니라 정규화한다** — 대문자 입력은 소문자로 변환해 저장한다
-- **레거시 계정 판별 술어: `password NOT LIKE '$2%'`** — bcrypt가 아닌 것이 레거시다
+- **레거시 판별 술어: `password NOT LIKE '$2%'`** — bcrypt가 아닌 것이 레거시다
+- **레거시 처리는 폐기가 아니라 비밀번호 재설정이다**(오너 결정 2026-08-26) — 강사 전원이 레거시라 삭제 시 강의가 연쇄로 사라진다
 - 빌드 검증은 `./gradlew :common:build :course:build :notification:build :app:build`
 - **Flyway는 운영에서만 활성**이다. 로컬(MySQL)·테스트(H2)는 `ddl-auto`다 — 마이그레이션은 테스트로 검증할 수 없고, **Flyway API로 직접 돌리는 테스트**를 써야 한다(V2·V3가 그렇게 검증됐다)
 - 각 Task는 독립 revert 가능해야 하고 Task 경계에서 빌드가 green이어야 한다
@@ -37,8 +38,6 @@ ADR-0003 Stage 5는 독립 배포 가능한 세 덩어리다. **이 계획은 �
 | `course/.../member/domain/Username.java` (신규) | username 규칙과 정규화를 담는 값 객체. 규칙의 **단일 원천** |
 | `course/.../member/domain/Member.java` (수정) | 생성자에서 `Username`을 통해 검증·정규화 |
 | `course/.../{student,tutor,parent}/presentation/request/*SignUpRequest.java` (수정) | `@Pattern` 정규식을 새 규칙으로. 도메인 규칙의 **미러**이지 원천이 아니다 |
-| `app/src/main/resources/db/migration/V4__purge_legacy_accounts.sql` (신규) | 레거시 계정과 종속 행 폐기 |
-| `app/src/test/.../MigrationV4Test.java` (신규) | V4를 Flyway API로 실행해 검증 |
 
 ---
 
@@ -491,136 +490,79 @@ git commit -m "feat(member): 가입 요청 DTO의 username 정규식을 통합 �
 
 ---
 
-## Task 4: 레거시 계정 폐기 마이그레이션 (V4)
+## Task 4: 레거시 해시 소거 — 마이그레이션이 아니라 오너 SQL 1회
 
-**Files:**
-- Create: `app/src/main/resources/db/migration/V4__purge_legacy_accounts.sql`
-- Create: `app/src/test/java/com/example/simplescheduleapp/migration/MigrationV4Test.java`
+**⚠ 이 Task는 코드를 쓰지 않는다. 계획이 바뀌었다.**
 
-**⚠ 이 Task의 위험:** 이 저장소는 애그리거트 간 참조가 **ID 참조라 DB FK 제약이 없다**(ADR-0004 Phase A — `LectureEnrollmentEntity`는 `@Column(name="student_id")`이지 `@JoinColumn`이 아니다). 즉 **회원 행만 지우면 수강신청이 조용히 고아가 된다.** DB가 막아 주지 않으므로 마이그레이션이 직접 순서를 지켜야 한다.
+### 왜 바뀌었나
 
-**하드 삭제인 이유:** `MemberEntity`는 `@SQLDelete`로 소프트 삭제인데 `username`에 `unique = true`가 걸려 있다. 소프트 삭제하면 **username 슬롯이 영구 점유**된다. `V3`가 정확히 같은 구조(`uk_pending_lecture_student`가 `deleted_date`를 포함하지 않음) 때문에 존재한다. 폐기 대상은 되살릴 이유가 없으므로 하드 삭제한다.
+초안은 레거시 계정 6건을 Flyway `V4`로 하드 삭제하려 했다. 그 전에 실측 추론이 나왔다:
 
-- [ ] **Step 1: 마이그레이션을 쓴다**
-
-`app/src/main/resources/db/migration/V4__purge_legacy_accounts.sql`
-
-```sql
--- V4: 레거시(비밀번호 미상) 계정 폐기 — ADR-0003 Stage 5 선행 (오너 승인 2026-08-26)
---
--- 대상: password가 bcrypt('$2'로 시작)가 아닌 회원. 무염 SHA-256 시절 계정이고
---       비밀번호를 아무도 모른다. 실사용자는 0명이며 전부 오너 테스트 계정이다.
---
--- ⚠ 하드 삭제인 이유: MemberEntity는 @SQLDelete로 소프트 삭제인데 username에 unique가
---   걸려 있다. 소프트 삭제하면 username 슬롯이 영구 점유돼 그 값을 다시 쓸 수 없다.
---   V3가 정확히 같은 구조(uk_pending_lecture_student가 deleted_date 미포함) 때문에 있다.
---
--- ⚠ 종속 행을 먼저 지우는 이유: 이 저장소는 애그리거트 간 참조가 ID 참조라
---   DB FK 제약이 없다(ADR-0004 Phase A). 회원만 지우면 수강신청이 조용히 고아가 되고
---   DB는 그걸 막아 주지 않는다.
---
--- 로그인 한 번으로 bcrypt 승급된 계정은 이 술어에서 자동으로 빠진다 —
--- 비밀번호를 기억해낸 계정은 폐기 대상이 아니라는 뜻이라 의도한 동작이다.
---
--- 조건부인 이유: 새 환경(빈 스키마)에서는 Flyway가 ddl-auto보다 먼저 돌아 테이블이 없다.
-DO $$
-DECLARE
-    legacy_ids BIGINT[];
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables
-        WHERE table_schema = current_schema() AND table_name = 'member'
-    ) THEN
-        RETURN;
-    END IF;
-
-    SELECT array_agg(member_id) INTO legacy_ids
-    FROM member
-    WHERE password NOT LIKE '$2%';
-
-    IF legacy_ids IS NULL OR array_length(legacy_ids, 1) IS NULL THEN
-        RETURN;
-    END IF;
-
-    -- 종속 행부터. 각 테이블이 실재할 때만 지운다(새 환경 대비).
-    IF EXISTS (SELECT 1 FROM information_schema.tables
-               WHERE table_schema = current_schema() AND table_name = 'lecture_enrollment') THEN
-        DELETE FROM lecture_enrollment WHERE student_id = ANY(legacy_ids);
-    END IF;
-
-    IF EXISTS (SELECT 1 FROM information_schema.tables
-               WHERE table_schema = current_schema() AND table_name = 'pending_lecture_enrollment') THEN
-        DELETE FROM pending_lecture_enrollment WHERE student_id = ANY(legacy_ids);
-    END IF;
-
-    IF EXISTS (SELECT 1 FROM information_schema.tables
-               WHERE table_schema = current_schema() AND table_name = 'special_lecture_enrollment') THEN
-        DELETE FROM special_lecture_enrollment WHERE student_id = ANY(legacy_ids);
-    END IF;
-
-    IF EXISTS (SELECT 1 FROM information_schema.tables
-               WHERE table_schema = current_schema() AND table_name = 'consultation_attendee') THEN
-        DELETE FROM consultation_attendee WHERE member_id = ANY(legacy_ids);
-    END IF;
-
-    -- JOINED 상속의 자식 테이블 → 부모 순서.
-    DELETE FROM student WHERE member_id = ANY(legacy_ids);
-    DELETE FROM tutor   WHERE member_id = ANY(legacy_ids);
-    DELETE FROM parent  WHERE member_id = ANY(legacy_ids);
-    DELETE FROM member  WHERE member_id = ANY(legacy_ids);
-END $$;
+```
+member 7 = STUDENT 4 + TUTOR 3   (DB 실측)
+bcrypt 1 = sehui2026 (STUDENT)   (오너 인증 검증 때 신규 가입)
+→ 레거시 6 = STUDENT 3 + TUTOR 3 — 강사 전원이 레거시다
+→ 다른 강사가 없으므로 강의도 전부 그들 소유다
 ```
 
-> **구현자 확인 사항:** 위 자식 테이블명(`student`/`tutor`/`parent`)과 `consultation_attendee.member_id`는 엔티티에서 유도한 것이다. **실제 스키마명을 `information_schema`로 확인하고 다르면 맞춰라.** 그리고 **강사가 소유한 강의(`lecture.tutor_id`)는 이 목록에 없다** — 강사 계정을 지우면 그 강의가 고아가 된다. 폐기 대상 6건의 역할 분포를 먼저 확인하고, TUTOR가 포함돼 있으면 **BLOCKED로 보고하라.** 강의 폐기는 별도 결정이 필요하다.
+즉 **삭제하면 강의·수강신청·스케줄까지 연쇄로 사라진다.** 계획의 `BLOCKED` 조건에 착수 즉시 걸리는 상태였다.
 
-- [ ] **Step 2: Flyway API로 검증하는 테스트를 쓴다**
+**그런데 폐기는 목적이 아니라 수단이었다.** 목적은 **레거시 해시를 없애는 것**이고(그래야 ADR-0003 결정 4의 `{sha256}` 매처를 걷어낸다), 계정을 지우는 것은 그 수단 중 하나일 뿐이다.
 
-Flyway는 운영에서만 활성이고 테스트는 H2 + `ddl-auto`다. 따라서 **마이그레이션을 Flyway API로 직접 실행**해야 검증된다(V2·V3가 같은 방식으로 검증됐다).
+**오너 결정(2026-08-26): 비밀번호 재설정.** 6계정에 새 bcrypt 해시를 넣으면 `legacy = 0`이 되어 같은 목적을 달성하고, 강의·수강신청 테스트 데이터가 그대로 남는다.
 
-기존 마이그레이션 테스트가 있으면 그 패턴을 따르라: `git grep -l "Flyway" app/src/test course/src/test`로 찾아 **같은 구조로** 쓴다. 없으면 `org.flywaydb.core.Flyway`를 직접 구성해 H2에 대해 돌린다.
+### 그래서 이 Task에서 없어진 것
 
-검증할 것:
-1. 레거시 계정과 그 수강신청이 사라진다
-2. **bcrypt 계정과 그 수강신청은 남는다** (이게 없으면 "전부 지웠다"와 구별되지 않는다)
-3. 두 번 실행해도 결과가 같다 (멱등)
+- ~~`V4__purge_legacy_accounts.sql`~~ — 불필요
+- ~~`MigrationV4Test`~~ — 불필요
+- ~~종속 행 선삭제·고아 검사~~ — 지우는 게 없으니 고아도 없다
+- ~~`BLOCKED`: TUTOR 포함 시 중단~~ — 해소됨
 
-- [ ] **Step 3: 반증한다**
+**소프트 삭제 + `unique` 함정 분석은 폐기되지 않는다** — 계획 ②에서 `account` 백필 시 `member`의 소프트 삭제 행을 어떻게 다룰지에 그대로 적용된다. 그 계획서로 옮긴다.
 
-`DELETE FROM lecture_enrollment ...` 줄을 지우고 테스트가 **빨간불**인지 확인한다. 빨간불이 아니면 그 테스트는 고아 행을 안 보고 있는 것이다. 확인 후 원복한다.
+### 남는 것 — 오너 실행 SQL
 
-- [ ] **Step 4: 운영 검증 SQL을 준비한다**
+- [ ] **Step 1: 새 비밀번호의 bcrypt 해시를 만든다**
 
-배포 후 오너가 실행할 전후 대조다. 계획서에 그대로 둔다.
+애플리케이션과 **같은 인코더·같은 강도**여야 한다. `Password.hashPassword`가 무엇을 쓰는지 열어 확인하고(ADR-0003 결정 4는 BCrypt(12)를 명시한다), 그 설정으로 해시를 생성한다.
+
+생성은 코드로 한다 — 온라인 bcrypt 생성기에 비밀번호를 넣지 마라.
+
+```java
+// course 테스트에서 1회 실행해 출력만 사용한다. 커밋하지 않는다.
+System.out.println(new BCryptPasswordEncoder(12).encode("<새-비밀번호>"));
+```
+
+- [ ] **Step 2: 오너가 Supabase에서 실행한다**
 
 ```sql
--- 배포 전
+-- 레거시(비-bcrypt) 계정 6건에 새 해시를 넣는다.
+-- ⚠ 이 SQL은 UPDATE다. 실행 전 대상을 먼저 확인할 것.
+
+-- 2-a. 대상 확인 (읽기 전용)
+SELECT member_id, username, role
+FROM ssa.member
+WHERE password NOT LIKE '$2%'
+ORDER BY role, member_id;
+
+-- 2-b. 적용 — <BCRYPT_HASH> 자리에 Step 1의 출력을 넣는다
+UPDATE ssa.member
+SET password = '<BCRYPT_HASH>'
+WHERE password NOT LIKE '$2%';
+
+-- 2-c. 검증 — legacy가 0이어야 한다
 SELECT COUNT(*) FILTER (WHERE password LIKE '$2%')     AS bcrypt,
        COUNT(*) FILTER (WHERE password NOT LIKE '$2%') AS legacy
 FROM ssa.member;
-
--- 배포 후 — legacy가 0이어야 하고 bcrypt는 그대로여야 한다
--- (같은 질의)
-
--- 고아 검사 — 전부 0이어야 한다
-SELECT 'lecture_enrollment' AS t, COUNT(*) FROM ssa.lecture_enrollment e
-  WHERE NOT EXISTS (SELECT 1 FROM ssa.member m WHERE m.member_id = e.student_id)
-UNION ALL
-SELECT 'pending_lecture_enrollment', COUNT(*) FROM ssa.pending_lecture_enrollment p
-  WHERE NOT EXISTS (SELECT 1 FROM ssa.member m WHERE m.member_id = p.student_id)
-UNION ALL
-SELECT 'special_lecture_enrollment', COUNT(*) FROM ssa.special_lecture_enrollment s
-  WHERE NOT EXISTS (SELECT 1 FROM ssa.member m WHERE m.member_id = s.student_id);
 ```
 
-- [ ] **Step 5: 4모듈 빌드 + 커밋**
+> **모든 계정에 같은 비밀번호를 넣는 것은 테스트 계정이라 허용된다.** 실사용자가 0명이고 전부 오너 소유다. 실사용자가 있는 시스템이라면 계정별로 다른 임시 비밀번호 + 강제 변경이어야 한다.
 
-```bash
-./gradlew :common:build :course:build :notification:build :app:build
-git add app/src
-git commit -m "feat(migration): V4 레거시 계정 폐기 (종속 행 포함, 하드 삭제)"
-```
+- [ ] **Step 3: `{sha256}` 매처 제거는 이 계획의 범위 밖이다**
 
----
+`legacy = 0`이 확인되면 ADR-0003 결정 4의 `DelegatingPasswordEncoder` `{sha256}` 매처와 `Member.login`의 승급 경로를 걷어낼 수 있다. **다만 그건 인증 코드 변경이라 계획 ③(인증 통합)에 속한다.** 여기서는 "제거 가능해졌다"는 사실만 기록한다.
+
+> 지금 제거하면 안 되는 이유: 배포 전에 오너가 SQL을 안 돌렸는데 코드가 먼저 나가면, 레거시 해시를 가진 계정이 **로그인 자체를 못 한다.** 순서가 SQL 먼저다.
 
 ## Task 5: 계약 문서 갱신과 클라이언트 통보
 
@@ -656,4 +598,6 @@ git commit -m "feat(migration): V4 레거시 계정 폐기 (종속 행 포함, �
 
 **자기 검토에서 고친 것:** Task 3 Step 1에 처음에는 항상 참인 단정을 넣고 "구현자가 다시 써라"고 적었다. **그건 자리표시자다** — 계획서 규칙 위반이고, 통과하지만 아무것도 검증하지 않는 테스트를 만드는 형태다. `StudentController`의 실제 반환(`200 OK` + `LoginResponse`)을 확인해 제대로 된 케이스 5개로 교체했다.
 
-**BLOCKED 조건:** Task 4에서 폐기 대상에 TUTOR가 포함되면 강의가 고아가 되므로 중단하고 보고한다.
+**BLOCKED 조건 해소:** 초안은 "폐기 대상에 TUTOR가 포함되면 중단"을 조건으로 뒀는데, 실측 추론(`member 7 = STUDENT 4 + TUTOR 3`, `bcrypt 1 = sehui2026`)으로 **착수 즉시 걸리는 상태**임이 드러났다. 그래서 조건을 기다리지 않고 오너 결정을 먼저 받았고, **폐기 대신 비밀번호 재설정**으로 바뀌어 조건 자체가 사라졌다.
+
+**계획 ②로 이월한 분석:** 소프트 삭제 + `unique` 충돌(`MemberEntity`의 `@SQLDelete` × `username unique`, `V3`와 같은 구조)은 이 계획에서 쓰이지 않지만 `account` 백필 시 그대로 적용된다.
