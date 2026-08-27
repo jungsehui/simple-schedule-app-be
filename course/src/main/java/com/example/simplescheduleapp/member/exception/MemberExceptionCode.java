@@ -10,7 +10,7 @@ public enum MemberExceptionCode implements ExceptionCode {
     INVALID_USERNAME_PASSWORD(ErrorKind.UNAUTHORIZED, "M0", "잘못된 아이디 혹은 비밀번호입니다."),
     DUPLICATED_USERNAME_PHONE(ErrorKind.CONFLICT, "M1", "아이디 혹은 휴대폰 번호가 중복되었습니다. 다른 아이디 혹은 휴대폰 번호를 사용해주세요."),
     MEMBER_NOT_FOUND(ErrorKind.NOT_FOUND, "M2", "해당 id를 가진 회원이 없습니다."),
-    INVALID_USERNAME_FORMAT(ErrorKind.BAD_REQUEST, "M3", "아이디는 3~20자의 영소문자·숫자·밑줄이어야 하며 영문자를 최소 하나 포함해야 합니다."),
+    INVALID_USERNAME_FORMAT(ErrorKind.BAD_REQUEST, "M3", "아이디는 3~20자의 영소문자, 숫자, 밑줄만 쓸 수 있으며 영문자를 최소 하나 포함해야 합니다."),
     TUTOR_NOT_FOUND(ErrorKind.NOT_FOUND, "T0", "해당 id를 가진 강사가 없습니다."),
     STUDENT_NOT_FOUND(ErrorKind.NOT_FOUND, "S0", "해당 id를 가진 학생이 없습니다."),
     ;
