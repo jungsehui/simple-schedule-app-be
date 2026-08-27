@@ -54,6 +54,21 @@ public record Username(String value) {
         if (raw == null) {
             throw new ApplicationException(MemberExceptionCode.INVALID_USERNAME_FORMAT);
         }
-        return new Username(raw.toLowerCase(Locale.ROOT));
+        return new Username(normalize(raw));
+    }
+
+    /**
+     * 정규화만 한다. <b>검증하지 않는다.</b>
+     *
+     * <p>조회 키를 만드는 경로가 쓴다. 로그인이 그렇다 — 규칙이 바뀌기 전에 저장된 값은
+     * 새 규칙을 만족하지 않을 수 있는데, 거기서 {@link #of}를 쓰면 <b>인증 실패가 아니라
+     * 형식 오류가 나간다.</b> 옛 사용자가 자기 아이디를 쳤을 뿐인데 400을 받고, 그 응답이
+     * "이 아이디는 규칙에 맞지 않는다"는 사실까지 알려 준다.
+     *
+     * <p>정규화의 정의를 이 한 곳에 둔다. {@link #of}도 이것을 쓴다 — 두 벌로 두면
+     * {@link Locale#ROOT} 같은 세부가 한쪽에서만 빠진다.
+     */
+    public static String normalize(String raw) {
+        return raw == null ? null : raw.toLowerCase(Locale.ROOT);
     }
 }
