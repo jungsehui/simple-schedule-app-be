@@ -27,9 +27,9 @@ public abstract class Member {
     private final int age;
     private final String phoneNumber;
 
-    /** 신규 가입용 — 평문 비밀번호를 해싱해 보관한다. */
+    /** 신규 가입용 — 평문 비밀번호를 해싱해 보관한다. username은 검증·정규화된다. */
     protected Member(String username, String password, String name, int age, String phoneNumber) {
-        this(null, username, Password.hashPassword(password), name, age, phoneNumber);
+        this(null, Username.of(username).value(), Password.hashPassword(password), name, age, phoneNumber);
     }
 
     /** DB 복원용 재구성 생성자 — 매퍼 전용(이미 해싱된 비밀번호를 그대로 받는다). */
