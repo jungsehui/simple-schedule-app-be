@@ -13,7 +13,7 @@ import java.util.Optional;
  *
  * <p>조회는 다형이다: {@code MemberMapper}가 구체 서브타입 엔티티를 대응하는 도메인
  * 서브타입(Student/Tutor/Parent)으로 디스패치해 {@code getRole()}을 정확히 보존한다.
- * {@code getById}/{@code getByUsername}(예외 번역)은 포트의 default 메서드를 그대로 사용한다.
+ * {@code getById}(예외 번역)는 포트의 default 메서드를 그대로 사용한다.
  */
 @Repository
 @RequiredArgsConstructor

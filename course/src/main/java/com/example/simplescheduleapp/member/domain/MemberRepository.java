@@ -22,8 +22,4 @@ public interface MemberRepository {
     default Member getById(Long id) {
         return findById(id).orElseThrow(() -> new ApplicationException(MemberExceptionCode.MEMBER_NOT_FOUND));
     }
-
-    default Member getByUsername(String username) {
-        return findByUsername(username).orElseThrow(() -> new ApplicationException(MemberExceptionCode.INVALID_USERNAME_PASSWORD));
-    }
 }
