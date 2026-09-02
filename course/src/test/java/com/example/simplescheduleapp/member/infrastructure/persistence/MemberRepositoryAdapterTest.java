@@ -71,7 +71,7 @@ class MemberRepositoryAdapterTest extends ApplicationTest {
         flushAndClear();
 
         // when
-        Member found = memberRepository.getByUsername("student1");
+        Member found = memberRepository.findByUsername("student1").orElseThrow();
 
         // then
         assertThat(found).isInstanceOf(Student.class);
@@ -89,7 +89,7 @@ class MemberRepositoryAdapterTest extends ApplicationTest {
         flushAndClear();
 
         // when
-        Member found = memberRepository.getByUsername("tutor1");
+        Member found = memberRepository.findByUsername("tutor1").orElseThrow();
 
         // then
         assertThat(found).isInstanceOf(Tutor.class);
@@ -107,7 +107,7 @@ class MemberRepositoryAdapterTest extends ApplicationTest {
         flushAndClear();
 
         // when
-        Member found = memberRepository.getByUsername("parent1");
+        Member found = memberRepository.findByUsername("parent1").orElseThrow();
 
         // then
         assertThat(found).isInstanceOf(Parent.class);
@@ -141,7 +141,7 @@ class MemberRepositoryAdapterTest extends ApplicationTest {
         flushAndClear();
 
         // when: 조회하면 매퍼가 해시 문자열을 Password VO로 복원한다
-        Member found = memberRepository.getByUsername("student2");
+        Member found = memberRepository.findByUsername("student2").orElseThrow();
 
         // then: 해시 비교가 성립해 로그인이 통과한다
         assertThatCode(() -> found.login("Password1!")).doesNotThrowAnyException();
