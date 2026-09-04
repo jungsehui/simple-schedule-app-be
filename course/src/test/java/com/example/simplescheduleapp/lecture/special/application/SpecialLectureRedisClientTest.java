@@ -41,6 +41,9 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
     @Mock
     AtomicCounter atomicCounter;
 
+    @Mock
+    com.example.simplescheduleapp.lecture.special.domain.SpecialLectureRepository specialLectureRepository;
+
     @InjectMocks
     SpecialLectureRedisClient sut;
 
@@ -72,13 +75,15 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
     @DisplayName("정원 내 신청은 조건부 감소 후 통과 (복구 왕복 없음)")
     void enroll_within_capacity_passes() {
         // given
-        given(atomicCounter.decrementIfPositive("special_lecture:100:available")).willReturn(49L);
+        given(atomicCounter.decrementIfPositiveBefore(
+                eq("special_lecture:100:available"), eq("special_lecture:100:deadline"), anyLong())).willReturn(49L);
 
         // when
         sut.enrollSpecialLectureEnrollment(100L);
 
         // then
-        verify(atomicCounter, times(1)).decrementIfPositive("special_lecture:100:available");
+        verify(atomicCounter, times(1)).decrementIfPositiveBefore(
+                eq("special_lecture:100:available"), eq("special_lecture:100:deadline"), anyLong());
         verify(atomicCounter, never()).increment(any());
         verify(atomicCounter, never()).incrementIfExists(any());
     }
@@ -87,7 +92,8 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
     @DisplayName("정원 소진(-1) 시 감소 없이 특강 전용 만석 코드(SLE004, 409) — INCR 복구가 필요 없다")
     void capacity_exhausted_throws_without_compensation() {
         // given
-        given(atomicCounter.decrementIfPositive("special_lecture:100:available")).willReturn(-1L);
+        given(atomicCounter.decrementIfPositiveBefore(
+                eq("special_lecture:100:available"), eq("special_lecture:100:deadline"), anyLong())).willReturn(-1L);
 
         // when & then
         assertThatThrownBy(() -> sut.enrollSpecialLectureEnrollment(100L))
@@ -100,31 +106,9 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
         verify(atomicCounter, never()).incrementIfExists(any());
     }
 
-    @Test
-    @DisplayName("키 부재(-2)는 정원 초과가 아니라 SL002(NOT_FOUND_IN_REDIS)로 구분된다")
-    void key_missing_throws_not_found_in_redis() {
-        // given: 키 만료 또는 미초기화
-        given(atomicCounter.decrementIfPositive("special_lecture:100:available")).willReturn(-2L);
-
-        // when & then
-        assertThatThrownBy(() -> sut.enrollSpecialLectureEnrollment(100L))
-                .isInstanceOf(ApplicationException.class)
-                .extracting(e -> ((ApplicationException) e).getCode())
-                .isEqualTo(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
-    }
-
-    @Test
-    @DisplayName("Redis가 null을 반환하면 SL002 예외")
-    void null_result_throws_not_found_in_redis() {
-        // given: Redis 연결 문제 등으로 null이 돌아오는 비정상 상황
-        given(atomicCounter.decrementIfPositive("special_lecture:100:available")).willReturn(null);
-
-        // when & then
-        assertThatThrownBy(() -> sut.enrollSpecialLectureEnrollment(100L))
-                .isInstanceOf(ApplicationException.class)
-                .extracting(e -> ((ApplicationException) e).getCode())
-                .isEqualTo(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
-    }
+    // 키 부재(-2)와 null 반환 케이스는 여기서 제거했다. 동작이 바뀌었기 때문이다 —
+    // 이제 키 부재는 DB로 원인을 가른다(종료됨 / 정원정보 유실 / 특강 없음).
+    // 세 갈래 전부를 SpecialLectureDeadlineTest가 덮으므로 커버리지 손실은 없다.
 
     @Test
     @DisplayName("compensate는 키가 존재할 때만 증가시킨다 (DB 실패 시 외부 보상)")

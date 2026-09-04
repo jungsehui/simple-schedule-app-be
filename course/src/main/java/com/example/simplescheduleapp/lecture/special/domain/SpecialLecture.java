@@ -44,6 +44,19 @@ public class SpecialLecture extends Schedule {
         return new SpecialLecture(id, version, title, startTime, endTime, memo, tutorId, capacity);
     }
 
+    /**
+     * 이 특강이 끝났는가. 신청 마감의 기준이다.
+     *
+     * <p>기준은 {@code endTime}이다 — {@code startTime}이 아니다. 시작 후 합류를 허용한다
+     * (오너 결정 2026-09-04). 클라이언트의 "종료됨" 판정과 같은 기준이라 화면과 서버가 갈리지 않는다.
+     *
+     * <p><b>{@code now}를 인자로 받는다.</b> 도메인 안에서 {@code LocalDateTime.now()}를 부르면
+     * 이 규칙을 시간 이동 없이 검증할 수 없고, 실행 환경의 시계에 조용히 묶인다.
+     */
+    public boolean hasEnded(LocalDateTime now) {
+        return getEndTime().isBefore(now);
+    }
+
     public SpecialLectureEnrollment enroll(Long studentId) {
         return new SpecialLectureEnrollment(getId(), studentId);
     }

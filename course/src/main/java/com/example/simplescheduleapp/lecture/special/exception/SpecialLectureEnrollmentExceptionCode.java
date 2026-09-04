@@ -26,6 +26,17 @@ public enum SpecialLectureEnrollmentExceptionCode implements ExceptionCode {
      * 특강만 정확해진다 — 일반 강의 계약을 동반 변경하지 않는다.
      */
     CAPACITY_EXCEEDED(ErrorKind.CONFLICT, "SLE004", "특강 정원이 모두 찼습니다."),
+
+    /**
+     * 이미 끝난 특강. <b>409다.</b> 만석과 같은 이유로, 유효한 요청에 대한 상태 거부다.
+     *
+     * <p>기준은 {@code endTime}이다. 진행 중 합류는 허용한다(오너 결정 2026-09-04).
+     *
+     * <p>종전에는 신청 경로에 시간 비교가 <b>0건</b>이라 끝난 특강도 신청을 받았다.
+     * 목록에 날짜 필터가 없어 지난 특강이 맨 위에 뜨는 것과 겹치면
+     * "지난달 특강 + 동작하는 신청 버튼"이 된다.
+     */
+    SPECIAL_LECTURE_ENDED(ErrorKind.CONFLICT, "SLE005", "이미 종료된 특강입니다."),
     ;
 
     private final ErrorKind kind;

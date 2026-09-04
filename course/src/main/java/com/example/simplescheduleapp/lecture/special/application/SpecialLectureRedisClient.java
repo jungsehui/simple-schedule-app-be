@@ -2,6 +2,8 @@ package com.example.simplescheduleapp.lecture.special.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.redis.counter.AtomicCounter;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
+import com.example.simplescheduleapp.lecture.special.domain.SpecialLectureRepository;
 import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureExceptionCode;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.LocalDateTime;
 
 /**
@@ -32,16 +35,23 @@ public class SpecialLectureRedisClient {
 
     private static final String AVAILABLE_SPECIAL_LECTURE_CAPACITY_KEY_PREFIX = "special_lecture:%d:available";
 
+    /** 신청 마감 시각(epoch second). 정원 키와 TTL을 맞춰 함께 사라진다. */
+    private static final String SPECIAL_LECTURE_DEADLINE_KEY_PREFIX = "special_lecture:%d:deadline";
+
     /** 키 부재를 나타내는 Lua 스크립트 반환값 */
     private static final long KEY_NOT_FOUND = -2L;
 
     /** 정원 소진을 나타내는 Lua 스크립트 반환값 */
     private static final long CAPACITY_EXHAUSTED = -1L;
 
+    /** 신청 마감이 지났음을 나타내는 Lua 스크립트 반환값 */
+    private static final long DEADLINE_PASSED = -3L;
+
     /** endTime 기반 TTL을 계산할 수 없을 때(과거 시각 등)의 보정값 */
     private static final Duration FALLBACK_CAPACITY_TTL = Duration.ofDays(30);
 
     private final AtomicCounter atomicCounter;
+    private final SpecialLectureRepository specialLectureRepository;
 
     // 특강 생성 시 수강 정원 설정 — TTL은 특강 종료 + 1일로 수명 정렬
     public void initializeSpecialLecture(Long specialLectureId, int capacity, LocalDateTime endTime) {
@@ -51,19 +61,57 @@ public class SpecialLectureRedisClient {
             ttl = FALLBACK_CAPACITY_TTL;
         }
         atomicCounter.set(key, capacity, ttl);
+        // 마감 시각을 함께 캐시한다 — 이것이 있어야 신청 거절이 DB를 읽지 않고 이뤄진다.
+        // 1차 방어선의 존재 이유가 DB 부하를 태우지 않는 것이므로, 시간 검증도 같은 층에 둔다.
+        atomicCounter.set(buildDeadlineKey(specialLectureId), toEpochSecond(endTime), ttl);
     }
 
     // 특강 수강 신청 시도 --> 정원 체크 및 카운트 감소 (원자적 check-and-decrement)
     public void enrollSpecialLectureEnrollment(Long specialLectureId) {
         String key = buildAvailableSpecialLectureCapacityKey(specialLectureId);
-        Long result = atomicCounter.decrementIfPositive(key);
+        Long result = atomicCounter.decrementIfPositiveBefore(
+                key, buildDeadlineKey(specialLectureId), toEpochSecond(LocalDateTime.now()));
 
+        if (result != null && result == DEADLINE_PASSED) {
+            throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_ENDED);
+        }
         if (result == null || result == KEY_NOT_FOUND) {
-            throw new ApplicationException(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
+            throw resolveMissingKeyCause(specialLectureId);
         }
         if (result == CAPACITY_EXHAUSTED) {
             throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.CAPACITY_EXCEEDED);
         }
+    }
+
+    /**
+     * 정원 키가 없을 때 <b>진짜 원인을 DB로 가른다.</b>
+     *
+     * <p>키 부재는 원인이 셋인데 종전에는 전부 {@code SL002} 하나로 나갔다. 클라이언트는
+     * "끝난 특강이라 못 신청한다"와 "서버가 정원 정보를 잃었다"를 구분할 수 없었고,
+     * 후자는 알람이 울려야 하는 상황인데 정상 흐름에 섞여 묻혔다.
+     *
+     * <p>DB 읽기는 <b>이 비정상 경로에서만</b> 일어난다. 정상 신청은 Redis만 친다.
+     */
+    private ApplicationException resolveMissingKeyCause(Long specialLectureId) {
+        SpecialLecture specialLecture = specialLectureRepository.findById(specialLectureId).orElse(null);
+        if (specialLecture == null) {
+            return new ApplicationException(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_NOT_FOUND);
+        }
+        if (specialLecture.hasEnded(LocalDateTime.now())) {
+            // 정상 상황이다 — 마감 키까지 TTL로 사라질 만큼 시간이 지났을 뿐이다.
+            return new ApplicationException(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_ENDED);
+        }
+        // 여기가 진짜 이상 상황이다. 진행 중인 특강인데 정원 정보가 없다.
+        log.error("진행 중인 특강의 Redis 정원 키가 없다. 초기화 누락 또는 유실. specialLectureId={}", specialLectureId);
+        return new ApplicationException(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
+    }
+
+    private long toEpochSecond(LocalDateTime time) {
+        return time.atZone(ZoneId.systemDefault()).toEpochSecond();
+    }
+
+    private String buildDeadlineKey(Long specialLectureId) {
+        return String.format(SPECIAL_LECTURE_DEADLINE_KEY_PREFIX, specialLectureId);
     }
 
     // 레디스는 성공했는데 특강 DB 저장 실패 시 레디스 값 원상복구.

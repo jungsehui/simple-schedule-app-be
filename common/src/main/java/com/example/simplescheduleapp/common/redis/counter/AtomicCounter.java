@@ -46,6 +46,22 @@ public interface AtomicCounter {
     Long decrementIfPositive(String key);
 
     /**
+     * 마감 시각을 함께 검사하는 조건부 감소.
+     *
+     * <p>{@link #decrementIfPositive}와 달리 <b>감소 전에 마감을 먼저 본다.</b> 이 순서가
+     * 중요하다 — 마감이 지났고 자리도 없는 경우 "마감됨"이 나가야지 "자리 없음"이 나가면
+     * 사용자가 다시 시도할 이유를 갖게 된다.
+     *
+     * <p>{@code deadlineKey}가 없으면 마감 검사를 건너뛰고 기존 동작 그대로 진행한다.
+     * 이 기능 이전에 만들어진 키(마감 키 없음)가 있기 때문이다. 그 키들은 자기 TTL이
+     * 만료되면서 자연히 사라진다.
+     *
+     * @param nowEpochSecond 호출자가 넘기는 현재 시각. 스크립트가 시계를 읽지 않는다
+     * @return 감소된 값. 키 없으면 -2, 남은 수량이 0 이하면 -1, <b>마감이 지났으면 -3</b>
+     */
+    Long decrementIfPositiveBefore(String key, String deadlineKey, long nowEpochSecond);
+
+    /**
      * 키가 존재할 때만 원자적으로 1 증가시킨다.
      * <p>
      * 단순 INCR과 달리 만료·부재 키를 TTL 없는 키로 부활시키지 않는다 (보상 경로용).
