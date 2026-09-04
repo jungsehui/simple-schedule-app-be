@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.lecture.special.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.redis.counter.AtomicCounter;
-import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,10 +59,10 @@ public class SpecialLectureRedisClient {
         Long result = atomicCounter.decrementIfPositive(key);
 
         if (result == null || result == KEY_NOT_FOUND) {
-            throw new ApplicationException(SpecialLectureExceptionCode.SPECIAL_LECTURE_NOT_FOUND_IN_REDIS);
+            throw new ApplicationException(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
         }
         if (result == CAPACITY_EXHAUSTED) {
-            throw new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED);
+            throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.CAPACITY_EXCEEDED);
         }
     }
 

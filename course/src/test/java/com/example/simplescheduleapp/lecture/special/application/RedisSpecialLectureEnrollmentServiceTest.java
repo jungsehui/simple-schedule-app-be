@@ -2,7 +2,6 @@ package com.example.simplescheduleapp.lecture.special.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.exception.InternalServerExceptionCode;
-import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
 import com.example.simplescheduleapp.lecture.special.application.command.SpecialLectureEnrollmentCreateCommand;
 import com.example.simplescheduleapp.lecture.special.config.DefenseProperties;
 import com.example.simplescheduleapp.lecture.special.domain.SpecialLecture;
@@ -197,22 +196,22 @@ class RedisSpecialLectureEnrollmentServiceTest extends MockTestSupport {
         @DisplayName("[7] Redis 정원 초과(CAPACITY_EXCEEDED)는 RedisClient 내부에서 보상 후 그대로 전파")
         void redis_capacity_exceeded_is_propagated() {
             // given: SpecialLectureRedisClient.enrollSpecialLectureEnrollment가 직접 던지는 예외는
-            //        본 서비스의 try-catch 외부이므로 추가 보상 호출은 없다 (RedisClient 내부에서 이미 INCR 복구).
+            //        본 서비스의 try-catch 외부라 mapToApplicationException을 거치지 않고 그대로 나간다.
             RedisSpecialLectureEnrollmentService service = createService(true, true);
             SpecialLectureEnrollmentCreateCommand command = SpecialLectureEnrollmentCreateCommand.of(1L, 100L);
 
-            // SpecialLectureRedisClient.enrollSpecialLectureEnrollment는 정원 초과 시
-            // 자체적으로 INCR 복구한 뒤 ApplicationException(CAPACITY_EXCEEDED)을 던진다.
-            org.mockito.Mockito.doThrow(new ApplicationException(LectureExceptionCode.CAPACITY_EXCEEDED))
+            // 보상이 필요 없는 이유: Lua가 정원 소진 시 감소 자체를 수행하지 않는다.
+            // 되돌릴 것이 없으므로 INCR 복구도 없다.
+            org.mockito.Mockito.doThrow(new ApplicationException(SpecialLectureEnrollmentExceptionCode.CAPACITY_EXCEEDED))
                     .when(specialLectureRedisClient).enrollSpecialLectureEnrollment(100L);
 
             // when & then
             assertThatThrownBy(() -> service.enrollSpecialLectureEnrollment(command))
                     .isInstanceOf(ApplicationException.class)
                     .extracting(e -> ((ApplicationException) e).getCode())
-                    .isEqualTo(LectureExceptionCode.CAPACITY_EXCEEDED);
+                    .isEqualTo(SpecialLectureEnrollmentExceptionCode.CAPACITY_EXCEEDED);
 
-            // RedisClient가 자체 보상을 했으므로 외부 보상은 호출되지 않아야 한다
+            // 감소가 없었으므로 보상도 없어야 한다
             verify(specialLectureRedisClient, never()).compensateSpecialLectureEnrollment(any());
             verify(lockedSpecialLectureEnroller, never()).enrollWithLock(any(), any());
             verify(specialLectureEnrollmentService, never()).enrollSpecialLectureEnrollment(any(), any());

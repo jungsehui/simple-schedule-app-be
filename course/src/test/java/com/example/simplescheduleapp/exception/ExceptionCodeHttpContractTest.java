@@ -55,10 +55,12 @@ class ExceptionCodeHttpContractTest {
                 arguments(LectureEnrollmentExceptionCode.PENDING_LECTURE_ENROLLMENT_NOT_FOUND, HttpStatus.NOT_FOUND),
                 arguments(PendingLectureEnrollmentExceptionCode.ALREADY_CANCELED, HttpStatus.BAD_REQUEST),
                 arguments(SpecialLectureExceptionCode.SPECIAL_LECTURE_NOT_FOUND, HttpStatus.NOT_FOUND),
-                arguments(SpecialLectureExceptionCode.SPECIAL_LECTURE_NOT_FOUND_IN_REDIS, HttpStatus.NOT_FOUND),
+                arguments(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE, HttpStatus.NOT_FOUND),
                 arguments(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_ENROLLMENT_FAILED, HttpStatus.INTERNAL_SERVER_ERROR),
                 arguments(SpecialLectureEnrollmentExceptionCode.SPECIAL_LECTURE_NOT_FOUND, HttpStatus.NOT_FOUND),
                 arguments(SpecialLectureEnrollmentExceptionCode.ALREADY_ENROLLED, HttpStatus.CONFLICT),
+                // 만석은 유효한 요청에 대한 상태 거부다 — 400(입력을 고쳐 재시도)이 아니라 409여야 한다
+                arguments(SpecialLectureEnrollmentExceptionCode.CAPACITY_EXCEEDED, HttpStatus.CONFLICT),
                 arguments(ScheduleExceptionCode.TUTOR_SCHEDULE_CONFLICT, HttpStatus.CONFLICT),
                 arguments(ScheduleExceptionCode.STUDENT_SCHEDULE_CONFLICT, HttpStatus.CONFLICT),
                 arguments(MemberExceptionCode.INVALID_USERNAME_PASSWORD, HttpStatus.UNAUTHORIZED),

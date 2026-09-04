@@ -2,7 +2,7 @@ package com.example.simplescheduleapp.lecture.special.application;
 
 import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.redis.counter.AtomicCounter;
-import com.example.simplescheduleapp.lecture.general.exception.LectureExceptionCode;
+import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureEnrollmentExceptionCode;
 import com.example.simplescheduleapp.lecture.special.exception.SpecialLectureExceptionCode;
 import com.example.simplescheduleapp.support.MockTestSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -84,7 +84,7 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
     }
 
     @Test
-    @DisplayName("정원 소진(-1) 시 감소 없이 CAPACITY_EXCEEDED — INCR 복구가 필요 없다")
+    @DisplayName("정원 소진(-1) 시 감소 없이 특강 전용 만석 코드(SLE004, 409) — INCR 복구가 필요 없다")
     void capacity_exhausted_throws_without_compensation() {
         // given
         given(atomicCounter.decrementIfPositive("special_lecture:100:available")).willReturn(-1L);
@@ -93,7 +93,7 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
         assertThatThrownBy(() -> sut.enrollSpecialLectureEnrollment(100L))
                 .isInstanceOf(ApplicationException.class)
                 .extracting(e -> ((ApplicationException) e).getCode())
-                .isEqualTo(LectureExceptionCode.CAPACITY_EXCEEDED);
+                .isEqualTo(SpecialLectureEnrollmentExceptionCode.CAPACITY_EXCEEDED);
 
         // Lua가 감소 자체를 수행하지 않으므로 복구 INCR이 호출되면 안 된다
         verify(atomicCounter, never()).increment(any());
@@ -110,7 +110,7 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
         assertThatThrownBy(() -> sut.enrollSpecialLectureEnrollment(100L))
                 .isInstanceOf(ApplicationException.class)
                 .extracting(e -> ((ApplicationException) e).getCode())
-                .isEqualTo(SpecialLectureExceptionCode.SPECIAL_LECTURE_NOT_FOUND_IN_REDIS);
+                .isEqualTo(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
     }
 
     @Test
@@ -123,7 +123,7 @@ class SpecialLectureRedisClientTest extends MockTestSupport {
         assertThatThrownBy(() -> sut.enrollSpecialLectureEnrollment(100L))
                 .isInstanceOf(ApplicationException.class)
                 .extracting(e -> ((ApplicationException) e).getCode())
-                .isEqualTo(SpecialLectureExceptionCode.SPECIAL_LECTURE_NOT_FOUND_IN_REDIS);
+                .isEqualTo(SpecialLectureExceptionCode.SPECIAL_LECTURE_CAPACITY_UNAVAILABLE);
     }
 
     @Test
