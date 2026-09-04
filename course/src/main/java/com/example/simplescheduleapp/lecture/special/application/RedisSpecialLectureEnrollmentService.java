@@ -76,6 +76,34 @@ public class RedisSpecialLectureEnrollmentService {
     }
 
     /**
+     * 특강 수강신청 취소.
+     *
+     * <p><b>DB 삭제가 먼저, 좌석 반환이 나중이다. 이 순서는 뒤집으면 안 된다.</b>
+     * <ul>
+     *   <li>Redis를 먼저 올리면: DB 삭제가 실패했을 때 좌석이 늘어 <b>초과 판매</b>가 된다</li>
+     *   <li>DB를 먼저 지우면: Redis 증가가 실패해도 좌석이 하나 덜 팔린다. 안전한 방향이다</li>
+     * </ul>
+     *
+     * <p><b>멱등성은 삭제된 행 수에서 나온다.</b> 0행이면 좌석을 돌려주지 않는다. 두 번째
+     * 취소 요청이 좌석을 또 반환해 정원을 넘기는 것을 이 판정 하나가 막는다.
+     *
+     * <p>종료된 특강도 취소할 수 있다(오너 결정 2026-09-04). 좌석을 돌려받을 사람은 없지만,
+     * 막으면 "취소할 수 없는 신청"이 다시 생긴다 — 이 기능이 없애려는 바로 그 상태다.
+     */
+    public void cancelSpecialLectureEnrollment(SpecialLectureEnrollmentCreateCommand command) {
+        int deleted = specialLectureEnrollmentService.cancelSpecialLectureEnrollment(
+                command.specialLectureId(), command.studentId());
+
+        if (deleted == 0) {
+            throw new ApplicationException(SpecialLectureEnrollmentExceptionCode.ENROLLMENT_NOT_FOUND);
+        }
+
+        // 커밋이 끝난 뒤에만 여기 온다. 키가 이미 만료됐으면 되돌릴 좌석 자체가 없으므로
+        // compensate가 경고 로그만 남기고 넘어간다(부재 키를 TTL 없이 부활시키지 않는다).
+        specialLectureRedisClient.compensateSpecialLectureEnrollment(command.specialLectureId());
+    }
+
+    /**
      * 2차 방어선 toggle에 따라 DB 저장 경로를 분기한다.
      * <ul>
      *   <li>{@code distributedLock=true}: {@link LockedSpecialLectureEnroller#enrollWithLock}로 락 보호.</li>

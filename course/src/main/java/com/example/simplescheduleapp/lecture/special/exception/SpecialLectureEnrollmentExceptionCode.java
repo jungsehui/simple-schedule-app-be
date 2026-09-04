@@ -37,6 +37,14 @@ public enum SpecialLectureEnrollmentExceptionCode implements ExceptionCode {
      * "지난달 특강 + 동작하는 신청 버튼"이 된다.
      */
     SPECIAL_LECTURE_ENDED(ErrorKind.CONFLICT, "SLE005", "이미 종료된 특강입니다."),
+
+    /**
+     * 취소할 신청이 없다. 404다.
+     *
+     * <p>이미 취소했거나 애초에 신청하지 않은 경우다. <b>두 번째 취소 요청도 여기로 온다</b> —
+     * 삭제가 0행을 반환하기 때문이다. 그래서 좌석이 두 번 반환되지 않는다.
+     */
+    ENROLLMENT_NOT_FOUND(ErrorKind.NOT_FOUND, "SLE006", "취소할 특강 수강신청이 없습니다."),
     ;
 
     private final ErrorKind kind;
