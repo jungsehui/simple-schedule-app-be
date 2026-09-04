@@ -7,6 +7,7 @@ import com.example.simplescheduleapp.lecture.general.domain.Lecture;
 import com.example.simplescheduleapp.lecture.general.presentation.request.LectureCreateRequest;
 import com.example.simplescheduleapp.lecture.general.presentation.request.LectureUpdateRequest;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureCreateResponse;
+import com.example.simplescheduleapp.lecture.general.presentation.response.LectureResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureSearchResponse;
 import com.example.simplescheduleapp.lecture.general.presentation.response.LectureUpdateResponse;
 import com.example.simplescheduleapp.common.auth.Auth;
@@ -49,10 +50,20 @@ public class LectureController {
                 .body(LectureCreateResponse.from(savedLecture));
     }
 
+    /**
+     * 강의 상세.
+     *
+     * <p>목록과 <b>같은 항목 모양</b>({@link LectureResponse})을 준다. 종전에는 쓰기 응답인
+     * {@code LectureCreateResponse}를 재사용해 {@code enrolledCount}가 빠져 있었다 — 목록에는
+     * 잔여석이 보이는데 상세로 들어가면 사라졌다. 데이터가 없어서가 아니라 DTO가 버린 것이다.
+     *
+     * <p>쓰기 응답을 읽기가 재사용하면 계약이 몰래 묶인다. 생성 응답에 필드를 넣거나 빼면
+     * 상세 조회 계약이 함께 움직이는데 알아차릴 방법이 없다. 타입을 갈라 그 결합을 끊는다.
+     */
     @GetMapping("/lectures/{lectureId}")
-    public ResponseEntity<LectureCreateResponse> getLecture(@PathVariable Long lectureId) {
+    public ResponseEntity<LectureResponse> getLecture(@PathVariable Long lectureId) {
         Lecture lecture = lectureService.findLecture(lectureId);
-        return ResponseEntity.ok(LectureCreateResponse.from(lecture));
+        return ResponseEntity.ok(LectureResponse.from(lecture));
     }
 
     @GetMapping("/tutors/{tutorId}/lectures")
