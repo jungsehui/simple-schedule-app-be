@@ -10,15 +10,7 @@ public record TutorLectureGetResponse(
 
     public static TutorLectureGetResponse from(List<Lecture> tutorLectures) {
         List<LectureResponse> lectureResponses = tutorLectures.stream()
-                .map(it -> new LectureResponse(
-                        it.getId(),
-                        it.getTitle(),
-                        it.getStartTime(),
-                        it.getEndTime(),
-                        it.getMemo(),
-                        it.getCapacity(),
-                        it.getEnrolledCount()
-                ))
+                .map(LectureResponse::from)
                 .toList();
         return new TutorLectureGetResponse(lectureResponses);
     }
