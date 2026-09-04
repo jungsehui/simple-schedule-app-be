@@ -41,7 +41,8 @@ class LectureOptimisticLockTest extends ApplicationTest {
     void 순수_도메인_왕복_후에도_낡은_version의_수정은_낙관적_락으로_거부된다() {
         // given — 강의 저장
         Tutor tutor = tutorRepository.save(new Tutor(
-                "optlock-" + UUID.randomUUID(), "Password123!", "튜터", 30, "01000000000", 3));
+                "optlock" + UUID.randomUUID().toString().replace("-", "").substring(0, 8),
+                "Password123!", "튜터", 30, "01000000000", 3));
         LocalDateTime now = LocalDateTime.now();
         Lecture saved = lectureRepository.save(
                 new Lecture("강의", now, now.plusHours(1), "메모", tutor.getId(), 10));

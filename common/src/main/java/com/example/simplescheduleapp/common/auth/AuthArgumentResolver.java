@@ -71,11 +71,15 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
      * 역할 제한 없이 역할 <em>값</em>만 쓰는 엔드포인트({@code GET /me/schedules})는 그 그물에
      * 걸리지 않는다. 여기서 막지 않으면 null 역할이 유스케이스까지 내려가 NPE가 된다.
      * 판단 근거가 없는 토큰을 통과시키는 것은 fail-open이므로 인터셉터와 같은 403으로 맞춘다.
+     *
+     * <p>코드는 {@link TokenExceptionCode#REQUIRED_ROLE_CLAIM}(T8)이다 — 역할 <em>불일치</em>(T6)와
+     * 같은 상태코드지만 원인이 다르다. 역할 부재는 두 지점({@code RoleInterceptor}와 여기)에서
+     * 발생하므로 둘이 같은 코드를 내야 클라이언트가 한 규칙으로 다룰 수 있다.
      */
     private Role resolveRole(String token, boolean required) {
         Role role = tokenService.extractRole(token);
         if (role == null && required) {
-            throw new ApplicationException(TokenExceptionCode.FORBIDDEN);
+            throw new ApplicationException(TokenExceptionCode.REQUIRED_ROLE_CLAIM);
         }
         return role;
     }

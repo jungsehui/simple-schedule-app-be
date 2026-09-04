@@ -1,5 +1,6 @@
 package com.example.simplescheduleapp.notification.infrastructure;
 
+import com.example.simplescheduleapp.common.exception.ApplicationException;
 import com.example.simplescheduleapp.common.kafka.consumer.KafkaConsumerConfig;
 import com.example.simplescheduleapp.common.kafka.KafkaLectureEventMessage;
 import com.example.simplescheduleapp.common.kafka.LectureEventType;
@@ -8,6 +9,7 @@ import com.example.simplescheduleapp.notification.application.strategy.Notificat
 import com.example.simplescheduleapp.notification.application.strategy.NotificationEventType;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationStrategy;
 import com.example.simplescheduleapp.notification.application.strategy.NotificationStrategyFactory;
+import com.example.simplescheduleapp.notification.exception.NotificationTypeExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -51,6 +53,9 @@ public class NotificationKafkaConsumer {
     // 전송 계층 어휘 → 유스케이스 어휘. default 없는 switch 식이라 common에 상수가 추가되면
     // 런타임 NOTIFICATION_TYPE_NOT_FOUND가 아니라 이 어댑터의 컴파일 오류로 먼저 드러난다.
     private static NotificationEventType toEventType(LectureEventType type) {
+        if (type == null) {
+            throw new ApplicationException(NotificationTypeExceptionCode.NOTIFICATION_TYPE_NOT_FOUND);
+        }
         return switch (type) {
             case ENROLLMENT_REQUESTED -> NotificationEventType.ENROLLMENT_REQUESTED;
             case ENROLLMENT_ACCEPTED -> NotificationEventType.ENROLLMENT_ACCEPTED;

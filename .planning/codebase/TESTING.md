@@ -51,8 +51,8 @@ notification/src/test/java/com/example/simplescheduleapp/
   kafka/event/producer/   KafkaEventProducerTest
   kafka/infra/consumer/   KafkaIdempotencyFilterTest
   kafka/infra/deadletter/ DeadLetterRecorderTest
-  notification/           NotificationIntegrationTest, schedule/NotificationRetrySchedulerFailureTest
-  sse/                    SseConnectionPublisherTest, cache/{RedisClientManagerTest, SseEmitterRepositoryTest}, event/RedisSseMessagePublisherTest
+  notification/           NotificationIntegrationTest, infrastructure/{NotificationRetrySchedulerFailureTest, NotificationKafkaConsumerTest}, application/strategy/lecture/{AcceptEnrollmentStrategyTest, LectureUpdatedStrategyTest}
+  sse/                    application/{SseConnectionPublisherTest, SseConnectionServiceTest, SseHeartbeatLifecycleTest, SseEmitterRegistryTest}, infrastructure/redis/{RedisClientManagerTest, RedisSseMessagePublisherTest}, presentation/SseAuthFailureContractTest
 playground/src/test/java/com/example/playground/requiresnewdeadlock/    <- deadlock reproduction tests
 ```
 
@@ -77,7 +77,7 @@ MonkeySupport                 protected FixtureMonkey `sut` field, no framework 
 
 ## Test Configuration (H2, profiles)
 
-- Each server module's `src/test/resources/application.yml` sets `spring.profiles.active: test` and defines a **profile group** `test → common-test`, plus `spring.jpa.hibernate.ddl-auto: create` (fresh schema per run — never rely on data surviving between test classes).
+- Each of `course`'s and `notification`'s `src/test/resources/application.yml` sets `spring.profiles.active: test` and defines a **profile group** `test → common-test`, plus `spring.jpa.hibernate.ddl-auto: create` (fresh schema per run — never rely on data surviving between test classes). This is test-only, per-module isolation; the production `:app` JVM shares one schema (ADR-0003 Stage 2).
 - The H2 datasource lives in `course/src/main/resources/application-test.yml` (activated by that profile):
   ```yaml
   spring:

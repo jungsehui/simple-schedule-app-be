@@ -95,7 +95,10 @@ class ScheduleControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/me/schedules")
                         .param("from", FROM).param("to", TO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + TOKEN))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                // 상태코드만 보면 역할 불일치(T6)와 구분되지 않는다. 이 경로는 역할 부재라
+                // 재인증이 맞고, 클라이언트가 그렇게 분기할 수 있으려면 코드가 T8이어야 한다.
+                .andExpect(jsonPath("$.code").value("T8"));
 
         verifyNoInteractions(scheduleQueryService);
     }

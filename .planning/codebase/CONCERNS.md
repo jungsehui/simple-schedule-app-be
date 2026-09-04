@@ -19,7 +19,8 @@
 - Recommendations: Perform the rotations `deploy/README.md` mandates (JWT secret, DB passwords, FCM key, SSH/WireGuard) — they remain in git history forever. Remove the JWT secret default from `application-common-local.yml` in favor of a required env var; add a secret-scanning CI step.
 
 **`/internal/**` API has no application-level protection (Severity: Medium):**
-- Risk: `course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java:24-31` (`GET /internal/lectures/{lectureId}/student-ids`) exposes enrolled-student IDs with no auth token, no shared secret, no network restriction in the app. The notification service calls it via `client.course-server-internal-url` (`notification/src/main/resources/application.yml:65`).
+- **Superseded framing:** this finding predates ADR-0003 Stage 2. `notification` is no longer a separate service calling this endpoint over HTTP (see the superseded note in ARCHITECTURE.md); a shared-secret guard, `course/src/main/java/com/example/simplescheduleapp/config/InternalApiKeyFilter.java`, now exists on this path (fail-open when `internal.api.key` is unset — current prod value not verified from the repo). Whether the original risk still applies needs re-auditing, not assumed from this stale text.
+- Risk: `course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java:24-31` (`GET /internal/lectures/{lectureId}/student-ids`) exposes enrolled-student IDs with no auth token, no shared secret, no network restriction in the app. The notification module called it via `client.course-server-internal-url` (`notification/src/main/resources/application.yml:65`) before ADR-0003 Stage 2 — that config key and file no longer exist.
 - Files: `course/src/main/java/com/example/simplescheduleapp/lecture/general/presentation/LectureEnrollmentInternalController.java`, `deploy/nginx/conf.d/ssa.conf`
 - Current mitigation: In prod, nginx returns 403 for `location /internal/` (`deploy/nginx/conf.d/ssa.conf`) and the course container is not port-published. But locally (`docker-compose.yml` + direct app run on 8080) `/internal` is fully open, and any container inside `app_network` can call it.
 - Recommendations: Add defense-in-depth: a shared-secret header or mTLS between services, or at minimum bind internal endpoints to a separate port not proxied by nginx.
@@ -32,6 +33,7 @@
 ## Known Bugs
 
 **FcmConfig cannot load the FCM key the prod deploy mounts — notification service will crash-loop in prod (Severity: Critical):**
+- **Fixed since this was written:** `FcmConfig.java` now injects `ResourceLoader` and resolves `FCM_KEY_JSON` via a `loadCredentialResource()` helper that prepends `file:`/`classpath:` based on whether the value is an absolute path, matching this entry's own "Fix approach" below — and the exception is now rethrown with its cause preserved. Also, "notification service" is 3-process-era language: the FCM bootstrap now runs inside the single `:app` JVM (`app/Dockerfile`), not a separate `notification` image (`deploy/docker-compose.prod.yml` no longer builds one). Re-verify against current `FcmConfig.java` before treating this as an open bug.
 - Symptoms: `notification/src/main/java/com/example/simplescheduleapp/fcm/config/FcmConfig.java:38` loads the credential via `new ClassPathResource(FCM_KEY_JSON)`. `deploy/docker-compose.prod.yml` mounts the key as a filesystem file at `/app/config/fcm-service-account.json` and sets `FCM_KEY_JSON: /app/config/fcm-service-account.json`. `ClassPathResource` cannot resolve an absolute filesystem path — `getInputStream()` throws `IOException`, which `FcmConfig` rethrows as `RuntimeException` (also discarding the stack trace, `FcmConfig.java:43-46`), failing `FirebaseApp` bean creation and aborting startup.
 - Files: `notification/src/main/java/com/example/simplescheduleapp/fcm/config/FcmConfig.java`, `deploy/docker-compose.prod.yml`
 - Trigger: Any prod/stage deployment of the notification image as configured.
@@ -78,8 +80,8 @@
 - Fix approach: Delete the unused lock classes (they remain in git history) or document why they're retained.
 
 **Deploy packaging nits (Severity: Low):**
-- Issue: `course/Dockerfile` and `notification/Dockerfile` copy `build/libs/*-SNAPSHOT.jar` — the glob breaks the moment versioning moves off `-SNAPSHOT` (`version = "0.0.1-SNAPSHOT"` in `build.gradle:16`). `.github/workflows/deploy.yml` offers a `stage` environment input, but `application-stage.yml` is empty and `deploy/docker-compose.prod.yml` is the only compose — "stage" deploys prod config.
-- Files: `course/Dockerfile`, `notification/Dockerfile`, `.github/workflows/deploy.yml`
+- Issue: `app/Dockerfile` copies `build/libs/*-SNAPSHOT.jar` (`app/Dockerfile:8`) — the glob breaks the moment versioning moves off `-SNAPSHOT` (`version = "0.0.1-SNAPSHOT"` in `buildSrc/src/main/kotlin/ssa.java-common.gradle.kts:14`, the shared convention plugin `app` applies via `ssa.spring-boot-app`). `.github/workflows/deploy.yml` offers a `stage` environment input, but `application-stage.yml` is empty and `deploy/docker-compose.prod.yml` is the only compose — "stage" deploys prod config.
+- Files: `app/Dockerfile`, `.github/workflows/deploy.yml`
 - Fix approach: Copy the jar by explicit name via a build arg; either implement a real stage config or remove the input option.
 
 ## Performance Bottlenecks
@@ -119,10 +121,10 @@
 - Safe modification: Settle the strategy before touching this path — it already has three abandoned alternates (Redisson AOP, `SimpleRedisLock`, the deleted Kafka variant). A periodic reconciliation job (Redis counter vs. `COUNT(*)` of enrollments) would bound the damage of any leak.
 
 **SSE connection registry: one emitter per member, silent overwrite (Severity: Medium):**
-- Files: `notification/src/main/java/com/example/simplescheduleapp/sse/cache/SseEmitterRepository.java`, `notification/src/main/java/com/example/simplescheduleapp/sse/application/SseConnectionService.java`
-- Why fragile: `SseEmitterRepository` maps `memberId → SseEmitter` (`SseEmitterRepository.java:15-19`). A second connection from the same member (e.g., second browser tab) overwrites the first without completing it — the orphaned emitter stays open up to the 1-hour timeout (`SseConnectionService.java:25`) holding a servlet async context, its heartbeat still firing, while notifications reach only the newest connection. Cross-instance routing exists via Redis pub/sub (`notification/src/main/java/com/example/simplescheduleapp/redis/publisher/RedisSseMessagePublisher.java`, `redis/subscriber/RedisSseMessageSubscriber.java`), but the map itself is unbounded in-memory state.
+- Files: `notification/src/main/java/com/example/simplescheduleapp/sse/application/SseEmitterRegistry.java` (renamed from `SseEmitterRepository`, moved out of the now-removed `sse/cache/` package), `notification/src/main/java/com/example/simplescheduleapp/sse/application/SseConnectionService.java`
+- Why fragile: `SseEmitterRegistry` maps `memberId → SseEmitter` (`SseEmitterRegistry.java:27`, `save()`). A second connection from the same member (e.g., second browser tab) overwrites the first without completing it — the orphaned emitter stays open up to the 1-hour timeout (`SseConnectionService.java` — `DEFAULT_TIMEOUT`) holding a servlet async context, its heartbeat still firing, while notifications reach only the newest connection. Cross-instance routing exists via Redis pub/sub (`notification/src/main/java/com/example/simplescheduleapp/sse/infrastructure/redis/RedisSseMessagePublisher.java`, `RedisSseMessageSubscriber.java` — the root-level `redis/{publisher,subscriber}/` package no longer exists), but the map itself is unbounded in-memory state.
 - Safe modification: On `save`, complete any existing emitter for that member (or support a list per member); pair with the heartbeat-cancellation fix under Known Bugs.
-- Test coverage: `notification/src/test/java/com/example/simplescheduleapp/sse/cache/SseEmitterRepositoryTest.java` exists but does not cover the overwrite scenario.
+- Test coverage: `notification/src/test/java/com/example/simplescheduleapp/sse/application/SseEmitterRegistryTest.java` exists but does not cover the overwrite scenario.
 
 ## Scaling Limits
 
@@ -134,11 +136,11 @@
 **Kafka consumer concurrency is 1:**
 - Current capacity: `factory.setConcurrency(1)` in `common/src/main/java/com/example/simplescheduleapp/common/kafka/consumer/KafkaConsumerConfig.java:39`; single topic (`KafkaTopics.COURSE_EVENT_TOPIC`), `KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1`, single broker.
 - Limit: Notification throughput is serialized; a slow FCM/SSE handler backs up the whole topic. (Error handling itself is solid: 2 retries + `DeadLetterRecorder` DLQ, manual-immediate acks, `KafkaIdempotencyFilter` dedupe — `KafkaConsumerConfig.java:41-48`.)
-- Scaling path: Partition the topic by lectureId/memberId and raise concurrency; the retry scheduler (`notification/src/main/java/com/example/simplescheduleapp/notification/schedule/`) already handles failed sends.
+- Scaling path: Partition the topic by lectureId/memberId and raise concurrency; the retry scheduler (`notification/src/main/java/com/example/simplescheduleapp/notification/infrastructure/NotificationRetryScheduler.java`, moved out of the now-removed `notification/schedule/` package) already handles failed sends.
 
-**Prod host is a single 4 vCPU / 8GB box running 8 containers:**
-- Current capacity: mem limits in `deploy/docker-compose.prod.yml` total ~5.6GB across nginx/course/notification/2×MySQL/Redis/Kafka/Zookeeper.
-- Limit: No headroom for a second app replica; MySQL and Kafka compete for the same disk.
+**Prod host is a single 4 vCPU / 8GB box running 6 containers:**
+- Current capacity: mem limits in `deploy/docker-compose.prod.yml` total ~5.0GB across nginx/app/geekchat/Redis/Kafka/Zookeeper (prod DB is external Supabase PostgreSQL, not a container).
+- Limit: No headroom for a second app replica.
 - Scaling path: Documented in `deploy/README.md`; acceptable for current scale, revisit before prod load testing.
 
 ## Dependencies at Risk
@@ -186,8 +188,8 @@
 - Priority: High — write the failing test first, then add the locking fix.
 
 **No tests for Redis counter loss/rehydration or SSE duplicate connections (Severity: Medium):**
-- What's not tested: Missing-key behavior in `SpecialLectureRedisClient`; emitter-overwrite behavior in `SseEmitterRepository`.
-- Files: `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/SpecialLectureRedisClient.java`, `notification/src/test/java/com/example/simplescheduleapp/sse/cache/SseEmitterRepositoryTest.java`
+- What's not tested: Missing-key behavior in `SpecialLectureRedisClient`; emitter-overwrite behavior in `SseEmitterRegistry`.
+- Files: `course/src/main/java/com/example/simplescheduleapp/lecture/special/application/SpecialLectureRedisClient.java`, `notification/src/test/java/com/example/simplescheduleapp/sse/application/SseEmitterRegistryTest.java`
 - Priority: Medium.
 
 ---

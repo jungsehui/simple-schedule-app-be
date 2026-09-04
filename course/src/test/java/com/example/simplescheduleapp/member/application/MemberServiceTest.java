@@ -38,9 +38,10 @@ class MemberServiceTest {
 
     @Test
     void 아이디_입력_실패() {
-        // given: 존재하지 않는 아이디는 실제 getByUsername이 예외를 던지는 동작을 재현
-        when(memberRepository.getByUsername("nonexistent"))
-                .thenThrow(new ApplicationException(MemberExceptionCode.INVALID_USERNAME_PASSWORD));
+        // given: 조회가 비어 있는 상태. 로그인은 정확 일치와 정규화 두 형태를 모두 찾아보고
+        // 그래도 없으면 INVALID_USERNAME_PASSWORD를 던진다. "nonexistent"는 이미 정규형이라
+        // 두 번째 질의는 건너뛰므로 스텁도 하나면 된다.
+        when(memberRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(ApplicationException.class, () -> memberService.login("nonexistent", "Password123!"));
@@ -49,7 +50,7 @@ class MemberServiceTest {
     @Test
     void 비밀번호_불일치_실패() {
         // given: 아이디는 존재하지만(회원 반환) 비밀번호가 달라 로그인 시 예외가 발생
-        when(memberRepository.getByUsername("jungsehui")).thenReturn(mockMember);
+        when(memberRepository.findByUsername("jungsehui")).thenReturn(Optional.of(mockMember));
 
         // when & then
         assertThrows(ApplicationException.class, () -> memberService.login("jungsehui", "WrongPassword"));
