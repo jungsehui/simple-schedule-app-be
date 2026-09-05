@@ -29,6 +29,24 @@ public class RedisAtomicCounter implements AtomicCounter {
     );
 
     /**
+     * 마감 검사 + 조건부 감소. <b>마감을 먼저 본다</b> — 마감된 특강에 자리가 남아 있어도
+     * "자리 없음"이 아니라 "마감됨"이 나가야 한다.
+     *
+     * <p>마감 키가 없으면(이 기능 이전에 만들어진 키) 검사를 건너뛰고 기존 동작을 유지한다.
+     */
+    private static final DefaultRedisScript<Long> DECREMENT_IF_POSITIVE_BEFORE_SCRIPT = new DefaultRedisScript<>(
+            """
+            local deadline = redis.call('get', KEYS[2])
+            if deadline ~= false and tonumber(deadline) <= tonumber(ARGV[1]) then return -3 end
+            local current = redis.call('get', KEYS[1])
+            if current == false then return -2 end
+            if tonumber(current) <= 0 then return -1 end
+            return redis.call('decr', KEYS[1])
+            """,
+            Long.class
+    );
+
+    /**
      * 키가 존재할 때만 증가 — 만료 키를 TTL 없이 부활시키지 않는다.
      */
     private static final DefaultRedisScript<Long> INCREMENT_IF_EXISTS_SCRIPT = new DefaultRedisScript<>(
@@ -70,6 +88,12 @@ public class RedisAtomicCounter implements AtomicCounter {
     @Override
     public Long decrementIfPositive(String key) {
         return stringRedisTemplate.execute(DECREMENT_IF_POSITIVE_SCRIPT, List.of(key));
+    }
+
+    @Override
+    public Long decrementIfPositiveBefore(String key, String deadlineKey, long nowEpochSecond) {
+        return stringRedisTemplate.execute(
+                DECREMENT_IF_POSITIVE_BEFORE_SCRIPT, List.of(key, deadlineKey), String.valueOf(nowEpochSecond));
     }
 
     @Override
