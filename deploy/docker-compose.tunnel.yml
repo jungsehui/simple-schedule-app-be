@@ -1,0 +1,55 @@
+# Cloudflare Tunnel: 공개 HTTPS 접점
+#
+# 이 파일이 docker-compose.prod.yml과 분리돼 있는 이유가 설계의 핵심이다.
+#
+# CD는 배포마다 이렇게 돈다:
+#     docker compose -f docker-compose.prod.yml up -d --remove-orphans
+#
+# 터널을 prod 파일에 넣으면 두 가지가 걸린다.
+#   1) 토큰이 아직 없는 시점에 배포가 돌면 컨테이너가 크래시 루프에 빠진다.
+#   2) profiles로 막아 둬도 --remove-orphans가 프로파일 비활성 서비스를 지우는 Compose
+#      버전이 있다. 그러면 앱을 배포할 때마다 공개 접점이 끊긴다.
+#
+# 별도 프로젝트(name: ssa-tunnel)로 띄우면 --remove-orphans가 프로젝트 경계를 넘지 않으므로
+# 앱 배포와 터널의 수명이 완전히 분리된다. 앱은 하루에도 몇 번 재배포되지만 터널은 그대로다.
+#
+# 실행은 오너가 한 번만 한다. 자세한 절차는 CLOUDFLARE-TUNNEL.md.
+
+name: ssa-tunnel
+
+services:
+  cloudflared:
+    # TODO(배포 전 필수): 레지스트리에서 최신 안정 태그를 확인해 고정할 것.
+    #   docker run --rm cloudflare/cloudflared:latest --version
+    # latest로 두면 재시작할 때마다 다른 바이너리가 뜰 수 있고, 장애 시 무엇이 돌았는지 모른다.
+    image: cloudflare/cloudflared:latest
+    container_name: ssa-cloudflared
+    restart: always
+
+    # --no-autoupdate: 컨테이너 안에서 자기 바이너리를 갈아치우지 못하게 한다.
+    # 이미지 태그가 곧 버전이어야 롤백이 성립한다.
+    command: tunnel --no-autoupdate run
+
+    environment:
+      # 값은 서버의 .env에만 둔다. 이 파일에도, 커밋에도, 채팅에도 남기지 않는다.
+      # ":?" 는 값이 없으면 compose가 즉시 실패하고 이유를 출력한다는 뜻이다.
+      # 없는 채로 뜨면 크래시 루프에 빠져 원인이 로그에 묻힌다.
+      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN:?CF_TUNNEL_TOKEN이 .env에 없다. CLOUDFLARE-TUNNEL.md 참고}
+
+    networks: [app_network]
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+networks:
+  # 앱 스택이 이미 만든 네트워크에 올라탄다. 여기서 새로 만들지 않는다.
+  #
+  # 이름은 "<compose 프로젝트명>_app_network"다. 프로젝트명은 compose 파일에 name:이 없으면
+  # 디렉터리명에서 온다(/opt/ssa → ssa). 따라서 기본값은 ssa_app_network다.
+  #
+  # 다만 이건 추론이다. 서버에서 실제 이름을 확인하고 다르면 .env의 SSA_NETWORK_NAME으로 덮어라:
+  #     docker network ls --filter name=app_network
+  app_network:
+    external: true
+    name: ${SSA_NETWORK_NAME:-ssa_app_network}
