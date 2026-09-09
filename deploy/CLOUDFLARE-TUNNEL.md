@@ -89,7 +89,21 @@ docker run --rm cloudflare/cloudflared:latest --version
 
 나온 버전을 compose 파일의 `image:`에 박고 커밋한다. 태그가 곧 버전이어야 장애 때 "무엇이 돌았는지"를 알 수 있고 롤백이 성립한다.
 
-### 5. 띄운다
+### 5. compose 파일을 서버로 옮긴다
+
+**CD는 이 파일을 서버에 복사하지 않는다.** 배포 번들 동기화가 `docker-compose.prod.yml`과
+`nginx/`만 옮기기 때문이다(`deploy.yml`의 Sync deploy bundle 스텝). 저장소에서 직접 옮긴다.
+
+```bash
+# 로컬 저장소에서
+scp deploy/docker-compose.tunnel.yml <배포서버>:/opt/ssa/
+```
+
+> 후속 과제: 이 파일을 CD의 동기화 목록에 추가하면 손으로 옮기지 않아도 된다.
+> 지금 넣지 않은 이유는 릴리스가 임박한 시점에 배포 워크플로를 건드리지 않기 위해서다.
+> 터널은 도메인 구매에 막혀 있어 급하지 않다.
+
+### 6. 띄운다
 
 ```bash
 cd /opt/ssa
