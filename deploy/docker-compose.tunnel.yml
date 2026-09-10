@@ -19,10 +19,14 @@ name: ssa-tunnel
 
 services:
   cloudflared:
-    # TODO(배포 전 필수): 레지스트리에서 최신 안정 태그를 확인해 고정할 것.
-    #   docker run --rm cloudflare/cloudflared:latest --version
-    # latest로 두면 재시작할 때마다 다른 바이너리가 뜰 수 있고, 장애 시 무엇이 돌았는지 모른다.
-    image: cloudflare/cloudflared:latest
+    # 태그를 고정한다. latest로 두면 재시작할 때마다 다른 바이너리가 뜰 수 있고,
+    # 장애 시 무엇이 돌았는지 알 수 없어 롤백이 성립하지 않는다.
+    #
+    # 실측(2026-09-10): docker run --rm cloudflare/cloudflared:latest --version
+    #   → cloudflared version 2026.8.3 (built 2026-08-31-10:17 UTC)
+    #   관측한 다이제스트: sha256:51c9cefcb4569df44e1ad403ab1d3d8065aa8e84339bcfc6aee75502e1140339
+    #   (arm64 맥에서 받은 값이라 서버 아키텍처와 다를 수 있어 태그로 고정한다)
+    image: cloudflare/cloudflared:2026.8.3
     container_name: ssa-cloudflared
     restart: always
 
