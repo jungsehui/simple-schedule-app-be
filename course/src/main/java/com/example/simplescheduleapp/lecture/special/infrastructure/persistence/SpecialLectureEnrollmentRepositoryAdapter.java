@@ -27,4 +27,9 @@ public class SpecialLectureEnrollmentRepositoryAdapter implements SpecialLecture
     public Optional<SpecialLectureEnrollment> findById(Long id) {
         return jpaRepository.findById(id).map(SpecialLectureEnrollmentMapper::toDomain);
     }
+
+    @Override
+    public int deleteBySpecialLectureIdAndStudentId(Long specialLectureId, Long studentId) {
+        return jpaRepository.deleteBySpecialLectureIdAndStudentId(specialLectureId, studentId);
+    }
 }

@@ -12,4 +12,13 @@ public interface SpecialLectureEnrollmentRepository {
     SpecialLectureEnrollment save(SpecialLectureEnrollment specialLectureEnrollment);
 
     Optional<SpecialLectureEnrollment> findById(Long id);
+
+    /**
+     * 취소. <b>삭제된 행 수를 반환한다.</b>
+     *
+     * <p>이 반환값이 좌석 반환의 <b>유일한 멱등성 근거</b>다. 조회 후 삭제(read-then-delete)로는
+     * 안 된다 — 동시 취소 두 건이 같은 행을 읽고 <b>둘 다 좌석을 반환해 정원을 넘긴다</b>.
+     * 삭제가 원자적으로 알려 주는 행 수만이 "내가 실제로 지웠다"의 증거다.
+     */
+    int deleteBySpecialLectureIdAndStudentId(Long specialLectureId, Long studentId);
 }

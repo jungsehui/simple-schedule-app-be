@@ -17,15 +17,7 @@ public record EnrolledLectureGetResponse(
 
     public static EnrolledLectureGetResponse from(List<Lecture> lectures) {
         List<LectureResponse> lectureResponses = lectures.stream()
-                .map(it -> new LectureResponse(
-                        it.getId(),
-                        it.getTitle(),
-                        it.getStartTime(),
-                        it.getEndTime(),
-                        it.getMemo(),
-                        it.getCapacity(),
-                        it.getEnrolledCount()
-                ))
+                .map(LectureResponse::from)
                 .toList();
         return new EnrolledLectureGetResponse(lectureResponses);
     }
