@@ -1,5 +1,12 @@
 # Codebase Concerns
 
+<!-- STALE-SNAPSHOT banner -->
+> [!WARNING]
+> **스냅샷 문서입니다. 현재 코드와 다를 수 있습니다.**
+> 본문은 2026-07-02 `feature/query-performance-tuning` 분석이 바탕이고, 2026-08에 ADR-0003 Stage 2와 3a(단일 JVM `app`, Spring Boot 4.1.0, PostgreSQL 운영 DB)를 일부만 보정했습니다.
+> 그래서 옛 구조 서술과 새 구조 서술이 섞여 있을 수 있습니다.
+> 현재 사실의 정본은 루트 `CLAUDE.md`와 `docs/adr/`입니다. 본문과 정본이 다르면 정본을 따르고, 이 문서는 다음 재분석 때 다시 생성합니다.
+
 **Analysis Date:** 2026-07-02
 
 **Analysis basis:** Branch `feature/query-performance-tuning` (tip `3e4f654`, identical commit to `chore/ai-infra-cicd`) — the active line with 270 Java files across `course` (102 main-source files), `notification` (47), `common` (49), plus `playground`/`ngrinder` load-test modules. The repo's `main` branch (`dc31c8f`, 2025-05-02) is a boilerplate skeleton and does NOT contain the application; all findings below are from the active branch. Stack: Spring Boot 3.4.3, Java 21, MySQL 8.0, Redis 7.2, Kafka (cp-kafka 7.3.2 + Zookeeper). File paths are repository-relative.
