@@ -1,13 +1,15 @@
-# course 모듈 (수강/강의 API 서버, :8080)
+# course 모듈 (수강/강의 바운디드 컨텍스트, 라이브러리)
 
-## 도메인 패키지 (각각 presentation/application/domain/exception 레이어)
+자체 bootJar 없음. 실행은 `app` 모듈이 조합해서 한다(포트 8080).
+
+## 도메인 패키지 (각각 presentation/application/domain/infrastructure/exception 레이어, ADR-0002 헥사고날)
 `consultation`, `lecture.general`, `lecture.special`, `member`, `parent`, `schedule`, `student`, `tutor`
 공통 인프라: `config`, `event`(이벤트 발행), `redis`(Redisson 락)
 
 ## 핵심 흐름
 - 일반 수강신청: `LectureEnrollmentController` → `LectureEnrollmentService` → `PendingLectureEnrollment`(대기) → 강사 수락/거절(`/enrollments/accept|reject`) → Kafka `COURSE_EVENT_TOPIC` 발행 → notification 소비
 - 특강 수강신청: `SpecialLectureEnrollmentController` — **4단계 동시성 방어** 구조. 락·검증 순서 임의 변경 금지
-- 서버 간 API: `LectureEnrollmentInternalController` `/internal/**` — notification 전용, 외부 노출 금지(nginx 403)
+- 내부 API: `LectureEnrollmentInternalController` `/internal/**` — 외부 노출 금지(nginx 403). notification은 이제 HTTP가 아니라 `app`의 `InProcessEnrolledStudentsAdapter`로 같은 데이터를 조회한다
 
 ## 규칙
 - 동시성: Redisson 분산락 + DB 락 조합. 락 획득 순서 변경 전 `test/select-lock-deadlock` 브랜치의 데드락 사례 확인
@@ -16,5 +18,4 @@
 - 테스트: `ApplicationWithKafkaTest`(EmbeddedKafka) 상속 패턴, Fixture Monkey `giveMeBuilder` 사용
 
 ## 알려진 부채 (수정 시 확인)
-- `course/src/test/.../TutorLectureEnrollmentServiceTest.java` — 제거된 `CourseEventMessage`를 참조해 **컴파일 불가** (KafkaLectureEventMessage로의 마이그레이션 미완). 소유자 결정 필요
-- 기본 프로파일에 root/1234 자격증명 하드코딩 — 로컬 전용, 운영은 `application-prod.yml` env 주입 사용
+- 기본 프로파일(`app/src/main/resources/application.yml`)의 DB 자격증명 기본값이 root/1234 — 로컬 전용, 운영은 `application-prod.yml` env 주입 사용

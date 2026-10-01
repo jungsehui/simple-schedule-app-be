@@ -5,7 +5,7 @@
 ## 1. 프로젝트 개요
 
 **GeekChat Server v2**는 실시간 채팅 서버이다. 1:1 대화, 그룹 채팅, 임시 방, 자동 삭제 메시지, 초대 링크 같은 X(트위터) 스타일 프라이버시 기능을 제공한다.
-v1(NestJS)을 Kotlin/Spring Boot 3.4 + JPA + Raw WebSocket으로 마이그레이션했다.
+v1(NestJS)을 Kotlin/Spring Boot + JPA + Raw WebSocket으로 마이그레이션했다(현재 Boot 4.1.0).
 
 - **백엔드**: 이 저장소 (Kotlin/Spring Boot)
 - **프론트엔드**: `~/Work/geek-chat/geek-chat-web-v2/` (Next.js 15, 별도 저장소, Vercel 배포)
@@ -16,9 +16,9 @@ v1(NestJS)을 Kotlin/Spring Boot 3.4 + JPA + Raw WebSocket으로 마이그레이
 
 | 영역 | 기술 |
 |---|---|
-| 언어/런타임 | Kotlin 2.0.20, Java 21 (Virtual Threads) |
-| 프레임워크 | Spring Boot 3.4.1, Spring MVC, Spring Security |
-| 영속 | JPA / Hibernate 6, MySQL 8.0 (utf8mb4) |
+| 언어/런타임 | Kotlin 2.3.21, Java 21 (Virtual Threads) |
+| 프레임워크 | Spring Boot 4.1.0, Spring MVC, Spring Security |
+| 영속 | JPA / Hibernate 7, MySQL 8.0 (utf8mb4) |
 | WebSocket | Spring WebSocket (Raw, no STOMP) |
 | 인증 | JWT (jjwt 0.12.5), BCrypt (Spring Security) |
 | 빌드 | Gradle 8.12 (Kotlin DSL) |
