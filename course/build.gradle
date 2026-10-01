@@ -28,6 +28,13 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.h2database:h2'
 
+    // 네이티브 쿼리 방언 회귀 테스트: H2는 MySQL/PostgreSQL 문법 오류를 재현하지 못한다
+    // (CAST(... AS BIGINT) 500 사례). 실제 엔진을 컨테이너로 띄워 검증. 버전은 Boot BOM이 관리.
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+
     // Configuration Processor (설정 파일 자동완성용)
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
