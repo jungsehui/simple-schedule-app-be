@@ -18,13 +18,13 @@ v1(NestJS)을 Kotlin/Spring Boot + JPA + Raw WebSocket으로 마이그레이션�
 |---|---|
 | 언어/런타임 | Kotlin 2.3.21, Java 21 (Virtual Threads) |
 | 프레임워크 | Spring Boot 4.1.0, Spring MVC, Spring Security |
-| 영속 | JPA / Hibernate 7, MySQL 8.0 (utf8mb4) |
+| 영속 | JPA / Hibernate 7, PostgreSQL (운영: Supabase 관리형, `geekchat` 스키마 / 로컬: postgres:16) |
 | WebSocket | Spring WebSocket (Raw, no STOMP) |
 | 인증 | JWT (jjwt 0.12.5), BCrypt (Spring Security) |
 | 빌드 | Gradle 8.12 (Kotlin DSL) |
-| 테스트 | JUnit 5, MockK 1.13.12, H2(MODE=MySQL), Testcontainers MySQL 8 |
+| 테스트 | JUnit 5, MockK 1.13.12, H2(MODE=PostgreSQL) |
 | 배포 | Docker Compose, Nginx (TLS termination), Let's Encrypt |
-| 프로필 | `default`(prod, validate, MySQL) / `dev`(update+show-sql, MySQL) / `test`(create-drop, H2) |
+| 프로필 | `default`(prod, validate, PostgreSQL) / `local`(update, 로컬 PostgreSQL) / `dev`(show-sql만) / `test`(create-drop, H2) |
 
 ## 3. 디렉토리 맵
 
@@ -38,11 +38,11 @@ geek-chat-server-v2/
 │   ├── API.md               ← REST 엔드포인트 카탈로그
 │   ├── WEBSOCKET.md         ← WS 이벤트 카탈로그
 │   ├── DEPLOYMENT.md        ← 친구 서버 배포 런북
-│   └── DATABASE.md          ← MySQL 스키마 + 마이그레이션
+│   └── DATABASE.md          ← 스키마 문서 (MySQL 기준으로 작성된 옛 문서, 현재 DB는 PostgreSQL)
 ├── deploy/                  ← 배포 자산 (nginx.conf 등)
 ├── build.gradle.kts
 ├── Dockerfile               ← 멀티 스테이지 (jdk-builder + jre-runtime)
-├── docker-compose.yml       ← app + mysql + nginx
+├── docker-compose.yml       ← app + mysql + nginx (옛 자체 호스팅 구성, 현재 앱 설정과 맞지 않음. 운영 배포는 루트 `deploy/docker-compose.prod.yml`)
 ├── .env.docker.example
 └── src/
     ├── main/
@@ -63,11 +63,11 @@ geek-chat-server-v2/
     │   │       ├── security/          ← JwtTokenProvider, JwtAuthenticationFilter
     │   │       └── scheduler/         ← Room/Message Expiration
     │   └── resources/
-    │       └── application.yml        ← 3 profiles
+    │       └── application*.yml       ← default / local / dev / test
     └── test/kotlin/com/geekchat/server/
         ├── domain/                    ← 순수 단위 테스트
         ├── application/service/       ← MockK 기반
-        └── integration/               ← @SpringBootTest + H2/Testcontainers
+        └── integration/               ← @SpringBootTest + H2(MODE=PostgreSQL)
 ```
 
 ## 4. 헥사고날 레이어 규칙 (절대 규칙)
@@ -108,7 +108,7 @@ geek-chat-server-v2/
 6. **JWT subject = userId**. JwtAuthenticationFilter가 SecurityContext에 userId(String)를 principal로 세팅. 컨트롤러에서 `@AuthenticationPrincipal userId: String`로 받음.
 7. **`@field:NotBlank`/`@field:Pattern`**으로 request DTO 검증. Bean Validation 사용.
 8. **멱등성**: 메시지 전송은 `clientMessageId` UNIQUE 제약 + 사전 조회 + race-condition catch 3중 방어.
-9. **테스트 작성 시**: 단위는 MockK, 통합은 `@SpringBootTest @ActiveProfiles("test", "dev")` + H2(MODE=MySQL). MySQL 의존 통합 테스트는 `MySqlContainerSupport` 베이스 클래스 상속.
+9. **테스트 작성 시**: 단위는 MockK, 통합은 `@SpringBootTest @ActiveProfiles("test", "dev")` + H2(MODE=PostgreSQL). geekchat에는 Testcontainers 테스트가 없다.
 10. **로그에 메시지 content 포함 시**: `// TODO: Remove content from log before production` 주석 필수.
 
 ## 7. 빌드/실행/테스트 명령
@@ -123,10 +123,10 @@ geek-chat-server-v2/
 ./gradlew test --tests "*AuthServiceTest*"
 
 # 로컬 실행 (local 프로필 — 자기완결: datasource+secret 포함, env 불필요)
-docker compose -f docker-compose.dev.yml up -d          # MySQL (host 3310)
+docker compose -f docker-compose.dev.yml up -d          # PostgreSQL 16 (host 5433)
 ./gradlew bootRun --args='--spring.profiles.active=local'
 # 주: dev 프로필은 통합 테스트(@ActiveProfiles "test","dev")와 공유하는 JPA 시맨틱 전용 —
-#     로컬 실행엔 local 사용. 3310 점유 시 docker-compose.dev.yml 포트 + DB_PORT 동시 변경.
+#     로컬 실행엔 local 사용. 5433 점유 시 docker-compose.dev.yml 포트 + DB_PORT 동시 변경.
 
 # Docker
 docker compose --env-file .env.docker up -d --build
@@ -138,19 +138,21 @@ docker compose down
 
 | 프로필 | DB | ddl-auto | 용도 |
 |---|---|---|---|
-| (default) | MySQL 8.0 | **validate** | 프로덕션. 스키마는 사람이 관리 |
-| `dev` | MySQL 8.0 | **update** | 로컬 개발. 스키마 자동 진화 + show-sql |
-| `test` | H2 in-memory (MODE=MySQL) | **create-drop** | JVM 테스트. 빠른 부팅 |
+| (default) | PostgreSQL (Supabase, `currentSchema=geekchat`, SSL require) | **validate** | 프로덕션. 스키마는 사람이 관리 |
+| `local` | PostgreSQL 16 (`docker-compose.dev.yml`, host 5433) | **update** | 로컬 실행. 자기완결(datasource 포함) + show-sql |
+| `dev` | (지정 안 함) | (지정 안 함) | show-sql만. 통합 테스트(`test`,`dev`)와 공유 |
+| `test` | H2 in-memory (MODE=PostgreSQL) | **create-drop** | JVM 테스트. 빠른 부팅 |
 
-통합 테스트 중 MySQL 호환성 검증이 필요한 경우 `MySqlContainerSupport`를 상속해 Testcontainers MySQL 8.0을 사용한다.
+실제 PostgreSQL에 대한 방언 검증 테스트는 아직 없다. 필요하면 SSA의 `ScheduleOverlapQuery*Test`(Testcontainers) 패턴을 참고한다.
 
 ## 9. 주요 환경 변수
 
 | 변수 | 기본값 | 설명 |
 |---|---|---|
-| `SPRING_PROFILES_ACTIVE` | (없음) | dev / test / 비움(prod) |
-| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USERNAME` / `DB_PASSWORD` | localhost/3306/geekchat | 앱이 읽는 DB 자격증명 |
-| `DB_ROOT_PASSWORD` | — | docker-compose mysql 서비스만 사용 |
+| `SPRING_PROFILES_ACTIVE` | (없음) | local / dev / test / 비움(prod) |
+| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USERNAME` / `DB_PASSWORD` | localhost/5432/postgres/(없음)/(없음) | 앱이 읽는 DB 자격증명 (local 프로필은 5433/geekchat/geekchat/geekchat) |
+| `DB_SCHEMA` / `DB_SSLMODE` | geekchat / require | 접속 스키마와 SSL 모드 |
+| `DB_ROOT_PASSWORD` | (없음) | 옛 `docker-compose.yml`의 mysql 서비스만 사용 |
 | `JWT_SECRET` | dev fallback | ≥32자 |
 | `FRONTEND_URL` | http://localhost:3000 | CORS origin (단일) |
 | `FRONTEND_ORIGIN_PATTERNS` | https://*.vercel.app | 추가 origin 패턴 (CSV) |
