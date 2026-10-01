@@ -44,7 +44,7 @@ docker compose up -d    # 로컬 인프라 (MySQL 3306/3307, Redis 6379, Kafka 9
 
 ## 문서 맵 (AI 에이전트는 작업 전 필독)
 
-- `.planning/codebase/` — 코드베이스 분석 7종 (STACK, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, INTEGRATIONS, CONCERNS)
+- `.planning/codebase/` — 코드베이스 분석 7종 (STACK, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, INTEGRATIONS, CONCERNS). **2026-08-22 기준 스냅샷**이라 이 파일, ADR과 다르면 이 파일과 ADR이 우선
 - 각 모듈의 `CLAUDE.md` — 모듈별 상세 가이드
 - `docs/adr/` — 아키텍처 결정 기록(ADR)
 - `deploy/README.md` — 배포 런북 (GitHub Actions → GHCR → WireGuard → SSH)
