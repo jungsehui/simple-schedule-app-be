@@ -2,7 +2,7 @@
 # .claude/hooks/check-stale-docs.sh
 #
 # Light-weight stale-doc warning for the Stop hook.
-# Compares last-commit code changes vs docs/CLAUDE.md changes.
+# Compares last-commit code changes vs docs/AGENTS.md changes.
 # Always exits 0 (advisory only — never block session end).
 
 set -uo pipefail

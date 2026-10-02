@@ -44,7 +44,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 
 7. **도메인 단위 테스트** — `src/test/.../domain/model/DomainModelTest.kt`에 invariant/메서드 테스트 추가.
 
-8. **문서 업데이트** — `docs/DATABASE.md`에 새 테이블 SQL 스키마 추가, `CLAUDE.md` 도메인 용어집에 추가.
+8. **문서 업데이트** — `docs/DATABASE.md`에 새 테이블 SQL 스키마 추가, `AGENTS.md` 도메인 용어집에 추가.
 
 ## 체크리스트
 - [ ] 도메인에 JPA import 0개 (`.claude/hooks/check-domain-imports.sh`로 자동 검증)
