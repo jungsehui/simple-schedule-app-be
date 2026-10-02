@@ -35,7 +35,7 @@ dependencies {
     "testImplementation"("org.springframework.boot:spring-boot-starter-webmvc-test")
     "testImplementation"("org.springframework.security:spring-security-test")
     "testImplementation"("org.springframework.modulith:spring-modulith-starter-test")
-    "testImplementation"("io.mockk:mockk:1.13.12")
+    "testImplementation"("io.mockk:mockk:1.14.11")
     "testRuntimeOnly"("com.h2database:h2")
 }
 

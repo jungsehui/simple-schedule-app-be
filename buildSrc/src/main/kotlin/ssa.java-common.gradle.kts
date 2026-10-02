@@ -27,7 +27,7 @@ repositories {
 configurations.getByName("compileOnly").extendsFrom(configurations.getByName("annotationProcessor"))
 
 // ArchUnit 좌표는 여기 한 곳에서만 선언한다 (test + testFixtures가 같은 버전을 쓰도록)
-val archUnitJUnit5 = "com.tngtech.archunit:archunit-junit5:1.3.0"
+val archUnitJUnit5 = "com.tngtech.archunit:archunit-junit5:1.5.1"
 
 dependencies {
     "compileOnly"("org.projectlombok:lombok")
