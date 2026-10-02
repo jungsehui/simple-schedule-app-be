@@ -21,4 +21,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
+    // account 백필 검증(AccountMigrationTest)이 버전 사이에 시드를 넣으려고 Flyway API를 직접 쓴다 (ADR-0006 P1)
+    testImplementation 'org.flywaydb:flyway-core'
+    testRuntimeOnly 'org.flywaydb:flyway-database-postgresql'
+    testRuntimeOnly 'org.postgresql:postgresql'
 }

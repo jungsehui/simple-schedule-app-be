@@ -65,6 +65,6 @@ class SchemaBaselineValidationTest {
         // 컨텍스트 기동 성공 자체가 validate 통과의 증거다. 아래는 Flyway가 실제로 돌았는지 확인한다.
         List<String> applied = jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class);
-        assertThat(applied).containsExactly("1", "2", "3");
+        assertThat(applied).containsExactly("1", "2", "3", "4", "5");
     }
 }
