@@ -4,8 +4,8 @@ plugins {
 
 dependencyManagement {
     imports {
-        // Spring AI 2.0.0 targets Spring Boot 4.1.
-        mavenBom("org.springframework.ai:spring-ai-bom:2.0.0")
+        // Spring AI 2.0.1 targets Spring Boot 4.1.
+        mavenBom("org.springframework.ai:spring-ai-bom:2.0.1")
     }
 }
 

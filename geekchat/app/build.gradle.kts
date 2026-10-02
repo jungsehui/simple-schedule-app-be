@@ -10,7 +10,7 @@ plugins {
 // resolve them. (See ai/build.gradle.kts.)
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.ai:spring-ai-bom:2.0.0")
+        mavenBom("org.springframework.ai:spring-ai-bom:2.0.1")
     }
 }
 
