@@ -17,12 +17,13 @@
 | 비밀번호 | bcrypt cost 10. 옛 무염 SHA-256 해시는 로그인 때 bcrypt로 갱신 | bcrypt cost 12 |
 | 토큰 | HS512, Base64URL 키, 클레임 `memberId`, `role`. access 24시간만 있음 | 원문 바이트 키, 클레임 `sub`(UUID), `role`. access 15분 + refresh 14일 회전 |
 | 로그아웃, 갱신, 탈퇴 | 없음 | 있음. 탈퇴는 개인정보 익명화 + `status=WITHDRAWN` |
-| 사용자 참조 FK | DB FK는 하위 타입 3개뿐. 나머지 9개 컬럼은 코드상 논리 참조 | DB FK 5개 (`message.sender_id`, `chat_room_member.user_id` 등) |
+| 사용자 참조 FK | 운영 DB에 FK 8개: 하위 타입 3개 + `lecture`, `special_lecture`, `consultation`의 `tutor_id`(→`tutor`), `lecture_enrollment`, `special_lecture_enrollment`의 `student_id`(→`student`), `consultation_attendee.member_id`(→`parent`). `pending_lecture_enrollment`, `fcm_token` 등은 FK 없는 논리 참조. 엔티티는 지금 평범한 `Long`이라, FK는 옛 매핑으로 만들어진 뒤 `ddl-auto: update`가 지우지 않고 남긴 것으로 보인다(가정) | DB FK 5개 (`message.sender_id`, `chat_room_member.user_id` 등) |
 
 ### 운영 데이터 (2026-10-02 오너 조회)
 
 - 활성 사용자: SSA 7명(STUDENT 4, TUTOR 3), GeekChat 7명(ACTIVE 7)
-- 두 시스템에서 겹치는 username 3개: `e2e96637`, `e2e35537s`, `test123412341234`
+- 두 시스템에서 겹치는 username 3개: `e2e96637`, `e2e35537s`, `test123412341234`. 오너 확인 결과 모두 테스트 계정이다
+- 중복 인덱스 2개: `geekchat.users.username`, `geekchat.invite_link.code`에 unique 인덱스와 일반 인덱스가 함께 있다 (일반 인덱스는 불필요)
 - SSA 안에서 대소문자만 다른 username 중복: 0건
 - bcrypt로 바뀌지 않은 SSA 비밀번호: 6건 (탈퇴 행 포함 집계)
 
@@ -86,6 +87,18 @@
 - 운영 `pg_dump --schema-only -n ssa -n geekchat`으로 Flyway 기준선을 실제 DDL로 다시 만든다.
 - 그 뒤 `ddl-auto`를 `validate`로 바꾼다. 이후 모든 스키마 변경은 Flyway 마이그레이션으로만 한다.
 
+### 7. 순서: 스키마와 데이터를 먼저, 인증 통합은 Stage 4 뒤 (오너 결정 2026-10-02)
+
+- ADR-0003 #10은 GeekChat 흡수(Stage 4)를 정체성 통합보다 먼저 하도록 정했다.
+- P0(스키마 관리)과 P1(`account` 생성과 백필)은 Stage 4와 무관하게 지금 필요하므로 먼저 한다.
+- P2 이후(통합 토큰, 통합 인증)는 발급자가 하나여야 하므로 Stage 4 뒤에 한다.
+
+### 8. 겹치는 계정 3개는 테스트 계정이므로 연결하지 않고 정리한다 (오너 결정 2026-10-02)
+
+- `e2e96637`, `e2e35537s`, `test123412341234`는 P1 백필 전에 양쪽 시스템에서 지운다.
+- 그 결과 현재 운영 데이터에는 결정 2의 "연결 대기" 대상이 없다. 결정 2는 앞으로 생길 겹침에 대비한 규칙으로 남긴다.
+- 운영 데이터 삭제라 되돌릴 수 없으므로, 딸린 데이터 건수를 먼저 확인한 뒤 트랜잭션 안에서 지운다.
+
 ## 단계 (각 단계는 독립적으로 배포하고 롤백할 수 있다)
 
 | 단계 | 내용 | 롤백 |
@@ -112,9 +125,5 @@
 
 ## 미결 (오너 결정 필요)
 
-1. **순서**: ADR-0003 #10은 GeekChat 흡수(Stage 4)를 정체성 통합보다 먼저 하도록 정했다. Stage 4는 아직 끝나지 않았다. 다음 중 하나를 고른다.
-   - (a) Stage 4를 먼저 끝낸다.
-   - (b) P0과 P1(스키마, 데이터)만 먼저 하고, P2 이후는 Stage 4 뒤에 한다.
-2. **겹치는 계정 3개**: 이름이 `e2e`, `test`로 시작해 테스트 계정으로 보인다(가정). 진짜 사용자인지, 아니면 정리 대상인지 정해야 한다.
-3. **법적 보존 기간**: 익명화 전에 원본 개인정보를 보존해야 하는 기간이 있는지 확인이 필요하다.
-4. **전환기 길이**: 옛 토큰을 함께 받아들이는 기간을 정해야 한다. 클라이언트 강제 업데이트 여부와 연결된다.
+1. **법적 보존 기간**: 익명화 전에 원본 개인정보를 보존해야 하는 기간이 있는지 확인이 필요하다.
+2. **전환기 길이**: 옛 토큰을 함께 받아들이는 기간을 정해야 한다. 클라이언트 강제 업데이트 여부와 연결된다.
