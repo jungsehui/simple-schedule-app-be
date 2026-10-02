@@ -1,6 +1,6 @@
 # ADR-0006: 사용자 정체성 통합 (SSA member + GeekChat users → account)
 
-- 상태: 제안 (초안, 2026-10-02)
+- 상태: 수락 (2026-10-02). 미결 2건(보존 기간, 전환기 길이)은 P3 전에 결정
 - 결정자: jungsehui + Claude
 - 관련: ADR-0003 결정 #2(정준 ID), #3(인증 스택), #4(비밀번호), #10(순서)과 Stage 4, 5, ADR-0005(인증 게이트)
 
@@ -103,7 +103,7 @@
 
 | 단계 | 내용 | 롤백 |
 |---|---|---|
-| P0 | Flyway 기준선을 실제 DDL로 다시 만들고 `ddl-auto: validate`로 전환 | 설정만 되돌림 |
+| P0 ✅ | Flyway 기준선(V1)을 운영 실제 DDL로 다시 만들고 `ddl-auto: validate`로 전환. `SchemaBaselineValidationTest`(PostgreSQL 컨테이너에 Flyway 적용 후 validate 기동)가 CI에서 같은 검사를 먼저 한다 | `ddl-auto`만 `update`로 되돌림. V1은 운영에서 BASELINE이라 실행되지 않으므로 되돌릴 일이 없다 |
 | P1 | `account`, `account_link`를 만들고 백필한다. `users.account_id`(NULL 허용)를 추가한다. 백필 정합성 쿼리로 검증한다 | 새 테이블과 컬럼만 버림 |
 | P2 | 통합 토큰을 발급하고, 옛 토큰과 새 토큰을 함께 받아들인다. refresh `family_id`와 재사용 탐지를 추가한다 | 발급만 옛 방식으로 되돌림 |
 | P3 | 통합 인증 기능(가입, 로그인, 로그아웃, 갱신, 탈퇴, 연결 확인)을 연다. Android와 Web은 자동 갱신을 구현한다 | 기능 플래그로 끔 |
