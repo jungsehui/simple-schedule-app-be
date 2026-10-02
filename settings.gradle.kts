@@ -7,9 +7,8 @@ pluginManagement {
 
 rootProject.name = "simple-schedule-app"
 
-// GeekChat(Kotlin/Boot 4.1)은 Boot Gradle 플러그인 버전이 SSA(3.4)와 달라 하나의 빌드로 합칠 수 없다.
-// 컴포지트(includeBuild)로 격리하여 단일 명령(./gradlew buildAll)에서 함께 빌드한다. (ADR-0003 Stage 1)
-// Boot 버전 통일(Stage 3) 이후 진짜 단일 빌드/단일 bootJar(Stage 4)로 합류 예정.
+// GeekChat(Kotlin)은 컴포지트(includeBuild)로 격리하여 단일 명령(./gradlew buildAll)에서 함께 빌드한다. (ADR-0003 Stage 1)
+// Boot 버전은 Stage 3a에서 SSA, GeekChat 모두 4.1.0으로 통일됐다. 단일 빌드/단일 bootJar 합류는 Stage 4 예정.
 includeBuild("geekchat")
 
 // INFRA (공유 기술 커널)

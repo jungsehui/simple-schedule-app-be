@@ -20,8 +20,8 @@ kotlin {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:4.1.0")
-        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.0")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.1.1")
+        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.1")
     }
 }
 
@@ -32,7 +32,7 @@ dependencies {
     "implementation"("org.springframework.modulith:spring-modulith-starter-core")
 
     "testImplementation"("org.springframework.boot:spring-boot-starter-test")
-    "testImplementation"("io.mockk:mockk:1.13.12")
+    "testImplementation"("io.mockk:mockk:1.14.11")
     "testRuntimeOnly"("com.h2database:h2")
     // Library modules run JUnit Platform without the Spring Boot plugin. Supply a launcher aligned
     // with the boot-managed junit-platform version (via junit-bom) so it matches the engine on the

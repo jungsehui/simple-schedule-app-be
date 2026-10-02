@@ -38,3 +38,11 @@ dependencies {
     // Configuration Processor (설정 파일 자동완성용)
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
+
+// 테스트 이름별 결과를 CI 로그에 남긴다. 기본 출력에는 테스트 이름이 없어
+// 컨테이너 테스트(ScheduleOverlapQuery*)가 실제로 실행됐는지 로그로 확인할 수 없었다.
+tasks.named('test') {
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}

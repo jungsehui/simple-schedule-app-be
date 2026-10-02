@@ -1,5 +1,12 @@
 # Codebase Structure
 
+<!-- STALE-SNAPSHOT banner -->
+> [!WARNING]
+> **스냅샷 문서입니다. 현재 코드와 다를 수 있습니다.**
+> 본문은 2026-07-02 `feature/query-performance-tuning` 분석이 바탕이고, 2026-08에 ADR-0003 Stage 2와 3a(단일 JVM `app`, Spring Boot 4.1.0, PostgreSQL 운영 DB)를 일부만 보정했습니다.
+> 그래서 옛 구조 서술과 새 구조 서술이 섞여 있을 수 있습니다.
+> 현재 사실의 정본은 루트 `AGENTS.md`와 `docs/adr/`입니다. 본문과 정본이 다르면 정본을 따르고, 이 문서는 다음 재분석 때 다시 생성합니다.
+
 **Analysis Date:** 2026-07-02
 **Analysis Basis:** Branch `feature/query-performance-tuning`, tip commit `3e4f654` (570 tracked files, 270 Java files: `common` 55, `course` 110, `notification` 68, `playground` 37, `ngrinder` 0). Branch `chore/ai-infra-cicd` points at the same commit. All paths are repository-relative and do **not** exist on `main`, which is a 12-file skeleton whose stale root `src/` (package `com.example.simplescheduleappback`) was removed when the project split into modules — never build on it.
 

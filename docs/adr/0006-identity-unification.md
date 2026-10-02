@@ -1,0 +1,185 @@
+# ADR-0006: 사용자 정체성 통합 (SSA member + GeekChat users → account)
+
+- 상태: 수락 (2026-10-02). 미결 2건(보존 기간, 전환기 길이)은 P3 전에 결정
+- 결정자: jungsehui + Claude
+- 관련: ADR-0003 결정 #2(정준 ID), #3(인증 스택), #4(비밀번호), #10(순서)과 Stage 4, 5, ADR-0005(인증 게이트)
+
+이 ADR은 ADR-0003 Stage 5("정체성 통합")의 상세 결정이다. ADR-0003이 이미 정한 것은 승계하고, 그때 비어 있던 결정(겹치는 계정, 탈퇴, 토큰 재사용, 스키마 관리 선결 조건)을 채운다.
+
+## 배경
+
+### 현재 두 개의 신원 체계가 따로 있다
+
+| 항목 | SSA (`ssa` 스키마) | GeekChat (`geekchat` 스키마) |
+|---|---|---|
+| 사용자 테이블 | `member`(JOINED) + `student` / `tutor` / `parent` | `users` + `user_provider`(OAuth) + `refresh_token` |
+| ID | `member_id` BIGINT IDENTITY | `id` varchar(36), 앱이 만든 UUID |
+| 비밀번호 | bcrypt cost 10. 옛 무염 SHA-256 해시는 로그인 때 bcrypt로 갱신 | bcrypt cost 12 |
+| 토큰 | HS512, Base64URL 키, 클레임 `memberId`, `role`. access 24시간만 있음 | 원문 바이트 키, 클레임 `sub`(UUID), `role`. access 15분 + refresh 14일 회전 |
+| 로그아웃, 갱신, 탈퇴 | 없음 | 있음. 탈퇴는 개인정보 익명화 + `status=WITHDRAWN` |
+| 사용자 참조 FK | 운영 DB에 FK 8개: 하위 타입 3개 + `lecture`, `special_lecture`, `consultation`의 `tutor_id`(→`tutor`), `lecture_enrollment`, `special_lecture_enrollment`의 `student_id`(→`student`), `consultation_attendee.member_id`(→`parent`). `pending_lecture_enrollment`, `fcm_token` 등은 FK 없는 논리 참조. 엔티티는 지금 평범한 `Long`이라, FK는 옛 매핑으로 만들어진 뒤 `ddl-auto: update`가 지우지 않고 남긴 것으로 보인다(가정) | DB FK 5개 (`message.sender_id`, `chat_room_member.user_id` 등) |
+
+### 운영 데이터 (2026-10-02 오너 조회)
+
+- 활성 사용자: SSA 7명(STUDENT 4, TUTOR 3), GeekChat 7명(ACTIVE 7)
+- 두 시스템에서 겹치는 username 3개: `e2e96637`, `e2e35537s`, `test123412341234`. 오너 확인 결과 모두 테스트 계정이다
+- 중복 인덱스 2개: `geekchat.users.username`, `geekchat.invite_link.code`에 unique 인덱스와 일반 인덱스가 함께 있다 (일반 인덱스는 불필요)
+- SSA 안에서 대소문자만 다른 username 중복: 0건
+- bcrypt로 바뀌지 않은 SSA 비밀번호: 6건 (탈퇴 행 포함 집계)
+
+### 스키마 관리가 깨져 있다 (선결 문제)
+
+- SSA Flyway `V1__baseline.sql`은 `SELECT 1;`이고, 운영에서 `ddl-auto: update`가 켜져 있다. 그래서 운영 DDL의 정본이 저장소에 없다.
+- GeekChat은 DDL 파일이 없고, 처음에 Hibernate가 만든 스키마를 `validate`로 쓴다.
+- 이 상태에서 `account` 엔티티를 추가해 배포하면, 운영에서 Hibernate가 테이블을 임의로 만든다.
+
+## 결정
+
+### 1. `account` 테이블을 신원의 정본으로 둔다 (ADR-0003 #2 승계)
+
+- `account.id`는 BIGINT이고 **SSA `member_id`를 그대로 승계**한다. SSA 회원은 `account.id = member.member_id`라서 SSA 쪽 FK와 논리 참조를 하나도 옮기지 않는다.
+- GeekChat 전용 사용자는 SSA 회원과 같은 시퀀스(`account_id_seq`)에서 새 `account.id`를 받는다. 기존 UUID는 `account.external_uuid`에 보존한다. (처음에는 "`max(member_id)`보다 큰 시퀀스"였으나, 그러면 이후 SSA 가입자가 같은 id를 받아 충돌한다. 결정 9 참고)
+- `geekchat.users`에는 `account_id` BIGINT를 추가한다. 메시지와 채팅방 FK(`users.id` 기준)는 그대로 둔다.
+- 로그인 자격(username, 비밀번호 해시, 상태)은 `account`로 모은다. 역할별 프로필(학생 학교, 강사 경력, 닉네임 등)은 각 컨텍스트 테이블에 남긴다.
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | BIGINT | PK (SSA는 `member_id` 승계) |
+| `external_uuid` | varchar(36) | UNIQUE, NULL 허용 (GeekChat 출신만) |
+| `username` | varchar(20) | UNIQUE, 소문자 정규화 (기존 규칙 `^(?=.*[a-z])[a-z0-9_]{3,20}$`) |
+| `password_hash` | varchar(255) | NULL 허용 (OAuth 전용 계정) |
+| `email` | varchar(255) | NULL 허용 |
+| `status` | varchar(20) | `ACTIVE` / `WITHDRAWN` |
+| `created_at`, `updated_at`, `withdrawn_at` | timestamptz | |
+
+### 2. 겹치는 username은 같은 사람으로 보되, 본인 확인 전까지 연결하지 않는다
+
+- 오너 결정에 따라, 같은 username은 같은 사람의 계정으로 본다.
+- 다만 username이 같다고 실제로 같은 사람이라는 증거는 없다. 그래서 연결은 **대기** 상태로 시작한다.
+  - 백필 때 SSA 쪽 자격으로 `account`를 만들고, GeekChat 쪽은 `account_link(account_id, external_uuid, status=PENDING)`로 남긴다.
+  - 사용자가 **반대쪽 시스템의 비밀번호**(또는 연결된 OAuth 제공자)로 한 번 인증하면 `CONFIRMED`로 바뀌고, 그때 `users.account_id`가 채워진다.
+  - 확정 전에는 통합 로그인으로 반대쪽 데이터에 접근할 수 없다.
+- 이것이 이번에 새로 마련하는 본인 확인 수단이다. 이메일이나 휴대폰 인증은 이번 범위에 넣지 않는다.
+
+### 3. 탈퇴는 익명화로 통일한다
+
+- `account.status=WITHDRAWN`, `withdrawn_at`을 기록하고 `username`, `email`, `password_hash`를 지운다.
+- SSA 프로필의 `name`, `phone_number`는 익명값으로 바꾸고, GeekChat 프로필은 기존 `User.anonymize()` 규칙을 따른다.
+- 수강 기록, 강의, 메시지 같은 업무 데이터는 지우지 않는다. 작성자 표시만 익명이 된다.
+- 해당 계정의 refresh token은 모두 삭제한다.
+- SSA의 `@SQLDelete` 소프트 삭제 경로는 탈퇴에 쓰지 않는다.
+
+### 4. 토큰은 15분 access + 14일 회전 refresh에 재사용 탐지를 더한다 (ADR-0003 #3 승계 + 확장)
+
+- 발급자는 하나이고, 새 단일 시크릿과 HS512를 쓴다.
+- 클레임은 `sub`(account id 문자열), `memberId`(SSA 호환용, 같은 값), `role`, `admin`이다.
+- access 15분, refresh 14일이다. refresh할 때마다 새 refresh를 발급하고 만료를 다시 14일로 잡는다. 그래서 14일 동안 한 번도 쓰지 않을 때만 다시 로그인한다.
+- **재사용 탐지(신규)**: refresh token에 `family_id`를 둔다. 이미 회전된(사용된) refresh가 다시 들어오면 탈취로 보고 그 family 전체를 폐기한다.
+- 전환기에는 옛 SSA 토큰(`memberId`, 24시간)과 옛 GeekChat 토큰(UUID `sub`)을 만료될 때까지 함께 받아들인다. 이 기간은 클라이언트 배포 일정에 맞춰 정한다.
+
+### 5. 비밀번호는 ADR-0003 #4를 승계한다
+
+- `DelegatingPasswordEncoder`로 `{sha256}`도 인식하고, 로그인에 성공하면 BCrypt(12)로 다시 저장한다.
+- 남은 SHA-256 계정은 Stage 6(ADR-0003)에서 강제로 재설정한다.
+
+### 6. 스키마 관리부터 바로잡는다 (선결 조건)
+
+- 운영 `pg_dump --schema-only -n ssa -n geekchat`으로 Flyway 기준선을 실제 DDL로 다시 만든다.
+- 그 뒤 `ddl-auto`를 `validate`로 바꾼다. 이후 모든 스키마 변경은 Flyway 마이그레이션으로만 한다.
+
+### 7. 순서: 스키마와 데이터를 먼저, 인증 통합은 Stage 4 뒤 (오너 결정 2026-10-02)
+
+- ADR-0003 #10은 GeekChat 흡수(Stage 4)를 정체성 통합보다 먼저 하도록 정했다.
+- P0(스키마 관리)과 P1(`account` 생성과 백필)은 Stage 4와 무관하게 지금 필요하므로 먼저 한다.
+- P2 이후(통합 토큰, 통합 인증)는 발급자가 하나여야 하므로 Stage 4 뒤에 한다.
+
+### 8. 겹치는 계정 3개는 테스트 계정이므로 연결하지 않고 정리한다 (오너 결정 2026-10-02)
+
+- `e2e96637`, `e2e35537s`, `test123412341234`는 P1 백필 전에 양쪽 시스템에서 지운다.
+- 그 결과 현재 운영 데이터에는 결정 2의 "연결 대기" 대상이 없다. 결정 2는 앞으로 생길 겹침에 대비한 규칙으로 남긴다.
+- 운영 데이터 삭제라 되돌릴 수 없으므로, 딸린 데이터 건수를 먼저 확인한 뒤 트랜잭션 안에서 지운다.
+
+### 9. P1 구현: 공유 시퀀스, 가입 이중 기록, GeekChat 쪽은 SSA Flyway가 맡는다 (오너 결정 2026-10-02, 추천안 (A)+(a))
+
+- **id 충돌 방지**: `member.member_id`는 identity였다. GeekChat 전용 계정에 `max(member_id)+1`부터 id를 주면, 이후 SSA 가입자가 identity에서 같은 번호를 받는다. 그래서 V4가 `account_id_seq`를 만들고, `member_id`의 identity를 걷어 내 기본값을 이 시퀀스로 바꾼다. 한 시퀀스가 두 출신에 id를 나눠 주므로 충돌이 생기지 않는다. `AccountMigrationTest`가 이 충돌을 직접 재현한다(공유 시퀀스를 빼면 `DuplicateKeyException`).
+- **신규 가입 동기화**: 백필만 하면 배포 직후 가입자부터 `account`가 비게 된다. 그래서 학생, 강사, 학부모 가입 서비스가 회원 저장과 같은 트랜잭션에서 `AccountRegistrationPort`로 `account`를 만든다. GeekChat 출신 account와 username이 겹치면 가입을 `DUPLICATED_USERNAME_PHONE`(409)으로 거절한다. 같은 username은 같은 사람이라는 결정 2에 따라, 반대쪽 사람이 그 이름을 새로 가져가지 못하게 막는 것이다.
+- **GeekChat 쪽 DDL과 백필**: GeekChat에는 Flyway가 없으므로 SSA Flyway V5가 맡는다. `geekchat` 스키마가 없으면 건너뛰고, 스키마는 있는데 `geekchat.users`를 못 보면 실패한다(권한 문제를 "적용됨"으로 숨기지 않는다).
+- **비밀번호 해시는 P2에서 옮긴다**: P1에는 `account`를 읽는 코드가 없다. 해시를 지금 복사하면 SSA 로그인 때의 bcrypt 승급(ADR-0004)이 `member`에만 반영돼 사본이 낡는다.
+
+### P1 운영 적용 런북
+
+배포 전에 아래 4개를 운영 DB에서 실행하고 결과만 공유한다. 접속 정보나 키는 붙이지 않는다.
+
+```sql
+-- 1. 소문자화하면 20자를 넘는 활성 username (0이어야 한다. 아니면 V4가 실패한다)
+SELECT count(*) FROM ssa.member WHERE deleted_date IS NULL AND length(lower(username)) > 20;
+-- 2. 소문자화하면 겹치는 활성 username (0이어야 한다)
+SELECT lower(username), count(*) FROM ssa.member WHERE deleted_date IS NULL GROUP BY 1 HAVING count(*) > 1;
+-- 3. SSA 앱 DB 역할이 geekchat.users의 소유자인지 (같아야 V5의 ALTER TABLE이 된다)
+SELECT tableowner FROM pg_tables WHERE schemaname = 'geekchat' AND tablename = 'users';
+-- 4. SSA 앱 DB 역할 이름 (SSA 앱과 같은 접속 정보로 실행)
+SELECT current_user;
+```
+
+배포 후 정합성 확인 (기대값은 괄호 안):
+
+```sql
+SELECT count(*) FROM ssa.member;                                        -- (A)
+SELECT count(*) FROM ssa.account WHERE external_uuid IS NULL;           -- (A와 같음)
+SELECT count(*) FROM geekchat.users;                                    -- (B)
+SELECT (SELECT count(*) FROM ssa.account WHERE external_uuid IS NOT NULL)
+     + (SELECT count(*) FROM ssa.account_link);                         -- (B와 같음)
+SELECT count(*) FROM geekchat.users u
+LEFT JOIN ssa.account_link l ON l.external_uuid = u.id
+WHERE u.account_id IS NULL AND l.id IS NULL;                            -- (0)
+```
+
+### P1 롤백
+
+V 번호로 두면 Flyway가 자동 실행하므로 여기에만 둔다. 롤백한 뒤에는 V4, V5 파일과 가입 이중 기록 코드를 함께 되돌린 이미지로 배포한다.
+
+```sql
+BEGIN;
+ALTER TABLE geekchat.users DROP COLUMN IF EXISTS account_id;
+DROP TABLE ssa.account_link;
+DROP TABLE ssa.account;
+-- member_id를 identity로 되돌리되, 이미 나간 번호 다음부터 시작한다
+ALTER TABLE ssa.member ALTER COLUMN member_id DROP DEFAULT;
+DO $$
+DECLARE next_id bigint := nextval('ssa.account_id_seq');
+BEGIN
+    EXECUTE format('ALTER TABLE ssa.member ALTER COLUMN member_id ADD GENERATED BY DEFAULT AS IDENTITY (START WITH %s)', next_id);
+END $$;
+DROP SEQUENCE ssa.account_id_seq;
+DELETE FROM ssa.flyway_schema_history WHERE version IN ('4', '5');
+COMMIT;
+```
+
+## 단계 (각 단계는 독립적으로 배포하고 롤백할 수 있다)
+
+| 단계 | 내용 | 롤백 |
+|---|---|---|
+| P0 ✅ | Flyway 기준선(V1)을 운영 실제 DDL로 다시 만들고 `ddl-auto: validate`로 전환. `SchemaBaselineValidationTest`(PostgreSQL 컨테이너에 Flyway 적용 후 validate 기동)가 CI에서 같은 검사를 먼저 한다 | `ddl-auto`만 `update`로 되돌림. V1은 운영에서 BASELINE이라 실행되지 않으므로 되돌릴 일이 없다 |
+| P1 | `account`, `account_link`를 만들고 백필한다(V4, V5). `users.account_id`(NULL 허용)를 추가한다. 가입 때 `account`를 함께 만든다. `AccountMigrationTest`와 운영 정합성 쿼리로 검증한다 (결정 9, 런북) | "P1 롤백" SQL. `member_id` 기본값도 identity로 되돌려야 하므로 테이블만 버리면 안 된다 |
+| P2 | 통합 토큰을 발급하고, 옛 토큰과 새 토큰을 함께 받아들인다. refresh `family_id`와 재사용 탐지를 추가한다 | 발급만 옛 방식으로 되돌림 |
+| P3 | 통합 인증 기능(가입, 로그인, 로그아웃, 갱신, 탈퇴, 연결 확인)을 연다. Android와 Web은 자동 갱신을 구현한다 | 기능 플래그로 끔 |
+| P4 | 옛 토큰 형식을 제거하고 `users.account_id`를 NOT NULL로 바꾼다 | 되돌리기 어려움. 별도 승인 필요 |
+
+## 결과
+
+- 한 사람이 한 계정으로 SSA와 GeekChat을 쓴다.
+- SSA에 없던 로그아웃, 토큰 갱신, 탈퇴가 생긴다.
+- 운영 스키마의 정본이 저장소(Flyway)로 돌아온다.
+- Android와 Web 앱은 refresh 자동 갱신과 연결 확인 화면을 구현해야 한다.
+
+## 검토한 대안
+
+- **`account.id`를 UUID로 둔다**: 처음 검토 때 제안했던 안이다. 하지만 ADR-0003 #2와 충돌하고, Long `memberId`가 이미 박제된 계약(JWT, SSE)을 바꿔야 해서 기각한다.
+- **GeekChat `users`를 신원으로 쓴다**: SSA가 `geekchat` 스키마에 묶이고, SSA의 논리 참조 9개에 매핑 계층이 필요하다.
+- **SSA `member`를 신원으로 쓴다**: GeekChat FK 5개와 메시지 이력의 ID를 모두 다시 써야 하고, 실패하면 복구가 어렵다.
+- **겹치는 username을 자동으로 바로 연결한다**: 다른 사람이 같은 username을 쓴 경우 남의 채팅 이력에 접근하게 된다. 그래서 연결 대기 단계를 둔다.
+
+## 미결 (오너 결정 필요)
+
+1. **법적 보존 기간**: 익명화 전에 원본 개인정보를 보존해야 하는 기간이 있는지 확인이 필요하다.
+2. **전환기 길이**: 옛 토큰을 함께 받아들이는 기간을 정해야 한다. 클라이언트 강제 업데이트 여부와 연결된다.

@@ -1,5 +1,12 @@
 # Coding Conventions
 
+<!-- STALE-SNAPSHOT banner -->
+> [!WARNING]
+> **스냅샷 문서입니다. 현재 코드와 다를 수 있습니다.**
+> 본문은 2026-07-02 `feature/query-performance-tuning` 분석이 바탕이고, 2026-08에 ADR-0003 Stage 2와 3a(단일 JVM `app`, Spring Boot 4.1.0, PostgreSQL 운영 DB)를 일부만 보정했습니다.
+> 그래서 옛 구조 서술과 새 구조 서술이 섞여 있을 수 있습니다.
+> 현재 사실의 정본은 루트 `AGENTS.md`와 `docs/adr/`입니다. 본문과 정본이 다르면 정본을 따르고, 이 문서는 다음 재분석 때 다시 생성합니다.
+
 **Analysis Date:** 2026-07-02
 
 > **Source branch:** This analysis is based on branch **`chore/ai-infra-cicd`** (built directly on **`feature/query-performance-tuning`** — the active development line, 270 Java files). The repo's `main` branch contains only the original single-module skeleton and is NOT representative. All paths below are repository-relative on that branch. Modules declared in `settings.gradle.kts`: `common` (INFRA library), `course` and `notification` (bounded-context libraries, no own bootJar), `app` (BOOT — the sole executable module, ADR-0003 Stage 2), `playground` and `ngrinder` (load-/experiment-testing, excluded from CI).

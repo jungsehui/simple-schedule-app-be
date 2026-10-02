@@ -34,6 +34,7 @@ public class KafkaConsumerConfig {
 
     private final DeadLetterRecorder deadLetterRecorder;
     private final KafkaIdempotencyFilter kafkaIdempotencyFilter;
+    private final KafkaProcessedRecordInterceptor kafkaProcessedRecordInterceptor;
     private final KafkaConsumerProperty property;
 
     @Bean(LECTURE_EVENT_CONTAINER_FACTORY)
@@ -47,6 +48,8 @@ public class KafkaConsumerConfig {
         // 멱등성 필터 적용 (중복 메시지 걸러내기)
         factory.setRecordFilterStrategy(kafkaIdempotencyFilter);
         factory.setAckDiscarded(true); // 필터링된 메시지도 Ack 처리 (커밋)
+        // 처리 기록은 리스너 성공 후에만 남긴다 (필터는 확인만 한다)
+        factory.setRecordInterceptor(kafkaProcessedRecordInterceptor);
 
         // 에러 핸들러 (1초 간격 2회 재시도 후 Dead Letter 저장)
         FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2L);

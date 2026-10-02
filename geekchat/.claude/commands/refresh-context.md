@@ -38,13 +38,13 @@ drift 발견 → 사용자에게 어느 쪽이 정답인지 물어보고 다른 
 
 | 변경된 코드 | 갱신할 문서 |
 |---|---|
-| `domain/model/*.kt` 필드 추가/제거 | `docs/DATABASE.md` 컬럼, `CLAUDE.md` 도메인 용어집 |
+| `domain/model/*.kt` 필드 추가/제거 | `docs/DATABASE.md` 컬럼, `AGENTS.md` 도메인 용어집 |
 | `domain/event/ChatEvent.kt` 이벤트 추가 | `docs/WEBSOCKET.md` outbound 이벤트 |
 | `adapter/in/web/*Controller.kt` 엔드포인트 추가/수정 | `docs/API.md` |
 | `adapter/in/websocket/ChatWebSocketHandler.kt` inbound 추가 | `docs/WEBSOCKET.md` 3절 |
 | `domain/error/ChatError.kt` 새 에러 | `docs/API.md` HTTP 매핑 표 |
 | `application/service/*.kt` 비즈니스 로직 변경 | `docs/ARCHITECTURE.md` 데이터플로우 (필요 시) |
-| `build.gradle.kts` 의존성 추가 | `CLAUDE.md` 기술 스택 표 |
+| `build.gradle.kts` 의존성 추가 | `AGENTS.md` 기술 스택 표 |
 | `Dockerfile`, `docker-compose.yml` | `docs/DEPLOYMENT.md` |
 
 ### 3. HANDOFF.md 갱신 (필수)
@@ -82,7 +82,7 @@ drift 발견 → 사용자에게 어느 쪽이 정답인지 물어보고 다른 
 
 ## 6. 5분 컨텍스트 잡기 순서
 1. 이 파일
-2. server-v2/CLAUDE.md
+2. server-v2/AGENTS.md
 3. server-v2/.claude/RULES.md
 4. server-v2/docs/PRD-M2.md (남은 M2 기능)
 5. server-v2/docs/API.md (현재 엔드포인트)
@@ -95,7 +95,7 @@ drift 발견 → 사용자에게 어느 쪽이 정답인지 물어보고 다른 
 
 - [ ] `git status` — 변경사항 확인
 - [ ] `./gradlew test` — 전체 통과
-- [ ] `grep -r "TODO" docs/ CLAUDE.md HANDOFF.md` — 작성 미완료 표시 없음
+- [ ] `grep -r "TODO" docs/ AGENTS.md HANDOFF.md` — 작성 미완료 표시 없음
 - [ ] HANDOFF.md 마지막 갱신 시각 = 오늘
 - [ ] 변경된 코드 파일 수 == 갱신된 문서 영역 수
 

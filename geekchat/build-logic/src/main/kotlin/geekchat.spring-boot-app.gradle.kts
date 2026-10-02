@@ -22,7 +22,7 @@ kotlin {
 // The Spring Boot plugin auto-imports the spring-boot-dependencies BOM via dependency-management.
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.0")
+        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.1")
     }
 }
 
@@ -35,7 +35,7 @@ dependencies {
     "testImplementation"("org.springframework.boot:spring-boot-starter-webmvc-test")
     "testImplementation"("org.springframework.security:spring-security-test")
     "testImplementation"("org.springframework.modulith:spring-modulith-starter-test")
-    "testImplementation"("io.mockk:mockk:1.13.12")
+    "testImplementation"("io.mockk:mockk:1.14.11")
     "testRuntimeOnly"("com.h2database:h2")
 }
 
