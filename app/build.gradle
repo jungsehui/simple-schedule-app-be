@@ -16,4 +16,9 @@ dependencies {
     testImplementation(testFixtures(project(':common')))
     // FirebaseMessaging @MockitoBean 참조용 (런타임엔 notification 경유로 이미 포함, 컴파일만 필요)
     testImplementation libs.firebase.admin
+
+    // 운영 스키마 기준선(Flyway V1) ↔ 엔티티 검증 — 실제 PostgreSQL 컨테이너 (ADR-0006 결정 6). Docker 필요
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
 }

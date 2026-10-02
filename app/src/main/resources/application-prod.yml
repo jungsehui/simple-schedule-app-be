@@ -14,8 +14,9 @@ spring:
 
   jpa:
     hibernate:
-      # TODO: Flyway 정착 후 validate로 전환
-      ddl-auto: update
+      # 스키마는 Flyway만 바꾼다 (V1 = 운영 기준선, 새 변경은 V4+). Hibernate는 엔티티와 스키마가 맞는지 검사만 한다.
+      # 같은 검사를 CI에서 SchemaBaselineValidationTest가 먼저 돌린다. (ADR-0006 결정 6)
+      ddl-auto: validate
     show-sql: false
     open-in-view: false
     properties:
