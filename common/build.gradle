@@ -20,7 +20,8 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-aspectj'
 
     // Kafka Client
-    implementation libs.kafka.clients
+    // 버전은 Spring Boot BOM이 관리한다. 카탈로그의 고정 버전(3.7.1)은 BOM에 덮여 실제로는 쓰이지 않았다.
+    implementation 'org.apache.kafka:kafka-clients'
 
     // JWT (내부 구현 상세는 implementation)
     implementation libs.jjwt.api

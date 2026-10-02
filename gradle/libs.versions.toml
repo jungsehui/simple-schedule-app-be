@@ -2,10 +2,9 @@
 # Boot/dependency-management 플러그인 버전은 buildSrc/build.gradle.kts(컨벤션 플러그인)에서 관리.
 # starter-*, flyway, postgresql, mysql, h2, junit-launcher 등은 Spring Boot BOM이 버전을 관리하므로 여기 없음.
 [versions]
-jjwt = "0.12.5"
+jjwt = "0.12.7"
 # Boot 4.0 지원 버전 — redisson-spring-data-40 자동 포함 (ADR-0003 Stage 3)
-redisson = "4.6.1"
-kafkaClients = "3.7.1"
+redisson = "4.7.0"
 logstashLogback = "8.0"
 fixtureMonkey = "1.1.11"
 firebaseAdmin = "9.2.0"
@@ -15,7 +14,6 @@ bcrypt = "0.10.2"
 
 [libraries]
 redisson-spring-boot-starter = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
-kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashLogback" }
 
 bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }

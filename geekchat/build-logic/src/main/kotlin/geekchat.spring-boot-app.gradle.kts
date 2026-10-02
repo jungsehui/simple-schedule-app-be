@@ -22,7 +22,7 @@ kotlin {
 // The Spring Boot plugin auto-imports the spring-boot-dependencies BOM via dependency-management.
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.0")
+        mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.1")
     }
 }
 

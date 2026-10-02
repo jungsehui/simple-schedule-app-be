@@ -29,3 +29,6 @@ Thumbs.db
 .claude/settings.local.json
 .omc/
 .planning/
+
+# Kotlin 컴파일러 데몬 세션 파일 (빌드 중 생성)
+.kotlin/
