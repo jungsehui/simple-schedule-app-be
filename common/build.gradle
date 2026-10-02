@@ -13,6 +13,10 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-data-redis'
     api libs.redisson.spring.boot.starter
     api libs.logstash.logback.encoder
+    // Kafka(JsonSerializer/JsonDeserializer)와 Redis(GenericJackson2JsonRedisSerializer) 직렬화가 Jackson 2를 쓴다.
+    // logstash-logback-encoder 8.x가 Jackson 2를 간접으로 실어 주던 것을 9.0(Jackson 3 전환)에서 잃으므로 명시한다.
+    // 버전은 Boot BOM이 관리. Jackson 3 API로 옮기면 이 줄을 지운다.
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 
     // 재시도는 Framework 7 네이티브(@EnableResilientMethods/@Retryable, spring-context 내장)로 이관 —
     // 별도 spring-retry 의존 불필요 (Boot 4가 BOM에서 제거). (ADR-0003 Stage 3)
