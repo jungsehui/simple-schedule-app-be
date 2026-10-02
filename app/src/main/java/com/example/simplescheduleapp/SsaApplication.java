@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  * <p>
  * 두 컨텍스트 간 통신: Kafka(course 발행 → 같은 JVM notification 리스너가 브로커 경유 자기소비),
  * 수강생 조회는 in-process 어댑터(HTTP /internal 자기호출 제거). {@code @EnableScheduling}/
- * {@code @EnableRetry}는 common의 {@code SchedulingRetryConfig}가 제공한다.
+ * {@code @EnableResilientMethods}(Framework 7 네이티브 재시도)는 common의 {@code SchedulingRetryConfig}가 제공한다.
  * <p>
  * 루트 패키지 {@code com.example.simplescheduleapp}에 위치 — course/notification/common을 모두
  * 컴포넌트 스캔한다.
