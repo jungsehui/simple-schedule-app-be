@@ -2,7 +2,7 @@
 
 새 Claude/Codex/Gemini 세션은 이 순서로 읽는다:
 
-1. **`../CLAUDE.md`** — 프로젝트 개요 (기술 스택, 디렉토리 맵, 도메인 용어)
+1. **`../AGENTS.md`** — 프로젝트 개요 (기술 스택, 디렉토리 맵, 도메인 용어)
 2. **`./RULES.md`** — 절대 금지 규칙 + 코드 패턴
 3. 작업 명확하면 곧장 `./commands/`의 슬래시 커맨드 사용
 
@@ -30,7 +30,7 @@
 
 ## 자세한 운영 절차
 
-- 빌드/실행/테스트: `../CLAUDE.md` §7
+- 빌드/실행/테스트: `../AGENTS.md` §7
 - API 카탈로그: `../docs/API.md`
 - WebSocket 이벤트: `../docs/WEBSOCKET.md`
 - 배포 런북: `../docs/DEPLOYMENT.md`

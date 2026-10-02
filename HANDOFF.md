@@ -102,5 +102,5 @@ wc -l */src/test/archunit-violations/*                      # 래칫 진행도 (
 
 ## 8. 문서 지도
 - `docs/adr/0001` 멀티모듈 · `docs/adr/0002` 헥사고날 로드맵 · `docs/architecture/hexagonal-guidelines.md`
-- `docs/SECURITY.md` 보안 · `.planning/codebase/` 분석 7종 · 루트/모듈 `CLAUDE.md`
+- `docs/SECURITY.md` 보안 · `.planning/codebase/` 분석 7종 · 루트/모듈 `AGENTS.md`
 - `orchestration/API-CONTRACT.md` 클라이언트 계약 단일 기준 (2026-07-10 Phase 3a 갱신됨)

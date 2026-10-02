@@ -130,7 +130,7 @@ cd geek-chat-web-v2 && npm install zustand swr react-hook-form zod @hookform/res
 ## 8. 5분 컨텍스트 잡기 순서 (repo 루트 기준)
 
 1. 이 파일 (`HANDOFF.md`)
-2. `CLAUDE.md` — 프로젝트 개요 + 헥사고날 규칙
+2. `AGENTS.md` — 프로젝트 개요 + 헥사고날 규칙 + 에이전트 규칙
 3. `.claude/RULES.md` — 절대 금지 + 코드 패턴
 4. `docs/PRD-M2.md` — 남은 M2 기능 우선순위
 5. `docs/API.md` — 현재 엔드포인트 (1.x~5.x)
