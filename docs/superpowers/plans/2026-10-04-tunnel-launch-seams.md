@@ -1,7 +1,8 @@
 # 터널 출시 경로의 연결 지점: 검증 결과와 계획
 
 > **상태:** 계획만. 코드와 런북은 아직 바꾸지 않았다. 오너 승인 대기.
-> **요청:** 오케스트레이터가 `orchestration/LAUNCH-RUNSHEET.md`를 쓰다 찾은 연결 지점 넷(①~④)의 검증. ⑤는 검증 중에 BE가 새로 찾았다.
+> **요청:** 오케스트레이터가 `orchestration/LAUNCH-RUNSHEET.md`를 쓰다 찾은 연결 지점 넷(①~④)의 검증. ⑤는 검증 중에 BE가 새로 찾았고, ⑥은 오케스트레이터가 이 계획을 검토하다 찾았다.
+> **개정 (같은 날):** 오케스트레이터 검토를 반영했다. 사전 확인 명령에 대조를 붙였고, ⑤를 1차 출시 비차단으로 내렸고, ⑥과 토큰이 필요한 주소의 프리플라이트 검사를 더했다.
 > **기준:** develop `1c1fbb7`. 운영 main `e53fa71`과 `deploy/` 아래 차이는 없다.
 
 ## 한눈에 보기
@@ -12,7 +13,8 @@
 | ② | 서버에 넣을 출처 값이 둘이다 | 사실. 다만 GeekChat 쪽은 다시 둘로 갈린다 | 웹 정식 출처를 먼저 정해야 한다 | 런북 CORS 행 보강, 런시트 정정 전달 |
 | ③ | `.env` 반영은 Deploy 수동 실행으로 | 읽기 맞음, 보충 셋 | 없음 | 런시트 보충 전달 |
 | ④ | 채팅 WebSocket 하트비트 | **없음으로 확정** | 출시 비차단 | 런북 두 곳 정정 |
-| ⑤ | OAuth 콜백 주소 (신규) | 코드는 사실. 운영에서 OAuth를 쓰는지는 미확인 | 쓰고 있다면 출시 차단 | 오너 확인 하나, 런북과 런시트 보강 |
+| ⑤ | OAuth 콜백 주소 (신규) | 코드는 사실. 1차 범위(웹과 BE)에는 OAuth 진입점이 없다 | 1차 출시 비차단. 공개 주소에서 OAuth를 쓰게 될 때의 조건 | 런북에 조건으로 기록 |
+| ⑥ | 채팅 토큰이 nginx 접근 로그에 남는다 (오케스트레이터 발견) | 사실. 터널과 무관하게 지금도 그렇다 | 출시 비차단 | ①과 같은 자리라 함께 처리 제안 |
 
 ---
 
@@ -47,14 +49,17 @@ Cloudflare와 nginx 문서:
 ### 오너 사전 확인 (서버, 읽기 전용)
 
 ```bash
-# 1) realip 모듈이 있는가. 기대: 1
+# 1) realip 모듈이 있는가. 기대: 둘 다 1
+#    첫 줄이 대조다. 컨테이너가 없거나 exec가 실패해도 둘째 줄은 0을 내므로,
+#    첫 줄이 1이어야 둘째 줄의 0을 "모듈 없음"으로 읽을 수 있다
+docker exec ssa-nginx nginx -V 2>&1 | grep -c 'configure arguments'
 docker exec ssa-nginx nginx -V 2>&1 | grep -c with-http_realip_module
 ```
 
 ```bash
-# 2) 앱 네트워크의 실제 서브넷. 기대: 172.16.0.0/12 안 (예: 172.18.0.0/16)
-#    네트워크 이름은 런북 3단계에서 확인한 실제 이름을 쓴다
-docker network inspect ssa_app_network --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+# 2) 앱 네트워크의 실제 이름과 서브넷. 기대: 172.16.0.0/12 안 (예: 172.18.0.0/16)
+docker network ls --filter name=app_network --format '{{.Name}}'
+docker network inspect <위에서 나온 이름> --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
 ```
 
 ```bash
@@ -64,10 +69,12 @@ ip -4 -o addr show | grep -v -E ' (docker0|br-)' | awk '{print $2, $4}'
 
 ```bash
 # 4) LAN이나 VPN에서 80으로 직접 들어온 요청의 출발지가 보존되는가: 최근 접근 로그의 주소 분포
-docker logs --since 24h ssa-nginx 2>/dev/null | awk '{print $1}' | sort | uniq -c | sort -rn | head
+#    먼저 노트북에서 VPN을 켜고 서버로 요청을 한 번 보낸다. 판정 창 안에 VPN 요청이 없으면
+#    분포만으로는 보존 여부를 가를 수 없다
+docker logs --since 1h ssa-nginx 2>/dev/null | awk '{print $1}' | sort | uniq -c | sort -rn | head
 ```
 
-4의 판정: LAN이나 VPN 사용자 주소가 보이면 보존된다. `172.x.0.1` 같은 게이트웨이 주소만 보이면 보존되지 않는다. CD 스모크는 서버 자신이 보내므로 원래 게이트웨이 주소로 찍힌다.
+4의 판정: 방금 보낸 노트북의 VPN 주소가 보이면 보존된다. `172.x.0.1` 같은 게이트웨이 주소만 보이면 보존되지 않는다. CD 스모크는 서버 자신이 보내므로 원래 게이트웨이 주소로 찍힌다.
 
 `deploy.yml` 주석에 적힌 서브넷 값들은 "예"로 표기돼 있어 근거로 쓰지 않는다.
 
@@ -160,6 +167,24 @@ docker logs --since 24h ssa-nginx 2>/dev/null | awk '{print $1}' | sort | uniq -
 
 런시트 D의 진단도 고쳐야 한다. 둘째 줄이 비면 "`GEEKCHAT_FRONTEND_URL`과 패턴 어느 쪽에도 그 출처가 없거나, C가 빠진 것"이다.
 
+### 공개 검증에 더할 검사: 토큰이 필요한 주소의 프리플라이트
+
+`/login` 프리플라이트는 공개 주소라서, 인증 검사가 OPTIONS를 막는 사고가 나도 실패하지 않는다. 그래서 오케스트레이터가 런시트 D에 넣은 검사를 런북의 공개 검증 절에도 넣는다.
+
+```bash
+# 기대: 200, 그리고 access-control-allow-origin과 access-control-allow-headers(authorization 포함)
+curl -s -i -X OPTIONS "https://api.<도메인>/lectures/search" \
+  -H "Origin: <웹 정식 출처>" -H "Access-Control-Request-Method: GET" \
+  -H "Access-Control-Request-Headers: authorization" | grep -i -E '^HTTP|^access-control-allow-(origin|headers)'
+```
+
+소스로는 통과한다.
+- 등록된 인터셉터 둘(`AuthConfig.java:31-34`)은 모두 핸들러가 `HandlerMethod`가 아니면 바로 통과시킨다. `AuthenticationInterceptor.java:34-37`과 `RoleInterceptor.java:33-35`이다. 프리플라이트는 컨트롤러 메서드가 아닌 핸들러로 처리된다.
+- 서블릿 필터는 둘이다. `InternalApiKeyFilter`는 `/internal/`만 보고(`:42`), `MdcLoggingFilter`는 로그 문맥만 다룬다.
+- SSA에는 Spring Security가 없다(대조: 같은 범위에서 `@Configuration`은 20건).
+- `CorsConfig.java:18-22`는 허용 헤더를 지정하지 않아 Spring 기본값을 쓴다.
+- nginx에는 OPTIONS와 CORS 헤더 처리가 없다.
+
 ---
 
 ## ③ `.env` 반영은 Deploy 수동 실행으로
@@ -213,14 +238,49 @@ docker logs --since 24h ssa-nginx 2>/dev/null | awk '{print $1}' | sort | uniq -
 
 공개 도메인으로 열면 이 값은 `https://api.<도메인>/chat/auth/callback`이 되어야 한다. Google과 Naver 개발자 콘솔에 등록한 콜백 주소도 같은 값이어야 한다. 공급자는 등록되지 않은 `redirect_uri`를 거절한다.
 
-### 오너 확인 (값은 찍히지 않는다)
+### 판정: 1차 출시 비차단
+
+1차 범위(웹과 BE)에는 OAuth 진입점이 없다. 웹 `origin/main` 본 코드에서 `oauth|naver|/auth/google|/auth/callback` 검색이 0건이다(오케스트레이터가 찾고 BE가 다시 돌렸다. 같은 범위의 대조 `/auth/login`은 5건). 서버에 공급자 ID가 남아 있어도 이 경로를 타는 사용자가 없다. 그래서 런북에는 "공개 주소에서 OAuth를 쓰게 될 때 바꿔야 하는 것"으로 적는다.
+
+### 그래도 남기는 확인 (값은 찍히지 않는다)
 
 ```bash
-# 운영에서 OAuth 공급자가 설정돼 있는가. 0이면 해당 없음
+# 첫 줄이 대조다(.env를 읽을 수 있고 변수가 있는가). 0이면 둘째 줄의 0도 믿을 수 없다
+grep -c -E '^[A-Z0-9_]+=.' /opt/ssa/.env
+# 운영에 OAuth 공급자가 설정돼 있는가
 grep -c -E '^(GOOGLE|NAVER)_CLIENT_ID=.' /opt/ssa/.env
 ```
 
-1 이상이면 런시트 B 단계에 `GEEKCHAT_OAUTH_CALLBACK_URL` 변경과 공급자 콘솔 등록을 넣는다.
+---
+
+## ⑥ 채팅 토큰이 nginx 접근 로그에 남는다 (오케스트레이터 발견)
+
+### 확인한 사실
+
+- 웹은 `<채팅 주소>/ws?token=<액세스 토큰>`으로 붙는다(웹 `lib/chat-client.ts:59`). 서버도 쿼리에서 토큰을 읽는다(`ChatWebSocketHandler.kt:171-172`).
+- 접근 로그 형식은 `"$request"`를 적어 쿼리까지 남긴다(`nginx.conf:14, 17`). `/chat/ws` 블록(`ssa.conf:61-73`)에 로그 예외가 없다.
+- 액세스 토큰 수명은 15분이다(`geekchat/app/src/main/resources/application.yml:76`).
+- nginx 컨테이너에는 로그 회전 설정이 없다(`docker-compose.prod.yml`의 nginx 서비스에 `logging:` 없음). 도커 데몬 기본값에 따라 오래 남을 수 있다.
+- SSE는 해당하지 않는다. 웹은 헤더를 실을 수 있는 `EventSourcePolyfill`을 쓰고(웹 `lib/api/notification.ts:8`), SSA는 쿼리에서 토큰을 읽지 않는다.
+
+### 제안 (①과 같은 구현에 넣을지 오너가 정한다)
+
+`/chat/ws`에서만 쿼리를 뺀 로그 형식을 쓴다. 다른 경로의 로그는 그대로 둔다.
+
+```nginx
+# nginx.conf http 블록: main과 같고 "$request" 대신 쿼리 없는 요청 줄을 적는다
+    log_format ws_noquery '$remote_addr - $remote_user [$time_local] "$request_method $uri $server_protocol" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" rt=$request_time uct=$upstream_connect_time '
+                          'src=$realip_remote_addr';
+```
+
+```nginx
+# ssa.conf의 location /chat/ws 안
+        access_log /var/log/nginx/access.log ws_noquery;
+```
+
+대안은 `main` 형식 자체에서 쿼리를 빼는 것이다. 한 줄로 끝나지만 검색어 같은 다른 쿼리도 함께 사라진다. 토큰만 지우는 `map` 치환도 가능하지만 정규식 관리 부담에 비해 얻는 것이 적다. 이미 로그에 남은 토큰은 기록된 지 15분이 지나면 만료되므로, 과거 로그를 따로 지울 필요는 낮다. 다만 최근 15분 사이의 기록은 아직 유효한 토큰을 담고 있다.
 
 ---
 
@@ -228,16 +288,19 @@ grep -c -E '^(GOOGLE|NAVER)_CLIENT_ID=.' /opt/ssa/.env
 
 | 파일 | 변경 |
 |---|---|
-| `deploy/nginx/nginx.conf` | realip 두 줄, 로그 형식에 `src` (①) |
-| `deploy/CLOUDFLARE-TUNNEL.md` | 미해결 표에 ① 추가, CORS 행 보강(②), OAuth 콜백 행 추가(⑤), WS 하트비트 정정(④), 개통 검증에 "Remove visitor IP headers" 확인과 외부 회선 판정 추가(①) |
+| `deploy/nginx/nginx.conf` | realip 두 줄, 로그 형식에 `src` (①). ⑥을 넣으면 `ws_noquery` 형식 하나 더 |
+| `deploy/nginx/conf.d/ssa.conf` | ⑥을 넣을 때만: `/chat/ws`에 `access_log` 한 줄 |
+| `deploy/CLOUDFLARE-TUNNEL.md` | 미해결 표에 ① 추가, CORS 행 보강(②), OAuth 콜백을 조건으로 기록(⑤), WS 하트비트 정정(④), 개통 검증에 "Remove visitor IP headers" 확인, 외부 회선 판정, 토큰이 필요한 주소의 프리플라이트 추가(①, ②) |
+
+⑥을 넣으면 세 파일이 바뀌어 승인 게이트(3개 이상) 대상이다. 이 계획의 승인으로 함께 받는다.
 
 런시트(`orchestration/LAUNCH-RUNSHEET.md`)는 오케스트레이터의 문서다. BE는 정정 내용만 전달한다(② `FRONTEND_URL`과 D의 진단, ③ 보충, ⑤).
 
 ## 오너가 정하거나 확인할 것
 
-1. 웹 정식 출처. ②와 ⑤의 값이 여기서 정해진다
+1. 웹 정식 출처 (②). 오케스트레이터 권고는 `https://app.<도메인>`이다
 2. 서버 사전 확인 넷 (①)
-3. 운영에서 OAuth를 쓰는지 (⑤)
+3. ⑥을 이번 구현에 함께 넣을지
 4. 구현 단계 로컬 검증용 이미지 두 개의 다운로드 (①)
 5. CI 전용 WireGuard 피어가 발급됐는지 (③, 서버 관리자 확인)
 6. 이 계획의 구현 승인
