@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./gradlew -q :common:test :course:test :notification:test",
+            "command": "if command -v memguard >/dev/null 2>&1; then memguard -- ./gradlew -q --max-workers=2 :common:test :course:test :notification:test; else ./gradlew -q --max-workers=2 :common:test :course:test :notification:test; fi",
             "timeout": 600
           }
         ]
