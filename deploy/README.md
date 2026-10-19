@@ -87,6 +87,16 @@ sudo restorecon -Rv /opt/ssa/nginx /opt/ssa/secrets
    - `WG_ALLOWED_IPS`는 반드시 서버 서브넷만 (예: `10.64.212.0/24`). `0.0.0.0/0` 금지.
    - `DEPLOY_SSH_KNOWN_HOSTS`: VPN을 켜고 로컬에서 `ssh-keyscan 10.64.212.40` 결과 등록 (호스트키 고정). 지문은 서버 콘솔에서 `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`로 본 값과 대조한다. 노트북 `~/.ssh/known_hosts`에 남은 옛 `10.64.212.20` 줄은 `ssh-keygen -R 10.64.212.20`으로 지운다.
    - 2026-10 서버 교체로 바꿀 시크릿: `DEPLOY_HOST`(`10.64.212.40`), `DEPLOY_USER`, `DEPLOY_SSH_KEY`(§1에서 새로 발급한 배포 키의 개인키), `DEPLOY_SSH_KNOWN_HOSTS`. `WG_*`는 그대로다.
+3. **첫 배포 전 접속 점검** (노트북에서 VPN을 켜고 한 번). CI와 같은 키, 계정, 호스트 키 고정으로 붙어 본다.
+   ```bash
+   ssh -i ~/.ssh/ssa_deploy -o BatchMode=yes -o StrictHostKeyChecking=yes \
+       -o UserKnownHostsFile=<DEPLOY_SSH_KNOWN_HOSTS에 넣은 내용을 그대로 저장한 파일> \
+       <배포 계정>@10.64.212.40 \
+       'docker ps >/dev/null && ls -ldZ /opt/ssa/nginx /opt/ssa/secrets && ls -lZ /opt/ssa/.env /opt/ssa/secrets/fcm-service-account.json'
+   ```
+   - 이 점검이 필요한 이유: CI의 접속 확인 단계(`deploy.yml`의 `Verify tunnel connectivity`)는 SSH가 어떤 이유로 실패해도 "피어 키 충돌" 안내만 낸다. 새 서버의 첫 배포에서는 키, 계정, `authorized_keys`, 호스트 키 고정이 틀려도 같은 메시지로 실패한다.
+   - 키 인증이 거부되고 관리자가 `authorized_keys`를 손으로 만들었다면, SELinux 라벨도 확인한다(`sudo restorecon -Rv ~<배포 계정>/.ssh`).
+   - 점검이 끝나면 VPN을 끈다. CI 러너가 같은 피어 키를 쓴다(§5의 1).
 
 ## 3. 배포
 
