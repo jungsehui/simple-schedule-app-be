@@ -1,6 +1,7 @@
 # SSA 배포 가이드
 
-서버: Rocky Linux, vCPU 4 / RAM 8GB, WireGuard VPN 뒤 (`10.64.212.20`), Docker 사용 가능.
+서버: Rocky Linux 10.2, 12 vCPU / 24 GiB / 디스크 1 TiB, WireGuard VPN 뒤 (`10.64.212.40`, 호스트명 `agent-worker`).
+2026-10-18 새로 프로비저닝됐고, 서버 관리자의 에이전트 작업과 같은 VM을 쓴다(공유 호스트). 옛 서버(`10.64.212.20`)는 내려갔고, 그 위의 `.env`와 FCM 키와 볼륨은 남아 있지 않다.
 전략: GitHub Actions → GHCR 이미지 푸시 → WireGuard 터널 → SSH로 `docker compose pull && up -d`.
 
 ## 0. 보안 선행 조치 (배포 전 필수)
@@ -17,26 +18,66 @@
 
 ## 1. 서버 최초 세팅 (1회)
 
+계정은 서버 관리자에게 요청한다. 배포 계정(`DEPLOY_USER`)은 sudo 없이 `docker` 그룹만 가진 전용 계정을 권장한다(`deploy.yml` 상단 주석). 아래 `sudo` 명령은 관리자나 sudo 권한이 있는 계정이 한 번 실행한다. `<배포 계정>`은 관리자가 만든 계정 이름으로 바꾼다.
+
+이 서버는 관리자의 작업과 함께 쓰는 공유 호스트다. sshd 설정과 방화벽은 관리자와 맞춘 뒤 바꾸고, 관리자가 쓰는 서비스(22의 ssh, 9090의 Cockpit)는 닫지 않는다.
+
 ```bash
-# 배포 전용 디렉토리
-sudo mkdir -p /opt/ssa/secrets && sudo chown -R $USER /opt/ssa
-chmod 700 /opt/ssa/secrets
+# Docker CE와 compose 플러그인 (Docker 공식 RHEL 설치 문서 기준. 지원 목록은 RHEL 8, 9, 10이고 Rocky는 따로 적혀 있지 않다)
+sudo dnf -y install dnf-plugins-core
+sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker <배포 계정>
+
+# 배포 전용 디렉토리 (배포 계정 소유). nginx 디렉터리를 미리 만드는 이유는 아래 SELinux 절 참고
+sudo mkdir -p /opt/ssa/secrets /opt/ssa/nginx && sudo chown -R <배포 계정> /opt/ssa
+sudo chmod 700 /opt/ssa/secrets
 
 # 배포 키 등록 (로컬에서 새 키 발급 후 공개키만 서버로)
+#   새 서버에는 옛 공개키가 없고, 옛 개인키는 GitHub 시크릿에서 다시 꺼낼 수 없다.
+#   새로 발급해 공개키는 서버에, 개인키는 DEPLOY_SSH_KEY 시크릿에 넣는다(§2).
+#   배포 계정에 비밀번호가 없어 ssh-copy-id가 안 되면, sudo 계정이 그 계정의 ~/.ssh/authorized_keys에 넣는다.
 ssh-keygen -t ed25519 -f ~/.ssh/ssa_deploy -C "ssa-deploy"
-ssh-copy-id -i ~/.ssh/ssa_deploy.pub shjung@10.64.212.20
+ssh-copy-id -i ~/.ssh/ssa_deploy.pub <배포 계정>@10.64.212.40
 
-# sshd 강화 (서버에서)
+# sshd 강화 (서버에서, 관리자와 맞춘 뒤)
 #   /etc/ssh/sshd_config: PasswordAuthentication no, PermitRootLogin no
+#   RHEL 계열은 sshd_config 위쪽에서 sshd_config.d/*.conf를 먼저 불러오고, sshd는 처음 읽은 값을 쓴다.
+#   그래서 파일을 고친 것으로 끝내지 않고 실제로 적용된 값을 확인한다.
 sudo systemctl restart sshd
+sudo sshd -T | grep -i -e '^passwordauthentication' -e '^permitrootlogin'   # 둘 다 no 인가
 
-# 방화벽: 80/443만 공개, DB/Redis/Kafka 포트는 외부 차단
+# 방화벽: 80과 443을 연다. 기존 ssh와 cockpit 서비스는 그대로 둔다
+#   DB/Redis/Kafka는 compose가 호스트 포트로 열지 않는다(호스트에 여는 것은 nginx의 80뿐)
 sudo firewall-cmd --permanent --add-service=http --add-service=https
 sudo firewall-cmd --reload
 ```
 
-`.env` 구성: `deploy/.env.example`을 `/opt/ssa/.env`로 복사해 값 채움 (`chmod 600`).
-FCM JSON: `/opt/ssa/secrets/fcm-service-account.json` 배치 (`chmod 600`).
+`.env` 구성: `deploy/.env.example`을 `/opt/ssa/.env`로 복사해 값 채움 (`chmod 600`). 2026-10 서버 교체로 옛 값은 남아 있지 않다. 노출 이력이 있는 시크릿(§0)은 이번에 새로 발급한다.
+FCM JSON: `/opt/ssa/secrets/fcm-service-account.json` 배치 (`chmod 644`). 600으로 두면 안 된다. 앱 컨테이너는 이미지 안의 시스템 계정 `spring`으로 돌고(`app/Dockerfile`), 그 uid는 배포 계정과 다르다. 그러면 컨테이너가 키를 못 읽고, `FcmConfig`가 `IllegalStateException`을 던져 앱이 기동하지 못한다. 키는 상위 디렉터리 `secrets`의 700 권한이 지킨다. 서버의 다른 계정은 그 디렉터리를 지나갈 수 없고, 컨테이너는 디렉터리를 거치지 않고 파일만 마운트로 받는다.
+
+**SELinux (Rocky 기본은 enforcing). 키를 넣은 뒤에 한다.** nginx 설정(`./nginx/...`)과 FCM 키(`./secrets/fcm-service-account.json`)는 바인드 마운트로 컨테이너에 들어간다. SELinux가 막으면 nginx는 설정을 못 읽어 뜨지 않고, 앱은 위와 같은 이유로 기동하지 못한다. Docker가 SELinux 라벨을 쓰는지는 데몬 설정에 달려 있으므로, 기본값을 가정하지 않고 서버에서 확인한다.
+
+```bash
+getenforce                                    # Enforcing 인가
+docker info --format '{{.SecurityOptions}}'   # name=selinux 가 들어 있는가
+```
+
+둘 다 해당하면 두 디렉터리에 컨테이너용 라벨 규칙을 등록하고 적용한다. `semanage`가 없으면 `sudo dnf install -y policycoreutils-python-utils`로 설치한다.
+
+```bash
+sudo semanage fcontext -a -t container_file_t '/opt/ssa/(nginx|secrets)(/.*)?'
+sudo restorecon -Rv /opt/ssa/nginx /opt/ssa/secrets
+```
+
+- **`chcon` 대신 규칙으로 등록하는 이유:** `chcon`으로 붙인 라벨은 `restorecon`을 돌리거나 디렉터리를 다시 만들면 사라진다.
+- **`/opt/ssa/nginx`를 첫 배포 전에 만들어 두는 이유:** 이 디렉터리는 원래 첫 배포 때 CD가 복사하며 만든다. 그렇게 새로 생긴 디렉터리는 등록한 규칙이 아니라 상위 디렉터리의 라벨을 받는다. 미리 만들어 라벨을 붙여 두면, 이후 배포마다 복사되는 파일이 그 라벨을 물려받는다.
+- **키를 넣은 뒤에 하는 이유:** 같은 파일시스템 안에서 `mv`로 옮긴 파일은 원래 자리의 라벨을 그대로 가져온다. 나중에 키를 바꿔 넣을 때도 `restorecon`을 다시 돌린다.
+
+하나라도 해당하지 않으면 할 일이 없다.
+
+**확인.** 첫 배포의 스모크(401)가 통과하면 두 마운트 모두 읽힌 것이다. nginx가 떠 있어야 응답이 오고, 앱은 FCM 키를 읽어야 기동하기 때문이다. 실패하면 `docker logs ssa-nginx`에서 `Permission denied`를, `docker logs ssa-app`에서 `Failed to initialize FirebaseApp`을 찾는다. 파일 권한 문제인지 SELinux 문제인지는 `sudo ausearch -m avc -ts recent`에 거부 기록이 있는지로 가른다.
 
 ## 2. GitHub 설정 (1회)
 
@@ -44,7 +85,18 @@ FCM JSON: `/opt/ssa/secrets/fcm-service-account.json` 배치 (`chmod 600`).
 2. **Secrets** 등록 — `.github/workflows/deploy.yml` 상단 주석의 목록 참고.
    - WireGuard 피어는 **CI 전용으로 신규 발급** (개인 노트북 피어 재사용 금지, IP 충돌 + 키 공유 문제)
    - `WG_ALLOWED_IPS`는 반드시 서버 서브넷만 (예: `10.64.212.0/24`). `0.0.0.0/0` 금지.
-   - `DEPLOY_SSH_KNOWN_HOSTS`: 로컬에서 `ssh-keyscan 10.64.212.20` 결과 등록 (호스트키 고정).
+   - `DEPLOY_SSH_KNOWN_HOSTS`: VPN을 켜고 로컬에서 `ssh-keyscan 10.64.212.40` 결과 등록 (호스트키 고정). 지문은 서버 콘솔에서 `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`로 본 값과 대조한다. 노트북 `~/.ssh/known_hosts`에 남은 옛 `10.64.212.20` 줄은 `ssh-keygen -R 10.64.212.20`으로 지운다.
+   - 2026-10 서버 교체로 바꿀 시크릿: `DEPLOY_HOST`(`10.64.212.40`), `DEPLOY_USER`, `DEPLOY_SSH_KEY`(§1에서 새로 발급한 배포 키의 개인키), `DEPLOY_SSH_KNOWN_HOSTS`. `WG_*`는 그대로다.
+3. **첫 배포 전 접속 점검** (노트북에서 VPN을 켜고 한 번). CI와 같은 키, 계정, 호스트 키 고정으로 붙어 본다.
+   ```bash
+   ssh -i ~/.ssh/ssa_deploy -o BatchMode=yes -o StrictHostKeyChecking=yes \
+       -o UserKnownHostsFile=<DEPLOY_SSH_KNOWN_HOSTS에 넣은 내용을 그대로 저장한 파일> \
+       <배포 계정>@10.64.212.40 \
+       'docker ps >/dev/null && ls -ldZ /opt/ssa/nginx /opt/ssa/secrets && ls -lZ /opt/ssa/.env /opt/ssa/secrets/fcm-service-account.json'
+   ```
+   - 이 점검이 필요한 이유: CI의 접속 확인 단계(`deploy.yml`의 `Verify tunnel connectivity`)는 SSH가 어떤 이유로 실패해도 "피어 키 충돌" 안내만 낸다. 새 서버의 첫 배포에서는 키, 계정, `authorized_keys`, 호스트 키 고정이 틀려도 같은 메시지로 실패한다.
+   - 키 인증이 거부되고 관리자가 `authorized_keys`를 손으로 만들었다면, SELinux 라벨도 확인한다(`sudo restorecon -Rv ~<배포 계정>/.ssh`).
+   - 점검이 끝나면 VPN을 끈다. CI 러너가 같은 피어 키를 쓴다(§5의 1).
 
 ## 3. 배포
 
@@ -144,7 +196,7 @@ ALTER TABLE ssa.consultation_attendee RENAME COLUMN consultation_id TO consultai
 ```bash
 docker compose -f /opt/ssa/docker-compose.prod.yml ps
 docker logs -f ssa-app --tail 100          # 단일 JVM (구 3-프로세스에서는 ssa-course)
-curl -s localhost/lectures/search?keyword=a -o /dev/null -w '%{http_code}\n'   # nginx 경유 — 무토큰이면 401
+curl -s 'localhost/lectures/search?keyword=a' -o /dev/null -w '%{http_code}\n'   # nginx 경유 — 무토큰이면 401
 ```
 
-메모리 예산(8GB, 2-프로세스 기준): app 2G + geekchat 1G + Kafka 1G + ZK 0.5G + Redis 0.4G + nginx 0.13G ≈ 5G. DB는 외부 관리형(Supabase)이라 서버 메모리를 쓰지 않는다 — 구 3-프로세스 + MySQL×2 구성 대비 여유가 늘었다.
+메모리 예산(2-프로세스 기준, 옛 서버 8GB에서 잡은 값. 새 서버는 24 GiB지만 서버 관리자의 다른 작업과 공유한다): app 2G + geekchat 1G + Kafka 1G + ZK 0.5G + Redis 0.4G + nginx 0.13G ≈ 5G. DB는 외부 관리형(Supabase)이라 서버 메모리를 쓰지 않는다. 구 3-프로세스 + MySQL×2 구성 대비 여유가 늘었다.
