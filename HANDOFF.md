@@ -12,16 +12,16 @@
 
 ## 3. 직전 세션들에서 한 일 (2026-10-02 릴리스 이후)
 
-- ✅ [#83](https://github.com/jungsehui/simple-schedule-app-be/pull/83) `7882b2c` app 테스트 결과를 테스트 이름별로 CI 로그에 출력
-- ✅ [#84](https://github.com/jungsehui/simple-schedule-app-be/pull/84) `1c1fbb7` Stop 훅을 memguard로 감쌌다. 메모리 예산을 1분 기다려도 못 받으면 건너뛰고, 건너뜀과 실패를 구분해 보인다. 본체는 [.claude/hooks/stop-tests.sh](.claude/hooks/stop-tests.sh)
-- ✅ [#85](https://github.com/jungsehui/simple-schedule-app-be/pull/85) `4686234` 터널 출시 경로의 연결 지점 검증과 계획([docs/superpowers/plans/2026-10-04-tunnel-launch-seams.md](docs/superpowers/plans/2026-10-04-tunnel-launch-seams.md)). 계획만 있고 구현은 오너 승인 대기
-- ✅ [#86](https://github.com/jungsehui/simple-schedule-app-be/pull/86) `dda418c` 밀려난 SSE 커넥션의 정리가 같은 회원의 새 커넥션을 지우지 않게 했다. 테스트 5개: [SseSupersededConnectionTest](notification/src/test/java/com/example/simplescheduleapp/sse/presentation/SseSupersededConnectionTest.java)
-- ✅ [#87](https://github.com/jungsehui/simple-schedule-app-be/pull/87) `dacf3da` `SseController` 설명 정정(웹도 `EventSourcePolyfill`로 SSE를 쓴다)
-- ✅ [#89](https://github.com/jungsehui/simple-schedule-app-be/pull/89) `9d77af8` 새 운영 서버 기준 배포 런북. FCM 키 권한을 600에서 644로 바로잡았다(§7)
-- 🔶 [#88](https://github.com/jungsehui/simple-schedule-app-be/pull/88) SSE 회원당 다중 연결 구현 계획. open, 오너 승인 대기. 브랜치 `docs/sse-multi-connection-plan`
-- 🔶 [#90](https://github.com/jungsehui/simple-schedule-app-be/pull/90) 릴리스 PR(develop → main). open, CI 통과(7m35s, 8m3s). **머지 보류**: 새 서버 준비를 오너가 확인한 뒤 머지한다(2026-10-19 오너 결정)
+- ✅ [#83](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/83) `7882b2c` app 테스트 결과를 테스트 이름별로 CI 로그에 출력
+- ✅ [#84](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/84) `1c1fbb7` Stop 훅을 memguard로 감쌌다. 메모리 예산을 1분 기다려도 못 받으면 건너뛰고, 건너뜀과 실패를 구분해 보인다. 본체는 [.claude/hooks/stop-tests.sh](.claude/hooks/stop-tests.sh)
+- ✅ [#85](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/85) `4686234` 터널 출시 경로의 연결 지점 검증과 계획([docs/superpowers/plans/2026-10-04-tunnel-launch-seams.md](docs/superpowers/plans/2026-10-04-tunnel-launch-seams.md)). 계획만 있고 구현은 오너 승인 대기
+- ✅ [#86](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/86) `dda418c` 밀려난 SSE 커넥션의 정리가 같은 회원의 새 커넥션을 지우지 않게 했다. 테스트 5개: [SseSupersededConnectionTest](notification/src/test/java/com/example/simplescheduleapp/sse/presentation/SseSupersededConnectionTest.java)
+- ✅ [#87](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/87) `dacf3da` `SseController` 설명 정정(웹도 `EventSourcePolyfill`로 SSE를 쓴다)
+- ✅ [#89](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/89) `9d77af8` 새 운영 서버 기준 배포 런북. FCM 키 권한을 600에서 644로 바로잡았다(§7)
+- 🔶 [#88](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/88) SSE 회원당 다중 연결 구현 계획. open, 오너 승인 대기. 브랜치 `docs/sse-multi-connection-plan`
+- 🔶 [#90](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/90) 릴리스 PR(develop → main). open, CI 통과(7m35s, 8m3s). **머지 보류**: 새 서버 준비를 오너가 확인한 뒤 머지한다(2026-10-19 오너 결정)
 - 운영 사건: 2026-10-18 운영 서버가 교체됐다. 옛 `10.64.212.20`은 내려갔고 `.env`, FCM 키, 볼륨이 남지 않았다. 새 서버 `10.64.212.40`(`agent-worker`, Rocky Linux 10.2)은 관리자의 에이전트 작업과 같은 VM을 쓰는 공유 호스트이고, 2026-10-19 기준 아무것도 배포되지 않았다. 그래서 운영 서비스는 지금 멈춰 있다
-- 그 전 이력 요약: 2026-08-02 단일 JVM 대점프 릴리스(Boot 4.1, ADR-0004, ADR-0005, Flyway 최초 실행). 2026-10-02 릴리스 [#82](https://github.com/jungsehui/simple-schedule-app-be/pull/82)(account P1, 운영 `ddl-auto: validate`, Kafka 재시도 수정, 의존성 업그레이드)가 옛 서버의 마지막 성공 배포다(`e53fa71`)
+- 그 전 이력 요약: 2026-08-02 단일 JVM 대점프 릴리스(Boot 4.1, ADR-0004, ADR-0005, Flyway 최초 실행). 2026-10-02 릴리스 [#82](https://github.com/simple-schedule-app/simple-schedule-app-be/pull/82)(account P1, 운영 `ddl-auto: validate`, Kafka 재시도 수정, 의존성 업그레이드)가 옛 서버의 마지막 성공 배포다(`e53fa71`)
 
 ## 4. 현재 git 상태
 
