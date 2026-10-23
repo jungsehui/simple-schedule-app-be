@@ -89,6 +89,7 @@ sudo restorecon -Rv /opt/ssa/nginx /opt/ssa/secrets
 - 홈 리전은 **South Korea Central(Seoul)**을 고른다. A1은 South Korea North(Chuncheon)에서 만들 수 없고, 홈 리전은 가입 뒤 바꿀 수 없다.
 - 인스턴스: shape `VM.Standard.A1.Flex` 2 OCPU / 12 GB, 이미지 Ubuntu 24.04(aarch64), 부트 볼륨 50 GB, 공인 IP, 오너 SSH 공개키. "out of host capacity"가 나오면 다른 가용 도메인을 고르거나 나중에 다시 시도한다.
 - 보안 목록(Security List)은 기본 인그레스(22)만 둔다. **80과 443은 열지 않는다.** nginx는 TLS 없이 80만 듣는다. 열면 로그인 비밀번호와 토큰이 평문으로 지나간다. 공개는 아래 Cloudflare Tunnel로만 한다.
+- nginx는 `docker-compose.prod.yml`의 `ports: "80:80"`로 호스트의 80에 열려 있고, 지금은 이 매핑을 그대로 둔다. 그래서 공인 IP에서 80을 막는 관문은 보안 목록 하나다(호스트 방화벽은 Docker가 연 포트를 막지 못한다). 아래 "첫 배포 뒤 확인"의 노출 확인으로 검증한다. 매핑을 `127.0.0.1`에만 묶어 관문을 둘로 만드는 일은 아직 하지 않았다(후속 과제, [CLOUDFLARE-TUNNEL.md](CLOUDFLARE-TUNNEL.md)의 "기존 `ports: 80:80`" 항목).
 
 **서버 (오너 계정 `ubuntu`로 접속)**
 
@@ -97,8 +98,13 @@ sudo restorecon -Rv /opt/ssa/nginx /opt/ssa/secrets
 # 실제 관문은 보안 목록이다. Docker가 뜬 뒤에 netfilter-persistent save를 돌리지 않는다
 # (Docker가 만든 규칙까지 파일에 저장된다).
 
-# sshd: 둘 다 no여야 한다(비밀번호 로그인, root 로그인)
+# sshd: passwordauthentication은 no여야 한다. permitrootlogin은 no, prohibit-password, without-password 중
+# 하나면 된다(뒤의 둘은 같은 뜻으로 Ubuntu 기본값이고, sshd -T는 without-password로 찍을 수 있다. root 비밀번호 로그인은 막힌다)
 sudo sshd -T | grep -i -e '^passwordauthentication' -e '^permitrootlogin'
+#   다르면 맨 먼저 읽히는 드롭인으로 덮는다. sshd는 처음 읽은 값을 쓰고 sshd_config.d/*.conf는 이름순으로 읽는다
+#   printf 'PasswordAuthentication no\nPermitRootLogin no\n' | sudo tee /etc/ssh/sshd_config.d/00-ssa-hardening.conf
+#   sudo systemctl reload ssh      # Ubuntu 24.04의 서비스 이름은 ssh다(§1 Rocky의 sshd와 다르다)
+#   그 뒤 위 sshd -T를 다시 본다
 
 # Docker CE (Docker 공식 Ubuntu 설치 문서 그대로. arm64 지원)
 sudo apt update
@@ -133,14 +139,14 @@ sudo chmod 700 /opt/ssa/secrets
 
 **공개 접점 (Cloudflare Tunnel).** [CLOUDFLARE-TUNNEL.md](CLOUDFLARE-TUNNEL.md) 절차를 그대로 따른다. 터널 compose는 앱 스택이 만든 네트워크(`ssa_app_network`)에 올라타므로, 첫 배포가 끝난 뒤에 띄운다.
 
-**노출 확인 (서버가 아닌 곳에서).** 응답 코드가 나오면 보안 목록에 80이 열린 것이다.
-
-```bash
-curl -m 5 -s -o /dev/null -w '%{http_code}\n' "http://<공인 IP>/"   # 기대: 000(연결 실패)
-```
-
 **첫 배포 뒤 확인**
 
+- **노출 확인.** 서버 안에서는 응답이 오고, 바깥에서는 막혀야 한다. 첫 배포 전에는 80에서 듣는 것이 없어 바깥 결과가 언제나 `000`이라 아무것도 증명하지 못한다. 그래서 배포 뒤에 둘을 함께 본다.
+  ```bash
+  curl -s -o /dev/null -w '%{http_code}\n' "http://localhost/"        # 서버 안에서. 기대: 000이 아닌 코드(nginx가 듣고 있다는 양성 대조)
+  curl -m 5 -s -o /dev/null -w '%{http_code}\n' "http://<공인 IP>/"   # 서버가 아닌 곳에서. 기대: 000(보안 목록이 막음)
+  ```
+  바깥에서 응답 코드가 나오면 보안 목록에 80이 열린 것이다. 바로 닫는다.
 - Deploy 잡의 스모크(401)가 통과했는지 본다.
 - arm64에서 네이티브 라이브러리가 빠지지 않았는지 본다. 아래가 비어 있어야 하고, 무언가 나오면 읽어 본다.
   ```bash
@@ -152,7 +158,7 @@ curl -m 5 -s -o /dev/null -w '%{http_code}\n' "http://<공인 IP>/"   # 기대: 
   free -m                                                      # used / total을 기록한다
   docker stats --no-stream --format '{{.Name}} {{.MemUsage}}'
   ```
-  콘솔의 인스턴스 Metrics에서 Memory Utilization을 첫 주 동안 본다. used가 total의 25% 미만이면 JVM 힙 고정(계획의 Task 4)을 한다.
+  콘솔의 인스턴스 Metrics에서 Memory Utilization을 첫 주 동안 본다. `free -m`의 used가 total의 25% 미만이거나, 콘솔 Memory Utilization이 사흘 동안 25% 미만이면 JVM 힙 고정(계획의 Task 4)을 한다. 회수 판정은 Oracle 지표로 하므로 뒤의 조건을 빼먹지 않는다.
 
 ## 2. GitHub 설정 (1회)
 
@@ -266,6 +272,8 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost/lectures/search?keywor
 ```sql
 ALTER TABLE ssa.consultation_attendee RENAME COLUMN consultation_id TO consultaition_id;
 ```
+
+**arm64 서버(Oracle)에서 롤백할 때**는 되돌릴 SHA에 arm64 이미지가 있는지 먼저 본다. 다중 아키텍처 빌드가 들어간 뒤의 SHA만 해당한다. 그 전 SHA는 amd64 전용이라 컨테이너가 `exec format error`로 뜨지 않고, `restart: always` 아래에서 재시작만 반복한다. 그 SHA의 Deploy 실행 로그에 `Check image platforms` 단계가 있고 통과했는지로 가린다(그 전 실행에는 이 단계가 없다). Oracle 첫 배포에는 되돌릴 SHA가 없다. 조직 이전(2026-10-23) 전 SHA의 이미지는 `ghcr.io/jungsehui`에 있으므로, VM에서 그 SHA로 되돌리려면 `.env`의 `GHCR_OWNER`도 잠시 바꿔야 한다.
 
 ## 6. 운영 점검
 
