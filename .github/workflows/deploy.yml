@@ -75,6 +75,17 @@ jobs:
           chmod +x gradlew
           ./gradlew ${{ matrix.gradle_task }}
 
+      # arm64 서버(Oracle A1)와 amd64 서버(VM)가 같은 태그를 받도록 두 플랫폼을 한 매니페스트로 만든다.
+      # QEMU는 app 이미지의 RUN 한 줄(useradd)에만 쓰인다. geekchat은 빌드 단계를 러너 플랫폼에
+      # 고정해 Gradle을 에뮬레이션으로 돌리지 않는다(geekchat/Dockerfile).
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
       - name: Login to GHCR
         uses: docker/login-action@v4
         with:
@@ -87,10 +98,25 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/ssa-${{ matrix.module }}:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/ssa-${{ matrix.module }}:latest
+
+      # 두 플랫폼이 실제로 올라갔는지 확인한다. 서버 아키텍처의 이미지가 빠지면 배포 단계까지 가서야
+      # 컨테이너가 exec format error로 뜨지 않는 것으로 드러나므로, 여기서 빌드를 실패시킨다.
+      - name: Check image platforms
+        run: |
+          image="${{ env.REGISTRY }}/${{ github.repository_owner }}/ssa-${{ matrix.module }}:${{ github.sha }}"
+          out=$(docker buildx imagetools inspect "$image")
+          echo "$out"
+          for platform in linux/amd64 linux/arm64; do
+            if ! echo "$out" | grep -Eq "Platform:[[:space:]]+${platform}"; then
+              echo "::error::$image 에 $platform 이미지가 없다"
+              exit 1
+            fi
+          done
 
   deploy:
     needs: build-and-push
