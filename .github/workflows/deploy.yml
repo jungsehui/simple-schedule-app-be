@@ -5,7 +5,7 @@
 #   WG_ADDRESS            : 배포용 피어 주소 (예: 10.36.187.13/24 — 개인 노트북 피어와 다른 IP)
 #   WG_PEER_PUBLIC_KEY    : 서버측 WireGuard 공개키
 #   WG_PRESHARED_KEY      : PresharedKey (새로 발급 권장)
-#   WG_ENDPOINT           : VPN 엔드포인트 (예: dokalab.iptime.org:40773)
+#   WG_ENDPOINT           : VPN 엔드포인트 (형식: <VPN_PEER_ENDPOINT>:<PORT>. 실제 값은 시크릿과 비공개 채널에만 둔다)
 #   WG_ALLOWED_IPS        : 서버 서브넷만 허용 (예: 10.64.212.0/24,10.36.187.0/24)
 #                           ⚠ 0.0.0.0/0 금지 — 러너의 GitHub 연결까지 VPN으로 빨려들어가 배포가 끊김
 #   DEPLOY_SSH_KEY        : 배포 전용 SSH 개인키 (ed25519 새로 발급, 서버 authorized_keys에 공개키 등록)
