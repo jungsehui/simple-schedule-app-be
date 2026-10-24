@@ -86,8 +86,8 @@ sudo restorecon -Rv /opt/ssa/nginx /opt/ssa/secrets
 
 **가입과 인스턴스 (오너, Oracle 콘솔)**
 
-- 홈 리전은 **South Korea Central(Seoul)**을 고른다. A1은 South Korea North(Chuncheon)에서 만들 수 없고, 홈 리전은 가입 뒤 바꿀 수 없다.
-- 인스턴스: shape `VM.Standard.A1.Flex` 2 OCPU / 12 GB, 이미지 Ubuntu 24.04(aarch64), 부트 볼륨 50 GB, 공인 IP, 오너 SSH 공개키. "out of host capacity"가 나오면 다른 가용 도메인을 고르거나 나중에 다시 시도한다.
+- 홈 리전은 **Japan East(Tokyo, `ap-tokyo-1`)**다. 2026-10-24에 가입했는데, 가입 화면의 무료 계층 리전 목록에 South Korea Central(Seoul)이 없어 도쿄로 정했다. 서울을 다시 찾지 않는다. A1은 South Korea North(Chuncheon)에서 만들 수 없고, 홈 리전은 가입 뒤 바꿀 수 없으며, Always Free 인스턴스는 홈 리전에만 만든다.
+- 인스턴스: shape `VM.Standard.A1.Flex` 2 OCPU / 12 GB, 이미지 Ubuntu 24.04(aarch64), 부트 볼륨 50 GB, 공인 IP, 오너 SSH 공개키. "out of host capacity"가 나오면 나중에 다시 시도한다. 도쿄는 가용 도메인이 하나라 다른 가용 도메인으로 피할 수 없다(Oracle Regions 문서).
 - 보안 목록(Security List)은 기본 인그레스(22)만 둔다. **80과 443은 열지 않는다.** nginx는 TLS 없이 80만 듣는다. 열면 로그인 비밀번호와 토큰이 평문으로 지나간다. 공개는 아래 Cloudflare Tunnel로만 한다.
 - nginx는 `docker-compose.prod.yml`의 `ports: "80:80"`로 호스트의 80에 열려 있고, 지금은 이 매핑을 그대로 둔다. 그래서 공인 IP에서 80을 막는 관문은 보안 목록 하나다(호스트 방화벽은 Docker가 연 포트를 막지 못한다). 아래 "첫 배포 뒤 확인"의 노출 확인으로 검증한다. 매핑을 `127.0.0.1`에만 묶어 관문을 둘로 만드는 일은 아직 하지 않았다(후속 과제, [CLOUDFLARE-TUNNEL.md](CLOUDFLARE-TUNNEL.md)의 "기존 `ports: 80:80`" 항목).
 
@@ -148,6 +148,7 @@ sudo chmod 700 /opt/ssa/secrets
   ```
   바깥에서 응답 코드가 나오면 보안 목록에 80이 열린 것이다. 바로 닫는다.
 - Deploy 잡의 스모크(401)가 통과했는지 본다.
+- **DB 왕복 지연.** 서버는 도쿄, DB(Supabase)는 서울(`ap-northeast-2`, `.env.example`의 풀러 호스트)이라 쿼리마다 리전 간 왕복이 더해진다. 로그인으로 토큰을 받아 자주 쓰는 조회 API(예: `GET /me/schedules`)의 응답 시간을 재 두고(`curl -s -o /dev/null -w '%{time_total}\n' -H "Authorization: Bearer <토큰>" "http://localhost/me/schedules"`), 느리면 그 API의 쿼리 수부터 본다.
 - arm64에서 네이티브 라이브러리가 빠지지 않았는지 본다. 아래가 비어 있어야 하고, 무언가 나오면 읽어 본다.
   ```bash
   docker logs ssa-app 2>&1 | grep -i -e UnsatisfiedLinkError -e 'native'

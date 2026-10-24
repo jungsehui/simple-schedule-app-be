@@ -18,7 +18,7 @@
 
 | # | 결정 | 추천 | 드는 것 | 이유 |
 |---|---|---|---|---|
-| 1 | 홈 리전 | **서울(South Korea Central)** | 없음 | A1은 춘천(South Korea North)에서 만들 수 없고, 홈 리전은 가입 뒤 바꿀 수 없다 |
+| 1 | 홈 리전 | **도쿄(Japan East, `ap-tokyo-1`)로 확정**(2026-10-24 정정. 처음 추천은 서울이었으나 가입 화면의 무료 계층 목록에 없었다) | 없음 | A1은 춘천(South Korea North)에서 만들 수 없고, 홈 리전은 가입 뒤 바꿀 수 없다. 도쿄에서는 A1을 만들 수 있다. 다만 DB(Supabase)가 서울이라 쿼리마다 리전 간 왕복이 더해진다 |
 | 2 | 인스턴스 | Ubuntu 24.04 aarch64, `VM.Standard.A1.Flex` 2 OCPU / 12 GB, 부트 볼륨 50 GB | 무료 한도 안 | 무료 한도가 2 OCPU와 12 GB에 해당한다. 블록 스토리지는 부트 포함 200 GB까지 |
 | 3 | arm64 이미지 | **QEMU + geekchat 빌드 단계 고정**(안 c) | `deploy.yml` 몇 줄, `geekchat/Dockerfile` 1줄 | 한 태그에 두 아키텍처가 들어가 VM과 Oracle을 오갈 수 있고, Gradle은 에뮬레이션 없이 돈다 |
 | 4 | CD 접속 | **환경 변수 `DEPLOY_NETWORK=direct`** | `deploy.yml`의 `if` 두 곳과 안내 문구 | 값이 없으면 지금 동작 그대로다. `vars`는 단계 `if`에서 쓸 수 있고 `secrets`는 쓸 수 없다 |
@@ -211,7 +211,7 @@ git commit -m "build(deploy): DEPLOY_NETWORK=direct면 WireGuard 없이 공인 I
 - Consumes: Task 2의 `DEPLOY_NETWORK`. 기존 `CLOUDFLARE-TUNNEL.md` 절차.
 
 - [ ] **Step 1: §1B를 쓴다.** 담을 값은 아래와 같다.
-  - 가입: 홈 리전은 **South Korea Central(Seoul)**. 춘천은 A1을 만들 수 없고 홈 리전은 바꿀 수 없다.
+  - 가입: 홈 리전은 **Japan East(Tokyo, `ap-tokyo-1`)**(2026-10-24 정정. 서울은 가입 화면의 무료 계층 목록에 없었다). 춘천은 A1을 만들 수 없고 홈 리전은 바꿀 수 없다.
   - 인스턴스: `VM.Standard.A1.Flex` 2 OCPU / 12 GB, Ubuntu 24.04(aarch64), 부트 볼륨 50 GB, 공인 IP, 오너 SSH 공개키. "out of host capacity"면 다른 가용 도메인이나 나중에 다시 시도한다.
   - 보안 목록: 기본(22)만 둔다. 80과 443은 열지 않는다(§2.3).
   - OS 방화벽: 이미지의 iptables는 건드리지 않는다. Docker가 뜬 뒤에 `netfilter-persistent save`를 돌리지 않는다. 그러면 Docker가 만든 규칙까지 파일에 저장된다.
@@ -260,7 +260,7 @@ git commit -m "build(deploy): DEPLOY_NETWORK=direct면 WireGuard 없이 공인 I
 
 ## 4. 실행 순서와 역할
 
-1. 오너: O 결정 → 서울 리전으로 가입 → 인스턴스 생성(용량 부족이면 재시도)
+1. 오너: O 결정 → 도쿄 리전으로 가입(2026-10-24 완료. 서울은 가입 화면 목록에 없었다) → 인스턴스 생성(용량 부족이면 재시도. 도쿄는 가용 도메인이 하나다)
 2. BE: Task 1, 2, 3을 develop에 넣는다. 서버 준비와 동시에 할 수 있다.
 3. 오너: §1B 서버 세팅 → 터널 → 시크릿과 `DEPLOY_NETWORK` → 노트북 사전 점검
 4. 오너 확인 → #90 머지(배포) → 스모크와 §1B 첫 배포 확인
